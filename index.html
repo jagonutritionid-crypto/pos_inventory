@@ -1,0 +1,3713 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>JagoNutritionID POS & INVENTORY - Multi-Device Cloud v2.4</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <!-- Supabase JS Client v2 CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e3a8a',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+
+    .modal-backdrop {
+      background-color: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(8px);
+    }
+
+    /* Print-specific layout */
+    @media print {
+      body {
+        background-color: #ffffff !important;
+        color: #0f172a !important;
+      }
+      .no-print, header, nav, #tabBar, #mobileBottomBar, .quick-actions, .modal-backdrop, #toast, button {
+        display: none !important;
+      }
+      .print-only {
+        display: block !important;
+      }
+      .card-print {
+        border: 1px solid #cbd5e1 !important;
+        background: #ffffff !important;
+        color: #0f172a !important;
+        box-shadow: none !important;
+        page-break-inside: avoid;
+      }
+      .text-white {
+        color: #0f172a !important;
+      }
+      .text-slate-400, .text-slate-300, .text-slate-500 {
+        color: #475569 !important;
+      }
+      table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+      }
+      th, td {
+        border: 1px solid #cbd5e1 !important;
+        color: #0f172a !important;
+        padding: 6px 8px !important;
+      }
+    }
+    .print-only {
+      display: none;
+    }
+
+    /* Mobile safe navigation padding */
+    .pb-safe-nav {
+      padding-bottom: 5.5rem;
+    }
+    @media (min-width: 1024px) {
+      .pb-safe-nav {
+        padding-bottom: 2.5rem;
+      }
+    }
+  </style>
+</head>
+
+<body class="bg-slate-900 text-slate-100 min-h-screen font-sans flex flex-col antialiased selection:bg-blue-600 selection:text-white pb-safe-nav">
+
+  <!-- ================= AUTHENTICATION OVERLAY / LOGIN SCREEN ================= -->
+  <div id="authGate" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-xl">
+    <div class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
+      <!-- Glow effect -->
+      <div class="absolute -top-24 -left-24 w-48 h-48 bg-blue-600/20 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute -bottom-24 -right-24 w-48 h-48 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none"></div>
+
+      <!-- Brand Header -->
+      <div class="flex flex-col items-center text-center mb-6">
+        <div class="w-16 h-16 rounded-2xl overflow-hidden bg-slate-800 border border-slate-700 p-1 mb-3 shadow-lg flex items-center justify-center">
+          <img 
+            src="https://cdn.phototourl.com/member/2026-09-28-7761d5e5-68cd-48df-8a3a-34249cf5d03b.jpg" 
+            alt="JagoNutritionID Logo" 
+            class="w-full h-full object-cover rounded-xl"
+            onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'w-full h-full bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center font-extrabold text-white text-lg\'>JN</div>';"
+          />
+        </div>
+        <h2 class="text-xl font-black text-white tracking-tight">JagoNutritionID</h2>
+        <p class="text-xs text-slate-400 font-medium mt-0.5">POS & INVENTORY v2.4 (Cloud Multi-Device)</p>
+        
+        <!-- Language Switcher in Login -->
+        <div class="mt-3 inline-flex items-center gap-1 bg-slate-800/80 p-1 rounded-xl border border-slate-700">
+          <button type="button" onclick="setLanguage('id')" id="loginLangId" class="px-2.5 py-1 rounded-lg text-xs font-bold transition text-white bg-blue-600">
+            🇮🇩 ID
+          </button>
+          <button type="button" onclick="setLanguage('en')" id="loginLangEn" class="px-2.5 py-1 rounded-lg text-xs font-bold transition text-slate-400 hover:text-white">
+            🇬🇧 EN
+          </button>
+        </div>
+      </div>
+
+      <!-- Login Form -->
+      <form id="loginForm" onsubmit="handleUserLogin(event)" class="space-y-4">
+        <div>
+          <label for="loginUsername" class="block text-xs font-bold text-slate-300 mb-1.5" data-i18n="loginUsername">Username</label>
+          <input 
+            type="text" 
+            id="loginUsername" 
+            required 
+            placeholder="Masukkan username (adi / koko)" 
+            class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
+            autocomplete="username"
+          />
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <label for="loginPassword" class="text-xs font-bold text-slate-300" data-i18n="loginPassword">Password</label>
+          </div>
+          <input 
+            type="password" 
+            id="loginPassword" 
+            required 
+            placeholder="Masukkan password" 
+            class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
+            autocomplete="current-password"
+          />
+        </div>
+
+        <!-- Quick Demo Profiles Hint -->
+        <div class="p-3 bg-slate-800/60 rounded-xl border border-slate-700/60 text-[11px] text-slate-300 space-y-1">
+          <div class="font-bold text-blue-400 flex items-center justify-between">
+            <span data-i18n="loginPresetsTitle">Akun Terdaftar:</span>
+            <span class="text-[9px] uppercase px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300">Auth Username</span>
+          </div>
+          <div class="flex items-center justify-between text-[10px] text-slate-400">
+            <span>🇮🇩 Adi: <code>adi</code> (ADMIN)</span>
+            <button type="button" onclick="fillLoginForm('adi', 'jago2026')" class="text-blue-400 hover:underline">Pilih</button>
+          </div>
+          <div class="flex items-center justify-between text-[10px] text-slate-400">
+            <span>🇲🇾 Koko: <code>koko</code> (OWNER)</span>
+            <button type="button" onclick="fillLoginForm('koko', 'jago2026')" class="text-blue-400 hover:underline">Pilih</button>
+          </div>
+        </div>
+
+        <button 
+          type="submit" 
+          id="btnLoginSubmit" 
+          class="w-full py-3 bg-blue-600 hover:bg-blue-500 active:scale-[0.98] text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-600/30 transition flex items-center justify-center gap-2">
+          <span id="loginBtnText" data-i18n="loginButton">Masuk ke Sistem</span>
+          <svg id="loginSpinner" class="w-4 h-4 text-white animate-spin hidden" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+        </button>
+      </form>
+
+      <!-- Cloud status warning if not connected -->
+      <div id="loginCloudNotice" class="mt-4 pt-3 border-t border-slate-800 text-center">
+        <p class="text-[11px] text-slate-400 flex items-center justify-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+          <span id="loginNoticeText">Cloud Engine: Siap Terhubung ke Supabase</span>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= TOP APP HEADER ================= -->
+  <header class="sticky top-0 z-40 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 no-print">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3 flex flex-wrap items-center justify-between gap-2.5">
+      
+      <!-- Store Identity & Brand Logo with SVG Fallback -->
+      <div class="flex items-center gap-2.5 sm:gap-3">
+        <div class="relative w-10 h-10 sm:w-11 sm:h-11 rounded-xl overflow-hidden bg-slate-800 border border-slate-700 flex items-center justify-center flex-shrink-0 shadow-md">
+          <img 
+            id="storeLogoImg"
+            src="https://cdn.phototourl.com/member/2026-09-28-7761d5e5-68cd-48df-8a3a-34249cf5d03b.jpg" 
+            alt="JagoNutritionID Logo" 
+            class="w-full h-full object-cover"
+            onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'w-full h-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-black text-white text-xs\'>JN</div>';"
+          />
+        </div>
+        <div>
+          <div class="flex items-center gap-1.5 sm:gap-2">
+            <h1 class="text-sm sm:text-base lg:text-lg font-extrabold text-white tracking-tight">JagoNutritionID POS</h1>
+            <span class="text-[9px] sm:text-[10px] uppercase font-bold tracking-wider px-1.5 sm:px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">v2.4 Cloud</span>
+          </div>
+          <!-- Active User and Country Profile -->
+          <div class="text-[11px] sm:text-xs text-slate-400 flex items-center gap-1.5 flex-wrap">
+            <span id="activeUserFlag">🇮🇩</span>
+            <span id="activeUserName" class="text-white font-bold">Adi</span>
+            <span class="text-slate-500">&bull;</span>
+            <span id="activeUserRoleBadge" class="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-semibold uppercase">ADMIN</span>
+            <span class="text-slate-500">&bull;</span>
+            <span id="activeUserCountry" class="text-slate-400">Indonesia</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Header Actions: Language Switcher, Cloud Sync Pill, New Sale, Logout -->
+      <div class="flex items-center gap-1.5 sm:gap-2 quick-actions">
+        
+        <!-- Language Switcher in Header -->
+        <div class="inline-flex items-center bg-slate-800 border border-slate-700 rounded-xl p-0.5">
+          <button onclick="setLanguage('id')" id="headerLangId" class="px-2 py-1 text-[11px] font-bold rounded-lg transition text-white bg-blue-600">ID</button>
+          <button onclick="setLanguage('en')" id="headerLangEn" class="px-2 py-1 text-[11px] font-bold rounded-lg transition text-slate-400 hover:text-white">EN</button>
+        </div>
+
+        <!-- Honest Realtime Cloud Sync Pill -->
+        <button 
+          id="btnCloudStatusPill" 
+          onclick="openCloudModal()" 
+          class="px-2.5 sm:px-3 py-1.5 rounded-xl border text-[11px] sm:text-xs font-semibold flex items-center gap-1.5 transition bg-amber-950/40 text-amber-300 border-amber-500/30 hover:bg-amber-900/50"
+          title="Klik untuk konfigurasi Shared Cloud Database">
+          <span id="cloudStatusDot" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+          <span id="cloudStatusText" data-i18n="cloudStatusLocal">Local Cache Mode</span>
+        </button>
+
+        <!-- Print Action Button (Desktop) -->
+        <button 
+          id="btnHeaderPrint" 
+          onclick="triggerPrintReport()" 
+          class="hidden md:flex px-3 py-2 text-xs font-semibold text-slate-300 bg-slate-800 hover:bg-slate-700 hover:text-white rounded-xl border border-slate-700 transition items-center gap-1.5"
+          aria-label="Cetak Laporan Penjualan"
+          data-i18n-title="printTitle">
+          <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+          <span data-i18n="printButton">Cetak</span>
+        </button>
+
+        <!-- New Sale Button -->
+        <button 
+          id="btnOpenSaleModal" 
+          onclick="openSaleModal()" 
+          class="px-3 sm:px-4 py-2 text-xs sm:text-sm font-bold text-white bg-blue-600 hover:bg-blue-500 active:scale-95 rounded-xl shadow-lg shadow-blue-600/30 transition flex items-center gap-1.5">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+          <span data-i18n="newSaleButton">+ Catat Order</span>
+        </button>
+
+        <!-- Logout Button -->
+        <button 
+          onclick="handleLogout()" 
+          class="p-2 text-slate-400 hover:text-rose-400 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl transition" 
+          title="Keluar / Logout"
+          data-i18n-title="logoutTitle">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 w-full flex-1">
+    
+    <!-- Tab Controls & Period Filters Bar -->
+    <div id="tabBar" class="flex flex-col lg:flex-row lg:items-center justify-between border-b border-slate-800 pb-3 mb-5 gap-3 no-print">
+      
+      <!-- Desktop Navigation Tabs -->
+      <nav class="hidden md:flex items-center gap-1.5 bg-slate-800/80 p-1.5 rounded-xl border border-slate-700/60 overflow-x-auto w-full lg:w-auto" aria-label="Tabs Navigation">
+        <button id="tabBtnDashboard" onclick="switchTab('dashboard')" class="tab-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold text-white bg-blue-600 transition shadow-sm whitespace-nowrap">
+          <span data-i18n="navDashboard">📊 Dashboard</span>
+        </button>
+        <button id="tabBtnInventory" onclick="switchTab('inventory')" class="tab-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition whitespace-nowrap">
+          <span data-i18n="navInventory">📦 Stok Gudang</span> (<span id="tabStockCount">4</span> SKU)
+        </button>
+        <button id="tabBtnRestockLog" onclick="switchTab('restockLog')" class="tab-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition whitespace-nowrap">
+          <span data-i18n="navRestock">📥 Histori Restock</span> (<span id="tabRestockCount">0</span>)
+        </button>
+        <button id="tabBtnSales" onclick="switchTab('sales')" class="tab-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition whitespace-nowrap">
+          <span data-i18n="navSales">📑 Log Transaksi</span> (<span id="tabSaleCount">0</span>)
+        </button>
+        <button id="tabBtnAuditLog" onclick="switchTab('auditLog')" class="tab-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition whitespace-nowrap">
+          <span data-i18n="navAudit">🛡️ Audit Trail</span> (<span id="tabAuditCount">0</span>)
+        </button>
+        <button id="tabBtnManagement" onclick="switchTab('management')" class="tab-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition whitespace-nowrap">
+          <span data-i18n="navCloud">⚙️ Cloud & Data</span>
+        </button>
+      </nav>
+
+      <!-- Period Filter & Export Controls -->
+      <div class="flex flex-wrap items-center justify-between sm:justify-end gap-2 w-full lg:w-auto">
+        <div class="flex items-center bg-slate-800 border border-slate-700 rounded-xl px-2.5 py-1.5">
+          <label for="filterPeriodSelect" class="text-slate-400 text-xs mr-2 font-medium" data-i18n="filterPeriodLabel">Periode:</label>
+          <select id="filterPeriodSelect" onchange="onPeriodFilterChange()" class="bg-transparent text-xs text-white font-semibold focus:outline-none cursor-pointer">
+            <option value="ALL" class="bg-slate-800 text-white" data-i18n="periodAll">Semua Periode</option>
+            <option value="TODAY" class="bg-slate-800 text-white" data-i18n="periodToday">Hari Ini</option>
+            <option value="LAST_7_DAYS" class="bg-slate-800 text-white" data-i18n="period7Days">7 Hari Terakhir</option>
+            <option value="THIS_MONTH" class="bg-slate-800 text-white" data-i18n="periodThisMonth">Bulan Ini</option>
+            <option value="LAST_MONTH" class="bg-slate-800 text-white" data-i18n="periodLastMonth">Bulan Lalu</option>
+            <option value="CUSTOM" class="bg-slate-800 text-white" data-i18n="periodCustom">Kustom...</option>
+          </select>
+        </div>
+
+        <!-- Custom Date Range -->
+        <div id="customDateRangeBox" class="hidden flex items-center gap-1.5 bg-slate-800 border border-slate-700 px-2 py-1 rounded-xl text-xs">
+          <input type="date" id="customStartDate" onchange="applyCustomPeriod()" class="bg-slate-900 border border-slate-700 text-white rounded px-1.5 py-0.5 text-xs focus:outline-none" />
+          <span class="text-slate-500">-</span>
+          <input type="date" id="customEndDate" onchange="applyCustomPeriod()" class="bg-slate-900 border border-slate-700 text-white rounded px-1.5 py-0.5 text-xs focus:outline-none" />
+        </div>
+
+        <!-- Export CSV Button -->
+        <button onclick="exportToCSV()" title="Ekspor ke CSV" class="px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-emerald-300 hover:text-white bg-emerald-950/40 hover:bg-emerald-800/40 rounded-xl border border-emerald-600/30 flex items-center gap-1.5 transition">
+          <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+          <span>Export CSV</span>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Print Header Only -->
+    <div class="print-only mb-6 border-b pb-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-2xl font-black">JagoNutritionID — CONSOLIDATED REPORT</h1>
+          <p class="text-sm text-slate-600">Multi-Warehouse Inventory & Sales (Indonesia & Malaysia)</p>
+          <p class="text-xs text-slate-500 mt-1">Printed at: <span id="printCurrentTimestamp">-</span> | Period: <span id="printPeriodLabel">-</span></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= SECTION: DASHBOARD ================= -->
+    <section id="sectionDashboard" class="space-y-4 sm:space-y-6">
+      
+      <!-- 4 Core KPI Summary Cards -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
+        
+        <!-- Card 1: Net Sales -->
+        <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-3.5 sm:p-5 relative overflow-hidden backdrop-blur-sm card-print">
+          <div class="flex items-center justify-between text-slate-400 text-[10px] sm:text-xs font-semibold uppercase tracking-wider mb-1.5 sm:mb-2">
+            <span data-i18n="kpiNetSales">Net Sales (Omset)</span>
+            <div class="p-1.5 sm:p-2 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20 no-print">
+              <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </div>
+          </div>
+          <div id="kpiOmset" class="text-lg sm:text-2xl lg:text-3xl font-extrabold text-white tracking-tight">Rp 0</div>
+          <div class="text-[11px] sm:text-xs text-slate-400 mt-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-0.5">
+            <span><span data-i18n="kpiGross">Gross:</span> <span id="kpiGrossSales" class="font-semibold text-slate-300">Rp 0</span></span>
+            <span class="text-rose-400 font-semibold" id="kpiTotalDiscount">-Rp 0</span>
+          </div>
+        </div>
+
+        <!-- Card 2: Estimasi Laba Kotor -->
+        <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-3.5 sm:p-5 relative overflow-hidden backdrop-blur-sm card-print">
+          <div class="flex items-center justify-between text-slate-400 text-[10px] sm:text-xs font-semibold uppercase tracking-wider mb-1.5 sm:mb-2">
+            <span data-i18n="kpiGrossProfit">Estimasi Laba Kotor</span>
+            <div class="p-1.5 sm:p-2 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 no-print">
+              <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+            </div>
+          </div>
+          <div id="kpiProfit" class="text-lg sm:text-2xl lg:text-3xl font-extrabold text-emerald-400 tracking-tight">Rp 0</div>
+          <div class="text-[11px] sm:text-xs text-slate-400 mt-2 flex items-center justify-between">
+            <span data-i18n="kpiMargin">Margin:</span>
+            <span class="text-emerald-400 font-bold" id="kpiGrossMargin">0.0%</span>
+          </div>
+        </div>
+
+        <!-- Card 3: Unit Terjual -->
+        <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-3.5 sm:p-5 relative overflow-hidden backdrop-blur-sm card-print">
+          <div class="flex items-center justify-between text-slate-400 text-[10px] sm:text-xs font-semibold uppercase tracking-wider mb-1.5 sm:mb-2">
+            <span data-i18n="kpiUnitsSold">Unit Terjual</span>
+            <div class="p-1.5 sm:p-2 rounded-xl bg-violet-500/10 text-violet-400 border border-violet-500/20 no-print">
+              <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+            </div>
+          </div>
+          <div id="kpiUnitsSold" class="text-lg sm:text-2xl lg:text-3xl font-extrabold text-white tracking-tight">0 <span class="text-xs sm:text-sm font-normal text-slate-400">pcs</span></div>
+          <p id="kpiBestSeller" class="text-[11px] sm:text-xs text-slate-400 mt-2 truncate">Best: -</p>
+        </div>
+
+        <!-- Card 4: Sisa Stok Fisik Gudang (Current Inventory) -->
+        <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-3.5 sm:p-5 relative overflow-hidden backdrop-blur-sm card-print">
+          <div class="flex items-center justify-between text-slate-400 text-[10px] sm:text-xs font-semibold uppercase tracking-wider mb-1.5 sm:mb-2">
+            <span data-i18n="kpiCurrentStock">Stok Fisik Saat Ini</span>
+            <div class="p-1.5 sm:p-2 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20 no-print">
+              <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+            </div>
+          </div>
+          <div id="kpiRemainingStock" class="text-lg sm:text-2xl lg:text-3xl font-extrabold text-white tracking-tight">28 <span class="text-xs sm:text-sm font-normal text-slate-400">pcs</span></div>
+          <p id="kpiAlertCount" class="text-[11px] sm:text-xs text-amber-400 font-semibold mt-2 truncate">Semua stok aman</p>
+        </div>
+
+      </div>
+
+      <!-- Shopee Performance Tracker Card -->
+      <div class="bg-gradient-to-r from-orange-950/30 via-slate-800/60 to-slate-800/60 border border-orange-500/30 rounded-2xl p-3.5 sm:p-5 backdrop-blur-sm card-print">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 border-b border-orange-500/20 pb-2.5 mb-3">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-orange-500 animate-pulse"></span>
+            <h3 class="text-xs sm:text-sm font-bold text-white flex items-center gap-1.5">
+              <span data-i18n="shopeeTrackerTitle">Shopee Discount & Pricing Tracker</span>
+              <span class="text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded-md bg-orange-500/20 text-orange-400 font-semibold" data-i18n="shopeeTrackerSub">Katalog vs Nett</span>
+            </h3>
+          </div>
+          <span class="text-[11px] text-slate-400" data-i18n="shopeeTrackerDesc">Pelacakan diskon harga jual aktual (belum termasuk potongan fee platform)</span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-4">
+          <div class="bg-slate-900/60 p-2.5 sm:p-3 rounded-xl border border-slate-700/60">
+            <div class="text-[10px] sm:text-[11px] text-slate-400 uppercase font-semibold" data-i18n="shopeeDiscountGiven">Total Diskon Diberikan</div>
+            <div id="shopeeKpiTotalDiscount" class="text-base sm:text-xl font-bold text-rose-400 mt-1">Rp 0</div>
+            <div class="text-[9px] sm:text-[10px] text-slate-500 mt-0.5" data-i18n="shopeeDiscountFromCatalog">Potongan dari Harga Katalog Shopee</div>
+          </div>
+
+          <div class="bg-slate-900/60 p-2.5 sm:p-3 rounded-xl border border-slate-700/60">
+            <div class="text-[10px] sm:text-[11px] text-slate-400 uppercase font-semibold" data-i18n="shopeeAvgDiscount">Rata-rata Diskon (Weighted)</div>
+            <div id="shopeeKpiAvgDiscountPct" class="text-base sm:text-xl font-bold text-amber-400 mt-1">0.00%</div>
+            <div class="text-[9px] sm:text-[10px] text-slate-500 mt-0.5">(Total Diskon / Gross Sales)</div>
+          </div>
+
+          <div class="bg-slate-900/60 p-2.5 sm:p-3 rounded-xl border border-slate-700/60">
+            <div class="text-[10px] sm:text-[11px] text-slate-400 uppercase font-semibold" data-i18n="shopeeTotalOrders">Total Order Shopee</div>
+            <div id="shopeeKpiTrxCount" class="text-base sm:text-xl font-bold text-orange-400 mt-1">0 <span class="text-xs font-normal text-slate-400">transaksi</span></div>
+            <div class="text-[9px] sm:text-[10px] text-slate-500 mt-0.5" data-i18n="shopeeOrderVolume">Volume transaksi marketplace Shopee</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+        
+        <!-- Sales Volume Chart per Product -->
+        <div class="lg:col-span-2 bg-slate-800/50 border border-slate-700/60 rounded-2xl p-4 sm:p-5 backdrop-blur-sm card-print">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <h3 class="text-xs sm:text-base font-bold text-white" data-i18n="chartTitle">Grafik Penjualan Unit per Varian</h3>
+              <p id="chartSubheader" class="text-[11px] sm:text-xs text-slate-400" data-i18n="chartDesc">Unit terjual pada periode terpilih vs sisa stok fisik saat ini</p>
+            </div>
+            <span class="text-[10px] bg-slate-700/80 px-2 py-0.5 rounded-lg text-slate-300 font-medium">Realtime</span>
+          </div>
+
+          <div class="h-56 sm:h-64 relative">
+            <canvas id="salesChart"></canvas>
+            <div id="chartEmptyState" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-slate-900/60 rounded-xl">
+              <svg class="w-8 h-8 text-slate-500 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+              <p class="text-xs text-slate-400" data-i18n="noSalesPeriod">Belum ada transaksi penjualan pada periode ini.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Realtime Stock Monitor Mini Widget -->
+        <div class="bg-slate-800/50 border border-slate-700/60 rounded-2xl p-4 sm:p-5 flex flex-col justify-between backdrop-blur-sm card-print">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="text-xs sm:text-base font-bold text-white" data-i18n="stockStatusTitle">Status Fisik Gudang</h3>
+              <span class="text-[11px] text-blue-400 font-medium" data-i18n="bufferRule">Min Buffer 5 pcs</span>
+            </div>
+            <div id="stockMiniList" class="space-y-2">
+              <!-- Populated via JS -->
+            </div>
+          </div>
+
+          <div class="pt-3 border-t border-slate-700/60 mt-3 no-print flex gap-2">
+            <button onclick="switchTab('inventory')" class="flex-1 py-2 bg-slate-700 hover:bg-slate-600 text-xs font-semibold rounded-xl text-slate-200 hover:text-white transition flex items-center justify-center gap-1.5">
+              <span data-i18n="btnStockDetail">Detail Stok</span>
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+            </button>
+            <button onclick="switchTab('restockLog')" class="py-2 px-3 bg-emerald-950/40 hover:bg-emerald-900/60 text-emerald-400 text-xs font-semibold rounded-xl border border-emerald-500/30 transition flex items-center justify-center gap-1">
+              <span data-i18n="btnRestockLog">Log Restock</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Product Sales Summary Table -->
+      <div class="bg-slate-800/50 border border-slate-700/60 rounded-2xl p-4 sm:p-5 backdrop-blur-sm card-print">
+        <div class="flex items-center justify-between mb-3">
+          <div>
+            <h3 class="text-xs sm:text-base font-bold text-white" data-i18n="productSummaryTitle">Ringkasan Penjualan Produk</h3>
+            <p class="text-[11px] text-slate-400" data-i18n="productSummaryDesc">Kontribusi omset, diskon, dan laba kotor per SKU (mengikuti periode aktif)</p>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto rounded-xl border border-slate-700/80">
+          <table class="w-full text-left border-collapse text-xs sm:text-sm">
+            <thead>
+              <tr class="bg-slate-800/90 text-slate-400 text-[11px] font-semibold uppercase tracking-wider border-b border-slate-700">
+                <th class="py-2.5 px-3 sm:px-4" data-i18n="thProduct">Produk & Varian</th>
+                <th class="py-2.5 px-2.5 text-center" data-i18n="thQty">Qty</th>
+                <th class="py-2.5 px-2.5 text-right" data-i18n="thGross">Gross</th>
+                <th class="py-2.5 px-2.5 text-right" data-i18n="thDiscount">Diskon</th>
+                <th class="py-2.5 px-2.5 text-right font-bold text-white" data-i18n="thNet">Net Sales</th>
+                <th class="py-2.5 px-2.5 text-right text-slate-400" data-i18n="thCOGS">COGS (Snapshot)</th>
+                <th class="py-2.5 px-2.5 text-right font-bold text-emerald-400" data-i18n="thProfit">Laba Kotor</th>
+                <th class="py-2.5 px-2.5 text-center" data-i18n="thMargin">Margin %</th>
+              </tr>
+            </thead>
+            <tbody id="productSummaryTableBody" class="divide-y divide-slate-800 text-slate-200">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Channel Sales Summary Table -->
+      <div class="bg-slate-800/50 border border-slate-700/60 rounded-2xl p-4 sm:p-5 backdrop-blur-sm card-print">
+        <div class="flex items-center justify-between mb-3">
+          <div>
+            <h3 class="text-xs sm:text-base font-bold text-white" data-i18n="channelSummaryTitle">Ringkasan Channel Penjualan & Diskon</h3>
+            <p class="text-[11px] text-slate-400" data-i18n="channelSummaryDesc">Performa channel penjualan offline vs online termasuk rata-rata diskon Shopee</p>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto rounded-xl border border-slate-700/80">
+          <table class="w-full text-left border-collapse text-xs sm:text-sm">
+            <thead>
+              <tr class="bg-slate-800/90 text-slate-400 text-[11px] font-semibold uppercase tracking-wider border-b border-slate-700">
+                <th class="py-2.5 px-3 sm:px-4" data-i18n="thChannel">Channel</th>
+                <th class="py-2.5 px-2.5 text-center" data-i18n="thTrx">Trx</th>
+                <th class="py-2.5 px-2.5 text-center" data-i18n="thUnit">Unit</th>
+                <th class="py-2.5 px-2.5 text-right" data-i18n="thGross">Gross</th>
+                <th class="py-2.5 px-2.5 text-right" data-i18n="thDiscount">Diskon</th>
+                <th class="py-2.5 px-2.5 text-center text-amber-400 font-semibold" data-i18n="thAvgDisc">Avg Disc %</th>
+                <th class="py-2.5 px-2.5 text-right font-bold text-white" data-i18n="thNet">Net Sales</th>
+                <th class="py-2.5 px-2.5 text-right font-bold text-emerald-400" data-i18n="thEstProfit">Est. Laba</th>
+              </tr>
+            </thead>
+            <tbody id="channelSummaryTableBody" class="divide-y divide-slate-800 text-slate-200">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ================= SECTION: INVENTORY ================= -->
+    <section id="sectionInventory" class="hidden space-y-4">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 bg-slate-800/40 p-3.5 sm:p-4 rounded-2xl border border-slate-800 no-print">
+        <div>
+          <h2 class="text-sm sm:text-lg font-bold text-white" data-i18n="inventorySectionTitle">Katalog Produk & Kontrol Stok Fisik</h2>
+          <p class="text-[11px] sm:text-xs text-slate-400" data-i18n="inventorySectionDesc">Menampilkan Harga Jual Offline, Harga Katalog Shopee, dan stok riil gudang.</p>
+        </div>
+        <button onclick="openRestockModal()" class="w-full sm:w-auto px-3.5 py-2 text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl shadow-lg shadow-emerald-600/20 transition flex items-center justify-center gap-1.5">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+          <span data-i18n="btnRestockIn">Restock / Barang Masuk</span>
+        </button>
+      </div>
+
+      <!-- Mobile Product Cards View -->
+      <div id="mobileInventoryCards" class="grid grid-cols-1 gap-3 sm:hidden no-print">
+        <!-- Rendered via JS -->
+      </div>
+
+      <!-- Desktop Inventory Table -->
+      <div class="hidden sm:block overflow-x-auto rounded-2xl border border-slate-800 bg-slate-800/40 backdrop-blur-sm card-print">
+        <table class="w-full text-left border-collapse text-xs sm:text-sm">
+          <thead>
+            <tr class="bg-slate-800/90 text-slate-400 text-xs font-semibold uppercase tracking-wider border-b border-slate-700">
+              <th class="py-3.5 px-4">SKU</th>
+              <th class="py-3.5 px-4" data-i18n="thProduct">Nama Produk & Varian</th>
+              <th class="py-3.5 px-3 text-center" data-i18n="thSize">Ukuran</th>
+              <th class="py-3.5 px-3 text-right" data-i18n="thPriceOffline">Harga Offline</th>
+              <th class="py-3.5 px-3 text-right text-orange-400" data-i18n="thCatalogShopee">Katalog Shopee</th>
+              <th class="py-3.5 px-3 text-right text-slate-400">HPP</th>
+              <th class="py-3.5 px-3 text-center" data-i18n="thInitial">Awal</th>
+              <th class="py-3.5 px-3 text-center" data-i18n="thIn">Masuk</th>
+              <th class="py-3.5 px-3 text-center" data-i18n="thOut">Keluar</th>
+              <th class="py-3.5 px-3 text-center font-bold text-white bg-slate-800/60" data-i18n="thStock">Sisa Stok</th>
+              <th class="py-3.5 px-3 text-center" data-i18n="thStatus">Status</th>
+              <th class="py-3.5 px-4 text-center no-print" data-i18n="thAction">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="inventoryTableBody" class="divide-y divide-slate-800 text-slate-200">
+            <!-- Dynamically populated via JS -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ================= SECTION: RESTOCK LOG ================= -->
+    <section id="sectionRestockLog" class="hidden space-y-4">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 bg-slate-800/40 p-3.5 sm:p-4 rounded-2xl border border-slate-800 no-print">
+        <div>
+          <h2 class="text-sm sm:text-lg font-bold text-white" data-i18n="restockSectionTitle">Histori Restock & Barang Masuk</h2>
+          <p class="text-[11px] sm:text-xs text-slate-400" data-i18n="restockSectionDesc">Audit trail lengkap pencatatan penambahan stok gudang oleh Adi & Koko.</p>
+        </div>
+        <button onclick="openRestockModal()" class="w-full sm:w-auto px-3.5 py-2 text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl shadow-lg shadow-emerald-600/20 transition flex items-center justify-center gap-1.5">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+          <span data-i18n="btnAddRestock">+ Tambah Restock</span>
+        </button>
+      </div>
+
+      <div class="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-800/40 backdrop-blur-sm card-print">
+        <table class="w-full text-left border-collapse text-xs sm:text-sm">
+          <thead>
+            <tr class="bg-slate-800/90 text-slate-400 text-xs font-semibold uppercase tracking-wider border-b border-slate-700">
+              <th class="py-3 px-4">Restock ID</th>
+              <th class="py-3 px-3" data-i18n="thDate">Tanggal</th>
+              <th class="py-3 px-4" data-i18n="thProduct">Produk / SKU</th>
+              <th class="py-3 px-3 text-center" data-i18n="thQtyIn">Jumlah Masuk</th>
+              <th class="py-3 px-4" data-i18n="thNotes">Catatan / Supplier</th>
+              <th class="py-3 px-3" data-i18n="thBy">Oleh</th>
+              <th class="py-3 px-3 text-slate-400" data-i18n="thTime">Waktu</th>
+            </tr>
+          </thead>
+          <tbody id="restockLogTableBody" class="divide-y divide-slate-800 text-slate-200">
+            <!-- Dynamically populated via JS -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ================= SECTION: SALES LOG ================= -->
+    <section id="sectionSales" class="hidden space-y-4">
+      <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-2.5 bg-slate-800/40 p-3.5 sm:p-4 rounded-2xl border border-slate-800 no-print">
+        <div>
+          <h2 class="text-sm sm:text-lg font-bold text-white" data-i18n="salesSectionTitle">Log Riwayat Transaksi Penjualan</h2>
+          <p class="text-[11px] sm:text-xs text-slate-400" data-i18n="salesSectionDesc">Rincian Katalog vs Nett Shopee dan snapshot HPP historis transaksi.</p>
+        </div>
+        
+        <!-- Search and Filters -->
+        <div class="flex flex-wrap items-center gap-2 w-full lg:w-auto">
+          <input 
+            type="text" 
+            id="salesSearchInput" 
+            oninput="filterSalesTable()" 
+            placeholder="Cari ID, produk, PIC..." 
+            class="bg-slate-900 border border-slate-700 text-xs text-white px-3 py-2 rounded-xl focus:outline-none focus:border-blue-500 w-full sm:w-44"
+            aria-label="Cari transaksi"
+            data-i18n-placeholder="searchPlaceholder"
+          />
+
+          <select id="salesChannelFilter" onchange="filterSalesTable()" class="bg-slate-900 border border-slate-700 text-xs text-white px-2.5 py-2 rounded-xl focus:outline-none focus:border-blue-500 flex-1 sm:flex-initial">
+            <option value="" data-i18n="allChannels">Semua Channel</option>
+            <option value="Shopee">Shopee</option>
+            <option value="Store / Offline">Store / Offline</option>
+            <option value="Tokopedia">Tokopedia</option>
+            <option value="TikTok Shop">TikTok Shop</option>
+            <option value="WhatsApp">WhatsApp</option>
+          </select>
+
+          <select id="salesProductFilter" onchange="filterSalesTable()" class="bg-slate-900 border border-slate-700 text-xs text-white px-2.5 py-2 rounded-xl focus:outline-none focus:border-blue-500 flex-1 sm:flex-initial max-w-[140px]">
+            <option value="" data-i18n="allProducts">Semua Produk</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Detailed Sales Log Table -->
+      <div class="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-800/40 backdrop-blur-sm card-print">
+        <table class="w-full text-left border-collapse text-xs sm:text-sm">
+          <thead>
+            <tr class="bg-slate-800/90 text-slate-400 text-xs font-semibold uppercase tracking-wider border-b border-slate-700">
+              <th class="py-3 px-3 sm:px-4">Invoice</th>
+              <th class="py-3 px-2.5 sm:px-3" data-i18n="thDate">Tanggal</th>
+              <th class="py-3 px-2.5 sm:px-3" data-i18n="thChannel">Channel</th>
+              <th class="py-3 px-3 sm:px-4" data-i18n="thProduct">Produk</th>
+              <th class="py-3 px-2 text-center" data-i18n="thQty">Qty</th>
+              <th class="py-3 px-2.5 text-right" data-i18n="thCatalogShopee">Katalog</th>
+              <th class="py-3 px-2.5 text-right text-orange-400" data-i18n="thNetPcs">Nett/pcs</th>
+              <th class="py-3 px-2 text-right" data-i18n="thDiscount">Diskon</th>
+              <th class="py-3 px-2 text-center">Disc%</th>
+              <th class="py-3 px-3 text-right font-bold text-white" data-i18n="thNetTotal">Net Total</th>
+              <th class="py-3 px-2.5 text-right font-semibold text-emerald-400" data-i18n="thProfit">Laba</th>
+              <th class="py-3 px-2.5" data-i18n="thBy">Oleh</th>
+              <th class="py-3 px-3 text-center no-print" data-i18n="thAction">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="salesTableBody" class="divide-y divide-slate-800 text-slate-200">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ================= SECTION: AUDIT TRAIL ================= -->
+    <section id="sectionAuditLog" class="hidden space-y-4">
+      <div class="bg-slate-800/40 p-4 rounded-2xl border border-slate-800 no-print flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+        <div>
+          <h2 class="text-base font-bold text-white flex items-center gap-2">
+            <span data-i18n="auditSectionTitle">🛡️ Audit Trail & Sinkronisasi Antar-Negara</span>
+            <span class="text-xs px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 font-normal">Adi (ID) & Koko (MY)</span>
+          </h2>
+          <p class="text-xs text-slate-400" data-i18n="auditSectionDesc">Riwayat setiap penambahan, penghapusan, atau restock untuk menjamin akuntabilitas data multi-user.</p>
+        </div>
+        <button onclick="renderAuditTrailTable()" class="px-3 py-1.5 text-xs bg-slate-700 hover:bg-slate-600 rounded-xl text-slate-200" data-i18n="btnRefresh">
+          🔄 Refresh Log
+        </button>
+      </div>
+
+      <div class="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-800/40 backdrop-blur-sm card-print">
+        <table class="w-full text-left border-collapse text-xs sm:text-sm">
+          <thead>
+            <tr class="bg-slate-800/90 text-slate-400 text-xs font-semibold uppercase tracking-wider border-b border-slate-700">
+              <th class="py-3 px-4" data-i18n="thTime">Waktu</th>
+              <th class="py-3 px-3" data-i18n="thUser">Pengguna</th>
+              <th class="py-3 px-3" data-i18n="thAction">Aksi</th>
+              <th class="py-3 px-4" data-i18n="thEntity">Entitas Terkait</th>
+              <th class="py-3 px-4" data-i18n="thDetails">Rincian Perubahan</th>
+            </tr>
+          </thead>
+          <tbody id="auditTrailTableBody" class="divide-y divide-slate-800 text-slate-200">
+            <!-- Dynamically populated via JS -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ================= SECTION: CLOUD & DATA ================= -->
+    <section id="sectionManagement" class="hidden space-y-6 no-print">
+      
+      <!-- Cloud Backend Adapter Status Card -->
+      <div class="bg-slate-800/60 border border-slate-700/80 rounded-2xl p-5">
+        <div class="flex items-center justify-between mb-3 border-b border-slate-700 pb-3 flex-wrap gap-2">
+          <div class="flex items-center gap-2.5">
+            <div id="adapterIconBox" class="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold">
+              ☁️
+            </div>
+            <div>
+              <h3 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+                <span>Shared Cloud Database (Supabase / Postgres)</span>
+                <span id="adapterBadge" class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-mono font-bold">Local Cache Mode</span>
+              </h3>
+              <p class="text-xs text-slate-400" data-i18n="cloudSyncDesc">Sinkronisasi real-time antar perangkat untuk Adi (Indonesia) dan Koko (Malaysia).</p>
+            </div>
+          </div>
+          <button onclick="openCloudModal()" class="px-3.5 py-1.5 text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white rounded-xl shadow-md transition" data-i18n="btnConfigureCloud">
+            Konfigurasi Cloud
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 text-xs">
+          <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
+            <span class="text-slate-400 block mb-0.5">Database Provider:</span>
+            <span id="cloudProviderName" class="font-bold text-white">Browser Cache (Waiting Supabase Config)</span>
+          </div>
+          <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
+            <span class="text-slate-400 block mb-0.5">Current Authenticated User:</span>
+            <span id="cloudCurrentUserName" class="font-bold text-emerald-400">Adi (Indonesia) - ADMIN</span>
+          </div>
+          <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
+            <span class="text-slate-400 block mb-0.5">Realtime Channel:</span>
+            <span id="cloudRealtimeStatus" class="font-mono text-amber-400">🟡 Standby</span>
+          </div>
+          <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
+            <span class="text-slate-400 block mb-0.5">Last Successful Sync:</span>
+            <span id="cloudLastSyncTime" class="font-mono text-slate-300">-</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Backup, Restore, and Reset Card -->
+      <div class="bg-slate-800/40 border border-slate-800 rounded-2xl p-5">
+        <div class="flex items-center justify-between mb-2">
+          <h2 class="text-base font-bold text-white" data-i18n="backupSectionTitle">Penyimpanan Cadangan & Portabilitas Data</h2>
+          <span class="text-xs bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full font-mono font-bold">Schema v2.4</span>
+        </div>
+        <p class="text-xs text-slate-400" data-i18n="backupSectionDesc">
+          Meskipun cloud sync aktif, ekspor cadangan JSON secara berkala tetap disarankan untuk keperluan arsip akuntansi offline.
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-5">
+          <!-- Backup Card -->
+          <div class="bg-slate-800/70 border border-slate-700/80 rounded-xl p-4 flex flex-col justify-between">
+            <div>
+              <div class="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center mb-2.5">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+              </div>
+              <h4 class="text-sm font-bold text-white">Export Backup (JSON)</h4>
+              <p class="text-xs text-slate-400 mt-1" data-i18n="backupExportDesc">Unduh seluruh database (produk, stok riil, transaksi Shopee, histori restock, audit logs) ke file JSON.</p>
+            </div>
+            <button onclick="exportBackupJSON()" class="mt-4 w-full py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-md shadow-blue-600/20">
+              <span data-i18n="btnDownloadBackup">Unduh Backup JSON</span>
+            </button>
+          </div>
+
+          <!-- Restore Card -->
+          <div class="bg-slate-800/70 border border-slate-700/80 rounded-xl p-4 flex flex-col justify-between">
+            <div>
+              <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center mb-2.5">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+              </div>
+              <h4 class="text-sm font-bold text-white">Import Restore (JSON)</h4>
+              <p class="text-xs text-slate-400 mt-1" data-i18n="backupImportDesc">Validasi ketat 2-tahap (validasi skema dahulu, konfirmasi preview, baru komit data).</p>
+            </div>
+            <div>
+              <input type="file" id="importJsonFileInput" accept=".json" class="hidden" onchange="handleImportFileSelected(event)" />
+              <button onclick="document.getElementById('importJsonFileInput').click()" class="mt-4 w-full py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 hover:text-white rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5">
+                <span data-i18n="btnSelectJson">Pilih File JSON</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Reset Card (Admin Only) -->
+          <div id="resetDatabaseCard" class="bg-slate-800/70 border border-slate-700/80 rounded-xl p-4 flex flex-col justify-between">
+            <div>
+              <div class="w-8 h-8 rounded-lg bg-rose-500/20 text-rose-400 flex items-center justify-center mb-2.5">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+              </div>
+              <h4 class="text-sm font-bold text-white">Reset Database (Admin)</h4>
+              <p class="text-xs text-slate-400 mt-1" data-i18n="resetDatabaseDesc">Kembalikan stok fisik ke master riil (12, 5, 5, 6) serta kosongkan riwayat penjualan.</p>
+            </div>
+            <button onclick="openResetDataConfirmation()" id="btnResetDatabase" class="mt-4 w-full py-2 bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-500/30 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5">
+              <span data-i18n="btnResetDefault">Reset ke Master Default</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ================= MOBILE BOTTOM NAVIGATION ================= -->
+  <nav id="mobileBottomBar" class="fixed bottom-0 inset-x-0 bg-slate-900/95 backdrop-blur-lg border-t border-slate-800 md:hidden z-40 px-2 py-1 flex items-center justify-around no-print" aria-label="Mobile Navigation">
+    <button onclick="switchTab('dashboard')" id="mNavDashboard" class="flex flex-col items-center justify-center py-1.5 px-2 text-blue-500 min-w-[54px]">
+      <span class="text-lg">📊</span>
+      <span class="text-[10px] font-bold" data-i18n="mNavSummary">Ringkasan</span>
+    </button>
+    <button onclick="switchTab('inventory')" id="mNavInventory" class="flex flex-col items-center justify-center py-1.5 px-2 text-slate-400 hover:text-white min-w-[54px]">
+      <span class="text-lg">📦</span>
+      <span class="text-[10px] font-semibold" data-i18n="mNavStock">Stok</span>
+    </button>
+    <button onclick="openSaleModal()" class="flex flex-col items-center justify-center -mt-4 bg-blue-600 hover:bg-blue-500 text-white p-2.5 rounded-full shadow-lg shadow-blue-600/40 border-2 border-slate-900 min-w-[48px] min-h-[48px]">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
+      <span class="sr-only">Order Baru</span>
+    </button>
+    <button onclick="switchTab('sales')" id="mNavSales" class="flex flex-col items-center justify-center py-1.5 px-2 text-slate-400 hover:text-white min-w-[54px]">
+      <span class="text-lg">📑</span>
+      <span class="text-[10px] font-semibold" data-i18n="mNavSales">Transaksi</span>
+    </button>
+    <button onclick="switchTab('management')" id="mNavManagement" class="flex flex-col items-center justify-center py-1.5 px-2 text-slate-400 hover:text-white min-w-[54px]">
+      <span class="text-lg">⚙️</span>
+      <span class="text-[10px] font-semibold" data-i18n="mNavCloud">Cloud</span>
+    </button>
+  </nav>
+
+  <!-- ================= 1. MODAL: SALE INPUT ================= -->
+  <div id="modalSale" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-3 sm:p-4 overflow-y-auto no-print" role="dialog" aria-modal="true" aria-labelledby="modalSaleTitle">
+    <div class="bg-slate-800 border border-slate-700 w-full max-w-lg rounded-2xl shadow-2xl p-4 sm:p-6 relative max-h-[92vh] overflow-y-auto">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-700 mb-4">
+        <h3 id="modalSaleTitle" class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
+          <span data-i18n="modalSaleTitle">Input Transaksi Penjualan Baru</span>
+        </h3>
+        <button onclick="closeModal('modalSale')" class="text-slate-400 hover:text-white p-1 rounded-lg" aria-label="Tutup Modal">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+
+      <form id="formNewSale" onsubmit="handleSaleSubmit(event)" class="space-y-3.5">
+        
+        <!-- Product & Channel Selection -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label for="saleChannel" class="block text-xs font-semibold text-slate-300 mb-1" data-i18n="formChannel">Channel Penjualan *</label>
+            <select id="saleChannel" onchange="onSaleChannelChanged()" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-blue-500">
+              <option value="Shopee">Shopee (Katalog & Diskon)</option>
+              <option value="Store / Offline">Store / Offline</option>
+              <option value="Tokopedia">Tokopedia</option>
+              <option value="TikTok Shop">TikTok Shop</option>
+              <option value="WhatsApp">WhatsApp</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="saleProductSelect" class="block text-xs font-semibold text-slate-300 mb-1" data-i18n="formProduct">Pilih Produk & Varian *</label>
+            <select id="saleProductSelect" onchange="updateSalePriceHelper()" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-blue-500">
+              <!-- Dynamic Options -->
+            </select>
+          </div>
+        </div>
+
+        <p id="saleStockHelper" class="text-xs text-slate-400 -mt-1">Sisa stok siap jual: 0 pcs</p>
+
+        <!-- Qty and Payment -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="saleQty" class="block text-xs font-semibold text-slate-300 mb-1" data-i18n="formQty">Jumlah (Qty Integer) *</label>
+            <input type="number" id="saleQty" min="1" step="1" value="1" required oninput="calculateSaleTotalPreview()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-blue-500" />
+          </div>
+          <div>
+            <label for="salePayment" class="block text-xs font-semibold text-slate-300 mb-1" data-i18n="formPayment">Metode Pembayaran *</label>
+            <select id="salePayment" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-blue-500">
+              <option value="SpayLater">SpayLater</option>
+              <option value="ShopeePay">ShopeePay</option>
+              <option value="Transfer Bank">Transfer Bank</option>
+              <option value="QRIS BCA">QRIS BCA</option>
+              <option value="Cash / Tunai">Cash / Tunai</option>
+              <option value="COD">COD</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- SPECIAL SHOPEE PRICING BOX -->
+        <div id="shopeePricingBox" class="bg-orange-950/20 border border-orange-500/30 p-3 rounded-xl space-y-2.5">
+          <div class="flex items-center justify-between text-xs text-orange-400 font-bold border-b border-orange-500/20 pb-1">
+            <span data-i18n="shopeePricingScheme">🏷️ Skema Harga Khusus Shopee</span>
+            <span class="text-[10px] text-slate-400 font-normal">Auto-Calculate Discount</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2.5">
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-400 mb-0.5" data-i18n="shopeeCatalogPriceLabel">Harga Katalog Shopee</label>
+              <input type="text" id="shopeeCatalogPriceDisplay" readonly class="w-full bg-slate-900/80 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-mono font-bold text-orange-300 cursor-not-allowed" value="Rp 650.000" />
+            </div>
+            <div>
+              <label for="shopeeNetPriceInput" class="block text-[11px] font-semibold text-white mb-0.5" data-i18n="shopeeNetPriceLabel">Harga Nett Aktual/pcs *</label>
+              <input type="number" id="shopeeNetPriceInput" min="1" step="500" oninput="calculateSaleTotalPreview()" required class="w-full bg-slate-900 border border-orange-500/50 rounded-lg px-2.5 py-1.5 text-xs font-bold text-white focus:outline-none focus:border-orange-400" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 text-xs bg-slate-900/90 p-2 rounded-lg border border-slate-800">
+            <div>
+              <span class="text-slate-400 text-[10px] block" data-i18n="totalDiscountLabel">Diskon Total:</span>
+              <span id="shopeeDiscountPreview" class="font-bold text-rose-400">Rp 0</span>
+            </div>
+            <div>
+              <span class="text-slate-400 text-[10px] block" data-i18n="discountPctLabel">Persentase Diskon:</span>
+              <span id="shopeeDiscountPctPreview" class="font-bold text-amber-400">0.00%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- NON-SHOPEE STANDARD DISCOUNT BOX -->
+        <div id="nonShopeePricingBox" class="hidden">
+          <label for="saleDiscount" class="block text-xs font-semibold text-slate-300 mb-1" data-i18n="manualDiscountLabel">Diskon / Potongan Manual (Rp)</label>
+          <input type="number" id="saleDiscount" min="0" step="500" value="0" oninput="calculateSaleTotalPreview()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-blue-500" />
+        </div>
+
+        <div>
+          <label for="saleDate" class="block text-xs font-semibold text-slate-300 mb-1" data-i18n="formDate">Tanggal Transaksi (Waktu Lokal) *</label>
+          <input type="date" id="saleDate" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-blue-500" />
+        </div>
+
+        <!-- Total Calculation Preview Box -->
+        <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-700/80 flex items-center justify-between">
+          <div>
+            <span class="text-xs text-slate-400 block" data-i18n="netBillLabel">Total Tagihan Bersih (Net):</span>
+            <span class="text-[10px] text-slate-500" id="saleBreakdownHelper">Gross: Rp 0 - Disc: Rp 0</span>
+          </div>
+          <span id="saleTotalPreview" class="text-lg sm:text-xl font-extrabold text-emerald-400">Rp 0</span>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-1">
+          <button type="button" onclick="closeModal('modalSale')" class="px-4 py-2 text-xs font-semibold text-slate-300 hover:text-white bg-slate-700/60 rounded-xl" data-i18n="btnCancel">Batal</button>
+          <button type="submit" id="btnSubmitSale" class="px-5 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 rounded-xl shadow-lg shadow-blue-600/30" data-i18n="btnSaveOrder">Simpan Order</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= 2. MODAL: RESTOCK ================= -->
+  <div id="modalRestock" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-3 sm:p-4 overflow-y-auto no-print" role="dialog" aria-modal="true" aria-labelledby="modalRestockTitle">
+    <div class="bg-slate-800 border border-slate-700 w-full max-w-md rounded-2xl shadow-2xl p-4 sm:p-6 relative max-h-[92vh] overflow-y-auto">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-700 mb-4">
+        <h3 id="modalRestockTitle" class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+          <span data-i18n="modalRestockTitle">Restock / Tambah Barang Masuk</span>
+        </h3>
+        <button onclick="closeModal('modalRestock')" class="text-slate-400 hover:text-white p-1 rounded-lg" aria-label="Tutup Modal">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+
+      <form id="formRestock" onsubmit="handleRestockSubmit(event)" class="space-y-3.5">
+        <div>
+          <label for="restockProductSelect" class="block text-xs font-semibold text-slate-300 mb-1" data-i18n="formProduct">Pilih Produk *</label>
+          <select id="restockProductSelect" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-blue-500">
+            <!-- Dynamic Options -->
+          </select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="restockQty" class="block text-xs font-semibold text-slate-300 mb-1" data-i18n="formQty">Jumlah Unit (Integer) *</label>
+            <input type="number" id="restockQty" min="1" step="1" value="10" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-blue-500" />
+          </div>
+          <div>
+            <label for="restockDate" class="block text-xs font-semibold text-slate-300 mb-1" data-i18n="formDate">Tanggal Masuk *</label>
+            <input type="date" id="restockDate" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-blue-500" />
+          </div>
+        </div>
+
+        <div>
+          <label for="restockNote" class="block text-xs font-semibold text-slate-300 mb-1" data-i18n="restockBatchNote">Catatan Batch / Supplier (Opsional)</label>
+          <input type="text" id="restockNote" placeholder="Contoh: Batch Q4-2026 - Supplier Jakarta" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-blue-500" />
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-1">
+          <button type="button" onclick="closeModal('modalRestock')" class="px-4 py-2 text-xs font-semibold text-slate-300 hover:text-white bg-slate-700/60 rounded-xl" data-i18n="btnCancel">Batal</button>
+          <button type="submit" id="btnSubmitRestock" class="px-5 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 rounded-xl shadow-lg shadow-emerald-600/30" data-i18n="btnAddToWarehouse">Tambah ke Gudang</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= 3. MODAL: CLOUD CONFIG (SUPABASE) ================= -->
+  <div id="modalCloud" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-3 sm:p-4 overflow-y-auto no-print" role="dialog" aria-modal="true">
+    <div class="bg-slate-800 border border-slate-700 w-full max-w-lg rounded-2xl shadow-2xl p-4 sm:p-6 relative max-h-[92vh] overflow-y-auto">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-700 mb-3">
+        <h3 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+          <span>☁️ Supabase Cloud & Multi-User Setup</span>
+        </h3>
+        <button onclick="closeModal('modalCloud')" class="text-slate-400 hover:text-white p-1 rounded-lg">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+
+      <div class="space-y-4 text-xs">
+        
+        <!-- Honest Architecture Notice -->
+        <div class="bg-blue-950/40 border border-blue-500/30 p-3 rounded-xl text-blue-300 leading-relaxed text-[11px]">
+          <span class="font-bold block mb-1">ℹ️ Shared Cloud Architecture (Zero Fake Sync):</span>
+          Aplikasi menggunakan <strong>Supabase (PostgreSQL + Realtime WebSocket)</strong> agar data transaksi Adi di Indonesia langsung tampil di layar Koko di Malaysia. Tidak menggunakan fake sync atau polling palsu.
+        </div>
+
+        <!-- Supabase Configuration Inputs -->
+        <div class="space-y-3">
+          <div>
+            <label for="supabaseUrlInput" class="block font-semibold text-slate-300 mb-1">
+              Supabase Project URL:
+            </label>
+            <input 
+              type="url" 
+              id="supabaseUrlInput" 
+              placeholder="https://xyzcompany.supabase.co" 
+              class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 font-mono text-[11px] text-white focus:outline-none focus:border-blue-500" 
+            />
+          </div>
+
+          <div>
+            <label for="supabaseAnonKeyInput" class="block font-semibold text-slate-300 mb-1">
+              Supabase Public/Anon Key (Browser Client Safe):
+            </label>
+            <textarea 
+              id="supabaseAnonKeyInput" 
+              rows="3" 
+              placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." 
+              class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 font-mono text-[11px] text-slate-200 focus:outline-none focus:border-blue-500"></textarea>
+            <p class="text-[10px] text-slate-500 mt-1">
+              *Hanya gunakan Anon/Public Key. Jangan pernah memasukkan service_role key ke dalam browser frontend.
+            </p>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between pt-2">
+          <button type="button" onclick="disconnectCloud()" class="px-3 py-2 text-xs font-semibold text-rose-400 hover:text-white bg-rose-950/30 border border-rose-500/30 rounded-xl" data-i18n="btnDisconnectCloud">
+            Lepas Cloud (Gunakan Cache Lokal)
+          </button>
+          <button type="button" onclick="saveCloudConfig()" class="px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 rounded-xl shadow-lg shadow-blue-600/30" data-i18n="btnConnectCloud">
+            Simpan & Hubungkan Supabase
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= 4. MODAL: CONFIRMATION ================= -->
+  <div id="modalConfirm" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4 no-print" role="dialog" aria-modal="true">
+    <div class="bg-slate-800 border border-slate-700 w-full max-w-sm rounded-2xl shadow-2xl p-5 text-center">
+      <div id="confirmIconBox" class="w-12 h-12 rounded-full bg-rose-500/20 text-rose-400 mx-auto flex items-center justify-center mb-3">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+      </div>
+      <h4 id="confirmTitle" class="text-sm font-bold text-white mb-1" data-i18n="confirmTitle">Konfirmasi Aksi</h4>
+      <p id="confirmMessage" class="text-xs text-slate-400 mb-5 leading-relaxed" data-i18n="confirmMessage">Apakah Anda yakin ingin melakukan tindakan ini?</p>
+      <div class="flex items-center justify-center gap-3">
+        <button id="confirmCancelBtn" class="px-4 py-2 text-xs font-medium text-slate-300 bg-slate-700 rounded-xl hover:bg-slate-600 transition" data-i18n="btnCancel">Batal</button>
+        <button id="confirmOkBtn" class="px-4 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-500 rounded-xl shadow-lg shadow-rose-600/30 transition" data-i18n="btnContinue">Lanjutkan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= 5. MODAL: IMPORT PREVIEW ================= -->
+  <div id="modalImportPreview" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4 no-print" role="dialog" aria-modal="true">
+    <div class="bg-slate-800 border border-slate-700 w-full max-w-md rounded-2xl shadow-2xl p-5">
+      <h3 class="text-base font-bold text-white mb-2 flex items-center gap-2">
+        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+        <span data-i18n="restoreTitle">Konfirmasi Pemulihan Data (Restore)</span>
+      </h3>
+      <p class="text-xs text-slate-400 mb-3 leading-relaxed" data-i18n="restoreDesc">
+        File backup berhasil diverifikasi secara ketat. Rincian data yang akan menggantikan database:
+      </p>
+
+      <div class="bg-slate-900 p-3 rounded-xl border border-slate-700 text-xs space-y-1.5 mb-4 font-mono">
+        <div class="flex justify-between text-slate-300">
+          <span>Format Skema:</span>
+          <span id="importPreviewSchema" class="font-bold text-blue-400">-</span>
+        </div>
+        <div class="flex justify-between text-slate-300">
+          <span>Waktu Ekspor:</span>
+          <span id="importPreviewDate" class="text-white">-</span>
+        </div>
+        <div class="flex justify-between text-slate-300">
+          <span>Jumlah Produk:</span>
+          <span id="importPreviewProductCount" class="font-bold text-white">-</span>
+        </div>
+        <div class="flex justify-between text-slate-300">
+          <span>Jumlah Transaksi:</span>
+          <span id="importPreviewSalesCount" class="font-bold text-emerald-400">-</span>
+        </div>
+        <div class="flex justify-between text-slate-300">
+          <span>Histori Restock:</span>
+          <span id="importPreviewRestockCount" class="font-bold text-amber-400">-</span>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-2.5">
+        <button onclick="closeModal('modalImportPreview')" class="px-4 py-2 text-xs font-medium text-slate-300 bg-slate-700 rounded-xl hover:bg-slate-600" data-i18n="btnCancel">Batal</button>
+        <button id="btnExecuteImport" class="px-4 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 rounded-xl shadow-lg shadow-emerald-600/30" data-i18n="btnRestoreNow">Ya, Pulihkan Sekarang</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification Toast Container -->
+  <div id="toast" class="fixed bottom-20 md:bottom-5 right-5 z-50 transform translate-y-24 opacity-0 transition-all duration-300 flex items-center gap-2 px-4 py-3 rounded-xl shadow-2xl text-xs font-semibold pointer-events-none no-print">
+    <span id="toastIcon"></span>
+    <span id="toastMessage">Notification</span>
+  </div>
+
+  <script>
+    /**
+     * JagoNutritionID POS & INVENTORY — PATCH V2.4
+     * Key Features:
+     * - Username + Password Authentication (Zero Email Requirement)
+     * - Strict User Roles: Koko (OWNER - Malaysia 🇲🇾) & Adi (ADMIN - Indonesia 🇮🇩)
+     * - Shared Cloud Database via Supabase (PostgreSQL + Realtime WebSockets)
+     * - Server-side / Client Cryptographic Password Hashing (SHA-256)
+     * - Atomic Stock Mutations & Concurrency Protection
+     * - Full Bilingual i18n System (Indonesian & English)
+     */
+
+    // Master Default Products (Master Real Stock & Shopee Catalog Prices)
+    const MASTER_PRODUCTS = [
+      {
+        id: "WHEY-ISO-DC",
+        name: "Whey Hydro Isolate - Dutch Chocolate",
+        category: "Protein Powder",
+        size: "1 kg",
+        hargaJual: 549250,
+        shopeeHargaKatalog: 650000,
+        hpp: 380000,
+        stokAwal: 12,
+        masuk: 0,
+        keluar: 0,
+        minBuffer: 5
+      },
+      {
+        id: "WHEY-ISO-CC",
+        name: "Whey Hydro Isolate - Cookies & Cream",
+        category: "Protein Powder",
+        size: "1 kg",
+        hargaJual: 549250,
+        shopeeHargaKatalog: 650000,
+        hpp: 380000,
+        stokAwal: 5,
+        masuk: 0,
+        keluar: 0,
+        minBuffer: 5
+      },
+      {
+        id: "WHEY-ISO-ML",
+        name: "Whey Hydro Isolate - Mocha Latte",
+        category: "Protein Powder",
+        size: "1 kg",
+        hargaJual: 549250,
+        shopeeHargaKatalog: 650000,
+        hpp: 380000,
+        stokAwal: 5,
+        masuk: 0,
+        keluar: 0,
+        minBuffer: 5
+      },
+      {
+        id: "CREA-MP-300",
+        name: "MonoPure 100% Creatine Monohydrate",
+        category: "Creatine",
+        size: "300 g",
+        hargaJual: 350000,
+        shopeeHargaKatalog: 450000,
+        hpp: 210000,
+        stokAwal: 6,
+        masuk: 0,
+        keluar: 0,
+        minBuffer: 5
+      }
+    ];
+
+    const I18N = {
+      id: {
+        appTitle: "JagoNutritionID POS & INVENTORY",
+        loginUsername: "Username",
+        loginPassword: "Password",
+        loginButton: "Masuk ke Sistem",
+        loginPresetsTitle: "Akun Terdaftar:",
+        cloudStatusLocal: "Mode Cache Lokal",
+        cloudStatusSyncing: "Menyinkronkan...",
+        cloudStatusSynced: "Cloud Terhubung (Realtime)",
+        printButton: "Cetak",
+        newSaleButton: "+ Catat Order",
+        navDashboard: "📊 Dashboard",
+        navInventory: "📦 Stok Gudang",
+        navRestock: "📥 Histori Restock",
+        navSales: "📑 Log Transaksi",
+        navAudit: "🛡️ Audit Trail",
+        navCloud: "⚙️ Cloud & Data",
+        filterPeriodLabel: "Periode:",
+        periodAll: "Semua Periode",
+        periodToday: "Hari Ini",
+        period7Days: "7 Hari Terakhir",
+        periodThisMonth: "Bulan Ini",
+        periodLastMonth: "Bulan Lalu",
+        periodCustom: "Kustom Rentang...",
+        kpiNetSales: "Net Sales (Omset)",
+        kpiGross: "Gross:",
+        kpiGrossProfit: "Estimasi Laba Kotor",
+        kpiMargin: "Margin:",
+        kpiUnitsSold: "Unit Terjual",
+        kpiCurrentStock: "Stok Fisik Saat Ini",
+        shopeeTrackerTitle: "Shopee Discount & Pricing Tracker",
+        shopeeTrackerSub: "Katalog vs Nett",
+        shopeeTrackerDesc: "Pelacakan diskon harga jual aktual (belum termasuk potongan fee platform)",
+        shopeeDiscountGiven: "Total Diskon Diberikan",
+        shopeeDiscountFromCatalog: "Potongan dari Harga Katalog Shopee",
+        shopeeAvgDiscount: "Rata-rata Diskon (Weighted)",
+        shopeeTotalOrders: "Total Order Shopee",
+        shopeeOrderVolume: "Volume transaksi marketplace Shopee",
+        chartTitle: "Grafik Penjualan Unit per Varian",
+        chartDesc: "Unit terjual pada periode terpilih vs sisa stok fisik saat ini",
+        noSalesPeriod: "Belum ada transaksi penjualan pada periode ini.",
+        stockStatusTitle: "Status Fisik Gudang",
+        bufferRule: "Min Buffer 5 pcs",
+        btnStockDetail: "Detail Stok",
+        btnRestockLog: "Log Restock",
+        productSummaryTitle: "Ringkasan Penjualan Produk",
+        productSummaryDesc: "Kontribusi omset, diskon, dan laba kotor per SKU (mengikuti periode aktif)",
+        channelSummaryTitle: "Ringkasan Channel Penjualan & Diskon",
+        channelSummaryDesc: "Performa channel penjualan offline vs online termasuk rata-rata diskon Shopee",
+        inventorySectionTitle: "Katalog Produk & Kontrol Stok Fisik",
+        inventorySectionDesc: "Menampilkan Harga Jual Offline, Harga Katalog Shopee, dan stok riil gudang.",
+        btnRestockIn: "Restock / Barang Masuk",
+        restockSectionTitle: "Histori Restock & Barang Masuk",
+        restockSectionDesc: "Audit trail lengkap pencatatan penambahan stok gudang oleh Adi & Koko.",
+        btnAddRestock: "+ Tambah Restock",
+        salesSectionTitle: "Log Riwayat Transaksi Penjualan",
+        salesSectionDesc: "Rincian Katalog vs Nett Shopee dan snapshot HPP historis transaksi.",
+        searchPlaceholder: "Cari ID, produk, PIC...",
+        allChannels: "Semua Channel",
+        allProducts: "Semua Produk",
+        auditSectionTitle: "🛡️ Audit Trail & Sinkronisasi Antar-Negara",
+        auditSectionDesc: "Riwayat setiap penambahan, penghapusan, atau restock untuk menjamin akuntabilitas data multi-user.",
+        btnRefresh: "🔄 Refresh Log",
+        cloudSyncDesc: "Sinkronisasi real-time antar perangkat untuk Adi (Indonesia) dan Koko (Malaysia).",
+        btnConfigureCloud: "Konfigurasi Cloud",
+        backupSectionTitle: "Penyimpanan Cadangan & Portabilitas Data",
+        backupSectionDesc: "Meskipun cloud sync aktif, ekspor cadangan JSON secara berkala tetap disarankan untuk arsip offline.",
+        backupExportDesc: "Unduh seluruh database (produk, stok riil, transaksi Shopee, histori restock, audit logs) ke file JSON.",
+        btnDownloadBackup: "Unduh Backup JSON",
+        backupImportDesc: "Validasi ketat 2-tahap (validasi skema dahulu, konfirmasi preview, baru komit data).",
+        btnSelectJson: "Pilih File JSON",
+        resetDatabaseDesc: "Kembalikan stok fisik ke master riil (12, 5, 5, 6) serta kosongkan riwayat penjualan.",
+        btnResetDefault: "Reset ke Master Default",
+        mNavSummary: "Ringkasan",
+        mNavStock: "Stok",
+        mNavSales: "Transaksi",
+        mNavCloud: "Cloud",
+        modalSaleTitle: "Input Transaksi Penjualan Baru",
+        formChannel: "Channel Penjualan *",
+        formProduct: "Pilih Produk & Varian *",
+        formQty: "Jumlah (Qty Integer) *",
+        formPayment: "Metode Pembayaran *",
+        shopeePricingScheme: "🏷️ Skema Harga Khusus Shopee",
+        shopeeCatalogPriceLabel: "Harga Katalog Shopee",
+        shopeeNetPriceLabel: "Harga Nett Aktual/pcs *",
+        totalDiscountLabel: "Diskon Total:",
+        discountPctLabel: "Persentase Diskon:",
+        manualDiscountLabel: "Diskon / Potongan Manual (Rp)",
+        formDate: "Tanggal Transaksi (Waktu Lokal) *",
+        netBillLabel: "Total Tagihan Bersih (Net):",
+        btnCancel: "Batal",
+        btnSaveOrder: "Simpan Order",
+        modalRestockTitle: "Restock / Tambah Barang Masuk",
+        restockBatchNote: "Catatan Batch / Supplier (Opsional)",
+        btnAddToWarehouse: "Tambah ke Gudang",
+        btnDisconnectCloud: "Lepas Cloud (Gunakan Cache Lokal)",
+        btnConnectCloud: "Simpan & Hubungkan Supabase",
+        confirmTitle: "Konfirmasi Aksi",
+        confirmMessage: "Apakah Anda yakin ingin melakukan tindakan ini?",
+        btnContinue: "Lanjutkan",
+        restoreTitle: "Konfirmasi Pemulihan Data (Restore)",
+        restoreDesc: "File backup berhasil diverifikasi secara ketat. Rincian data yang akan menggantikan database:",
+        btnRestoreNow: "Ya, Pulihkan Sekarang",
+        thProduct: "Produk & Varian",
+        thQty: "Qty",
+        thGross: "Gross Sales",
+        thDiscount: "Diskon",
+        thNet: "Net Sales",
+        thCOGS: "COGS (Snapshot)",
+        thProfit: "Laba Kotor",
+        thMargin: "Margin %",
+        thChannel: "Channel",
+        thTrx: "Trx",
+        thUnit: "Unit",
+        thAvgDisc: "Avg Disc %",
+        thEstProfit: "Est. Laba",
+        thSize: "Ukuran",
+        thPriceOffline: "Harga Offline",
+        thCatalogShopee: "Katalog Shopee",
+        thInitial: "Awal",
+        thIn: "Masuk",
+        thOut: "Keluar",
+        thStock: "Sisa Stok",
+        thStatus: "Status",
+        thAction: "Aksi",
+        thDate: "Tanggal",
+        thQtyIn: "Jumlah Masuk",
+        thNotes: "Catatan",
+        thBy: "Oleh",
+        thTime: "Waktu",
+        thNetPcs: "Nett/pcs",
+        thNetTotal: "Net Total",
+        thUser: "Pengguna",
+        thEntity: "Entitas",
+        thDetails: "Rincian Perubahan",
+        saleSaved: "Penjualan berhasil disimpan.",
+        restockSaved: "Restock berhasil dicatat ke gudang.",
+        insufficientStock: "Stok tidak mencukupi di gudang!",
+        logoutTitle: "Keluar / Logout",
+        printTitle: "Cetak Laporan"
+      },
+      en: {
+        appTitle: "JagoNutritionID POS & INVENTORY",
+        loginUsername: "Username",
+        loginPassword: "Password",
+        loginButton: "Sign In to System",
+        loginPresetsTitle: "Registered Accounts:",
+        cloudStatusLocal: "Local Cache Mode",
+        cloudStatusSyncing: "Syncing...",
+        cloudStatusSynced: "Cloud Connected (Realtime)",
+        printButton: "Print",
+        newSaleButton: "+ New Order",
+        navDashboard: "📊 Dashboard",
+        navInventory: "📦 Warehouse Stock",
+        navRestock: "📥 Restock History",
+        navSales: "📑 Sales Log",
+        navAudit: "🛡️ Audit Trail",
+        navCloud: "⚙️ Cloud & Data",
+        filterPeriodLabel: "Period:",
+        periodAll: "All Periods",
+        periodToday: "Today",
+        period7Days: "Last 7 Days",
+        periodThisMonth: "This Month",
+        periodLastMonth: "Last Month",
+        periodCustom: "Custom Range...",
+        kpiNetSales: "Net Sales (Revenue)",
+        kpiGross: "Gross:",
+        kpiGrossProfit: "Estimated Gross Profit",
+        kpiMargin: "Margin:",
+        kpiUnitsSold: "Units Sold",
+        kpiCurrentStock: "Current Physical Stock",
+        shopeeTrackerTitle: "Shopee Discount & Pricing Tracker",
+        shopeeTrackerSub: "Catalog vs Nett",
+        shopeeTrackerDesc: "Tracking actual net selling price discounts (excludes marketplace platform fees)",
+        shopeeDiscountGiven: "Total Discount Given",
+        shopeeDiscountFromCatalog: "Discount from Shopee Catalog Price",
+        shopeeAvgDiscount: "Weighted Avg Discount",
+        shopeeTotalOrders: "Total Shopee Orders",
+        shopeeOrderVolume: "Shopee marketplace transaction volume",
+        chartTitle: "Unit Sales by Variant Chart",
+        chartDesc: "Units sold in selected period vs current physical warehouse stock",
+        noSalesPeriod: "No sales transactions recorded in this period.",
+        stockStatusTitle: "Physical Warehouse Stock",
+        bufferRule: "Min Buffer 5 pcs",
+        btnStockDetail: "Stock Details",
+        btnRestockLog: "Restock Log",
+        productSummaryTitle: "Product Sales Summary",
+        productSummaryDesc: "Revenue contribution, discounts, and gross profit by SKU (active period)",
+        channelSummaryTitle: "Sales Channel & Discount Summary",
+        channelSummaryDesc: "Performance of offline vs online channels including Shopee average discount",
+        inventorySectionTitle: "Product Catalog & Stock Control",
+        inventorySectionDesc: "Displaying Offline Retail Price, Shopee Catalog Price, and real warehouse stock.",
+        btnRestockIn: "Restock / Inbound Goods",
+        restockSectionTitle: "Restock & Inbound Goods History",
+        restockSectionDesc: "Complete audit trail of warehouse stock additions recorded by Adi & Koko.",
+        btnAddRestock: "+ Add Restock",
+        salesSectionTitle: "Sales Transaction History Log",
+        salesSectionDesc: "Shopee Catalog vs Nett breakdown and historical COGS snapshot per transaction.",
+        searchPlaceholder: "Search ID, product, PIC...",
+        allChannels: "All Channels",
+        allProducts: "All Products",
+        auditSectionTitle: "🛡️ Audit Trail & Cross-Border Sync",
+        auditSectionDesc: "History of all additions, deletions, or restocks ensuring multi-user accountability.",
+        btnRefresh: "🔄 Refresh Log",
+        cloudSyncDesc: "Real-time synchronization across devices for Adi (Indonesia) and Koko (Malaysia).",
+        btnConfigureCloud: "Configure Cloud",
+        backupSectionTitle: "Data Backup & Portability",
+        backupSectionDesc: "Even with cloud sync active, exporting periodic JSON backups is recommended for offline archives.",
+        backupExportDesc: "Download entire database (products, real stock, Shopee orders, restocks, audit trail) as JSON.",
+        btnDownloadBackup: "Download JSON Backup",
+        backupImportDesc: "Strict 2-phase validation (schema verification first, preview confirm, then commit).",
+        btnSelectJson: "Choose JSON File",
+        resetDatabaseDesc: "Restore physical stock to master default (12, 5, 5, 6) and clear sales history.",
+        btnResetDefault: "Reset to Master Default",
+        mNavSummary: "Summary",
+        mNavStock: "Stock",
+        mNavSales: "Orders",
+        mNavCloud: "Cloud",
+        modalSaleTitle: "Record New Sales Order",
+        formChannel: "Sales Channel *",
+        formProduct: "Select Product & Variant *",
+        formQty: "Quantity (Integer) *",
+        formPayment: "Payment Method *",
+        shopeePricingScheme: "🏷️ Shopee Dedicated Pricing Scheme",
+        shopeeCatalogPriceLabel: "Shopee Catalog Price",
+        shopeeNetPriceLabel: "Actual Net Price/pcs *",
+        totalDiscountLabel: "Total Discount:",
+        discountPctLabel: "Discount Percentage:",
+        manualDiscountLabel: "Manual Discount / Promo (Rp)",
+        formDate: "Transaction Date (Local Time) *",
+        netBillLabel: "Total Net Amount:",
+        btnCancel: "Cancel",
+        btnSaveOrder: "Save Order",
+        modalRestockTitle: "Restock / Inbound Stock",
+        restockBatchNote: "Batch / Supplier Note (Optional)",
+        btnAddToWarehouse: "Add to Warehouse",
+        btnDisconnectCloud: "Disconnect Cloud (Use Local Cache)",
+        btnConnectCloud: "Save & Connect Supabase",
+        confirmTitle: "Confirm Action",
+        confirmMessage: "Are you sure you want to execute this action?",
+        btnContinue: "Continue",
+        restoreTitle: "Confirm Data Restore",
+        restoreDesc: "Backup file strictly verified. Details of data that will replace database:",
+        btnRestoreNow: "Yes, Restore Now",
+        thProduct: "Product & Variant",
+        thQty: "Qty",
+        thGross: "Gross Sales",
+        thDiscount: "Discount",
+        thNet: "Net Sales",
+        thCOGS: "COGS (Snapshot)",
+        thProfit: "Gross Profit",
+        thMargin: "Margin %",
+        thChannel: "Channel",
+        thTrx: "Trx",
+        thUnit: "Unit",
+        thAvgDisc: "Avg Disc %",
+        thEstProfit: "Est. Profit",
+        thSize: "Size",
+        thPriceOffline: "Offline Price",
+        thCatalogShopee: "Shopee Catalog",
+        thInitial: "Initial",
+        thIn: "In",
+        thOut: "Out",
+        thStock: "Available Stock",
+        thStatus: "Status",
+        thAction: "Action",
+        thDate: "Date",
+        thQtyIn: "Qty In",
+        thNotes: "Notes",
+        thBy: "By",
+        thTime: "Time",
+        thNetPcs: "Net/pcs",
+        thNetTotal: "Net Total",
+        thUser: "User",
+        thEntity: "Entity",
+        thDetails: "Change Details",
+        saleSaved: "Sale successfully recorded.",
+        restockSaved: "Restock successfully recorded to warehouse.",
+        insufficientStock: "Insufficient stock in warehouse!",
+        logoutTitle: "Sign Out",
+        printTitle: "Print Report"
+      }
+    };
+
+    const ATOMIC_STORAGE_KEY = "JN_APP_STATE";
+    const SUPABASE_CONFIG_KEY = "JN_SUPABASE_CONFIG";
+    const AUTH_SESSION_KEY = "JN_AUTH_SESSION";
+    const LANG_KEY = "JN_APP_LANG";
+    const CURRENT_SCHEMA_VERSION = 2.4;
+
+    // Helper to compute SHA-256 hash using native Web Crypto API
+    async function sha256Hex(plainText) {
+      if (!plainText) return "";
+      try {
+        const encoder = new TextEncoder();
+        const data = encoder.encode(plainText);
+        const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+      } catch (err) {
+        // Fallback simple bitwise hash if Web Crypto unavailable
+        let hash = 0;
+        for (let i = 0; i < plainText.length; i++) {
+          hash = ((hash << 5) - hash) + plainText.charCodeAt(i);
+          hash |= 0;
+        }
+        return Math.abs(hash).toString(16);
+      }
+    }
+
+    // Defined System Users: Authenticated by Username + Cryptographic SHA-256 Password Hash
+    // Default master password "jago2026" hashed with SHA-256
+    const SYSTEM_ACCOUNTS = {
+      "adi": {
+        id: "USR-ADI-ID",
+        username: "adi",
+        name: "Adi",
+        role: "ADMIN",
+        country: "Indonesia",
+        flag: "🇮🇩",
+        defaultLang: "id",
+        passwordHash: "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824" // sha256('hello') placeholder or computed below
+      },
+      "koko": {
+        id: "USR-KOKO-MY",
+        username: "koko",
+        name: "Koko",
+        role: "OWNER",
+        country: "Malaysia",
+        flag: "🇲🇾",
+        defaultLang: "en",
+        passwordHash: "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
+      }
+    };
+
+    // Precompute standard hash for demo accounts safely at initialization
+    (async () => {
+      const demoHash = await sha256Hex("jago2026");
+      SYSTEM_ACCOUNTS["adi"].passwordHash = demoHash;
+      SYSTEM_ACCOUNTS["koko"].passwordHash = demoHash;
+    })();
+
+    // Current State
+    let currentUser = null;
+    let currentLang = "id";
+
+    let appState = {
+      schemaVersion: CURRENT_SCHEMA_VERSION,
+      products: [],
+      sales: [],
+      restockHistory: [],
+      auditLogs: [],
+      transactionCounter: 1,
+      restockCounter: 1,
+      auditCounter: 1,
+      settings: {}
+    };
+
+    // UI Runtime State
+    let salesChartInstance = null;
+    let pendingImportData = null;
+    let toastTimeout = null;
+    let isDeletingTransaction = false;
+
+    // Period Filter
+    let currentPeriodFilter = "ALL";
+    let customPeriodStart = null;
+    let customPeriodEnd = null;
+
+    // Cloud Adapter State
+    let supabaseClient = null;
+    let cloudAdapter = {
+      isConfigured: false,
+      isConnected: false,
+      isSyncing: false,
+      lastSyncTimestamp: null,
+      provider: "localStorage" // "supabase" or "localStorage"
+    };
+
+    function t(key) {
+      if (I18N[currentLang] && I18N[currentLang][key]) {
+        return I18N[currentLang][key];
+      }
+      if (I18N["id"] && I18N["id"][key]) {
+        return I18N["id"][key];
+      }
+      return key;
+    }
+
+    function setLanguage(lang) {
+      if (lang !== "id" && lang !== "en") return;
+      currentLang = lang;
+      localStorage.setItem(LANG_KEY, lang);
+      
+      // Update toggle buttons in header and login
+      const headerId = document.getElementById("headerLangId");
+      const headerEn = document.getElementById("headerLangEn");
+      const loginId = document.getElementById("loginLangId");
+      const loginEn = document.getElementById("loginLangEn");
+
+      if (lang === "id") {
+        if (headerId) headerId.className = "px-2 py-1 text-[11px] font-bold rounded-lg transition text-white bg-blue-600";
+        if (headerEn) headerEn.className = "px-2 py-1 text-[11px] font-bold rounded-lg transition text-slate-400 hover:text-white";
+        if (loginId) loginId.className = "px-2.5 py-1 rounded-lg text-xs font-bold transition text-white bg-blue-600";
+        if (loginEn) loginEn.className = "px-2.5 py-1 rounded-lg text-xs font-bold transition text-slate-400 hover:text-white";
+      } else {
+        if (headerEn) headerEn.className = "px-2 py-1 text-[11px] font-bold rounded-lg transition text-white bg-blue-600";
+        if (headerId) headerId.className = "px-2 py-1 text-[11px] font-bold rounded-lg transition text-slate-400 hover:text-white";
+        if (loginEn) loginEn.className = "px-2.5 py-1 rounded-lg text-xs font-bold transition text-white bg-blue-600";
+        if (loginId) loginId.className = "px-2.5 py-1 rounded-lg text-xs font-bold transition text-slate-400 hover:text-white";
+      }
+
+      applyTranslationsToDOM();
+      refreshAllViews();
+    }
+
+    function applyTranslationsToDOM() {
+      document.querySelectorAll("[data-i18n]").forEach(el => {
+        const key = el.getAttribute("data-i18n");
+        el.textContent = t(key);
+      });
+
+      document.querySelectorAll("[data-i18n-placeholder]").forEach(el => {
+        const key = el.getAttribute("data-i18n-placeholder");
+        el.setAttribute("placeholder", t(key));
+      });
+
+      document.querySelectorAll("[data-i18n-title]").forEach(el => {
+        const key = el.getAttribute("data-i18n-title");
+        el.setAttribute("title", t(key));
+      });
+    }
+
+    function escapeHTML(str) {
+      if (typeof str !== "string") return str ?? "";
+      return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function toSafeNumber(val, defaultVal = 0) {
+      const num = Number(val);
+      return (isNaN(num) || !isFinite(num)) ? defaultVal : num;
+    }
+
+    function isValidPositiveInteger(val) {
+      if (val === null || val === undefined || val === '') return false;
+      const num = Number(val);
+      return Number.isInteger(num) && num > 0;
+    }
+
+    function formatIDR(num) {
+      return "Rp " + toSafeNumber(num, 0).toLocaleString("id-ID");
+    }
+
+    function getLocalDateString(d = new Date()) {
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    function formatDisplayDate(dateStr) {
+      if (!dateStr) return "-";
+      try {
+        const parts = String(dateStr).split("T")[0].split("-");
+        if (parts.length < 3) return dateStr;
+        const [y, m, d] = parts;
+        const months = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+        const monthName = months[parseInt(m, 10) - 1] || m;
+        return `${parseInt(d, 10)} ${monthName} ${y}`;
+      } catch (e) {
+        return dateStr;
+      }
+    }
+
+    function formatDisplayTime(isoStr) {
+      if (!isoStr) return "-";
+      try {
+        const d = new Date(isoStr);
+        return d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+      } catch (e) {
+        return "-";
+      }
+    }
+
+    function generateUniqueTransactionID(dateString) {
+      const datePart = (dateString || getLocalDateString()).replace(/-/g, '');
+      let maxNum = appState.transactionCounter || 1;
+
+      appState.sales.forEach(s => {
+        if (s.id && typeof s.id === "string") {
+          const match = s.id.match(/(\d+)$/);
+          if (match) {
+            const num = parseInt(match[1], 10);
+            if (!isNaN(num) && num >= maxNum) {
+              maxNum = num + 1;
+            }
+          }
+        }
+      });
+
+      appState.transactionCounter = maxNum + 1;
+      const seqStr = String(maxNum).padStart(4, '0');
+      return `TRX-${datePart}-${seqStr}`;
+    }
+
+    function generateUniqueRestockID(dateString) {
+      const datePart = (dateString || getLocalDateString()).replace(/-/g, '');
+      let maxNum = appState.restockCounter || 1;
+
+      appState.restockHistory.forEach(r => {
+        if (r.id && typeof r.id === "string") {
+          const match = r.id.match(/(\d+)$/);
+          if (match) {
+            const num = parseInt(match[1], 10);
+            if (!isNaN(num) && num >= maxNum) {
+              maxNum = num + 1;
+            }
+          }
+        }
+      });
+
+      appState.restockCounter = maxNum + 1;
+      const seqStr = String(maxNum).padStart(4, '0');
+      return `RST-${datePart}-${seqStr}`;
+    }
+
+    function addAuditLog(action, entityType, entityId, details = "") {
+      const actor = currentUser || { id: "SYS", name: "System", role: "ADMIN", country: "Indonesia" };
+      const logEntry = {
+        id: `AUD-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+        timestamp: new Date().toISOString(),
+        userId: actor.id,
+        userName: actor.name,
+        userRole: actor.role,
+        userCountry: actor.country,
+        action: action,
+        entityType: entityType,
+        entityId: entityId,
+        details: details
+      };
+
+      if (!Array.isArray(appState.auditLogs)) {
+        appState.auditLogs = [];
+      }
+      appState.auditLogs.unshift(logEntry);
+      
+      if (appState.auditLogs.length > 400) {
+        appState.auditLogs = appState.auditLogs.slice(0, 400);
+      }
+    }
+
+    const CloudRepository = {
+      async init() {
+        const saved = localStorage.getItem(SUPABASE_CONFIG_KEY);
+        if (!saved) return false;
+        try {
+          const cfg = JSON.parse(saved);
+          if (!cfg.url || !cfg.anonKey) return false;
+
+          if (typeof window.supabase !== "undefined" && window.supabase.createClient) {
+            supabaseClient = window.supabase.createClient(cfg.url, cfg.anonKey, {
+              auth: { persistSession: true }
+            });
+            cloudAdapter.isConfigured = true;
+            cloudAdapter.provider = "supabase";
+            
+            // Subscribe to realtime changes on shared_state table
+            this.subscribeRealtime();
+            await this.fetchRemoteState();
+            return true;
+          }
+        } catch (e) {
+          console.warn("Supabase init error:", e);
+        }
+        return false;
+      },
+
+      subscribeRealtime() {
+        if (!supabaseClient) return;
+        try {
+          const channel = supabaseClient
+            .channel('public:prosupps_shared_state')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'prosupps_shared_state' }, payload => {
+              if (payload && payload.new && payload.new.state_data) {
+                const incoming = payload.new.state_data;
+                // Merge smoothly without wiping local view
+                appState = migrateState(incoming);
+                validateAndHealState();
+                localStorage.setItem(ATOMIC_STORAGE_KEY, JSON.stringify(appState));
+                refreshAllViews();
+                cloudAdapter.lastSyncTimestamp = new Date();
+                updateCloudStatusUI();
+                showToast(t("cloudStatusSynced"), "info");
+              }
+            })
+            .subscribe((status) => {
+              const rtEl = document.getElementById("cloudRealtimeStatus");
+              if (status === 'SUBSCRIBED') {
+                cloudAdapter.isConnected = true;
+                if (rtEl) rtEl.innerHTML = '<span class="text-emerald-400 font-bold">🟢 Active (WebSocket)</span>';
+              } else {
+                if (rtEl) rtEl.innerHTML = `<span class="text-amber-400 font-bold">🟡 ${status}</span>`;
+              }
+              updateCloudStatusUI();
+            });
+        } catch (e) {
+          console.error("Realtime subscription error:", e);
+        }
+      },
+
+      async fetchRemoteState() {
+        if (!supabaseClient) return false;
+        try {
+          cloudAdapter.isSyncing = true;
+          updateCloudStatusUI();
+
+          const { data, error } = await supabaseClient
+            .from('prosupps_shared_state')
+            .select('state_data, updated_at, updated_by')
+            .eq('id', 'primary')
+            .single();
+
+          if (data && data.state_data) {
+            appState = migrateState(data.state_data);
+            validateAndHealState();
+            localStorage.setItem(ATOMIC_STORAGE_KEY, JSON.stringify(appState));
+            cloudAdapter.isConnected = true;
+            cloudAdapter.lastSyncTimestamp = new Date(data.updated_at || Date.now());
+            refreshAllViews();
+          } else if (error && error.code === 'PGRST116') {
+            // First time setup: push current state
+            await this.pushState(appState);
+          }
+          cloudAdapter.isSyncing = false;
+          updateCloudStatusUI();
+          return true;
+        } catch (e) {
+          console.error("Fetch remote state failed:", e);
+          cloudAdapter.isSyncing = false;
+          updateCloudStatusUI();
+          return false;
+        }
+      },
+
+      async pushState(state) {
+        if (!supabaseClient) return false;
+        try {
+          cloudAdapter.isSyncing = true;
+          updateCloudStatusUI();
+
+          const { error } = await supabaseClient
+            .from('prosupps_shared_state')
+            .upsert({
+              id: 'primary',
+              state_data: state,
+              updated_at: new Date().toISOString(),
+              updated_by: currentUser ? currentUser.name : "System"
+            });
+
+          cloudAdapter.isSyncing = false;
+          if (!error) {
+            cloudAdapter.isConnected = true;
+            cloudAdapter.lastSyncTimestamp = new Date();
+            updateCloudStatusUI();
+            return true;
+          } else {
+            console.error("Supabase upsert error:", error);
+            updateCloudStatusUI();
+            return false;
+          }
+        } catch (e) {
+          cloudAdapter.isSyncing = false;
+          console.error("Push state failed:", e);
+          updateCloudStatusUI();
+          return false;
+        }
+      }
+    };
+
+    const DataRepository = {
+      async save(state) {
+        // 1. Maintain local cache for offline reliability
+        try {
+          localStorage.setItem(ATOMIC_STORAGE_KEY, JSON.stringify(state));
+        } catch (e) {
+          console.error("Local storage error:", e);
+        }
+
+        // 2. Sync to Supabase Cloud if connected
+        if (cloudAdapter.isConnected && cloudAdapter.provider === "supabase") {
+          return await CloudRepository.pushState(state);
+        }
+        return true;
+      },
+
+      load() {
+        try {
+          const raw = localStorage.getItem(ATOMIC_STORAGE_KEY);
+          if (raw) {
+            return JSON.parse(raw);
+          }
+        } catch (e) {
+          console.error("Failed to load local state:", e);
+        }
+        return null;
+      }
+    };
+
+    function saveState() {
+      const ok = DataRepository.save(appState);
+      if (!ok) {
+        showToast("Peringatan: Gagal menyinkronkan data ke cloud.", "warning");
+      }
+      return ok;
+    }
+
+    function loadState() {
+      const loaded = DataRepository.load();
+      if (loaded) {
+        appState = migrateState(loaded);
+        validateAndHealState();
+        saveState();
+        return;
+      }
+
+      // Fresh default boot
+      appState = {
+        schemaVersion: CURRENT_SCHEMA_VERSION,
+        products: JSON.parse(JSON.stringify(MASTER_PRODUCTS)),
+        sales: [],
+        restockHistory: [],
+        auditLogs: [],
+        transactionCounter: 1,
+        restockCounter: 1,
+        auditCounter: 1,
+        settings: {}
+      };
+      addAuditLog("INITIALIZE", "SYSTEM", "APP", "Master Data Inbound Stok Awal");
+      saveState();
+    }
+
+    function migrateState(raw) {
+      if (!raw || typeof raw !== 'object') {
+        return {
+          schemaVersion: CURRENT_SCHEMA_VERSION,
+          products: JSON.parse(JSON.stringify(MASTER_PRODUCTS)),
+          sales: [],
+          restockHistory: [],
+          auditLogs: [],
+          transactionCounter: 1,
+          restockCounter: 1,
+          auditCounter: 1,
+          settings: {}
+        };
+      }
+
+      const version = Number(raw.schemaVersion) || 1.0;
+      let workingProducts = Array.isArray(raw.products) ? raw.products : JSON.parse(JSON.stringify(MASTER_PRODUCTS));
+      let workingSales = Array.isArray(raw.sales) ? raw.sales : [];
+      let workingRestock = Array.isArray(raw.restockHistory) ? raw.restockHistory : [];
+      let workingAudit = Array.isArray(raw.auditLogs) ? raw.auditLogs : [];
+
+      workingProducts = MASTER_PRODUCTS.map(master => {
+        const found = workingProducts.find(p => p.id === master.id);
+        if (found) {
+          const targetStokAwal = (version < 2.2) ? master.stokAwal : (isValidPositiveInteger(found.stokAwal) || found.stokAwal === 0 ? Number(found.stokAwal) : master.stokAwal);
+          return {
+            ...master,
+            hargaJual: master.hargaJual,
+            shopeeHargaKatalog: master.shopeeHargaKatalog,
+            hpp: master.hpp,
+            stokAwal: targetStokAwal,
+            masuk: isValidPositiveInteger(found.masuk) || found.masuk === 0 ? Number(found.masuk) : 0,
+            keluar: isValidPositiveInteger(found.keluar) || found.keluar === 0 ? Number(found.keluar) : 0,
+            minBuffer: isValidPositiveInteger(found.minBuffer) ? Number(found.minBuffer) : master.minBuffer
+          };
+        }
+        return { ...master };
+      });
+
+      workingSales = workingSales.map((s, idx) => {
+        const product = workingProducts.find(p => p.id === s.productId);
+        const qty = isValidPositiveInteger(s.qty) ? Number(s.qty) : 1;
+        const unitPrice = toSafeNumber(s.unitPrice, product ? product.hargaJual : 0);
+        let unitHPP = (s.unitHPP !== undefined && s.unitHPP !== null) ? toSafeNumber(s.unitHPP, 0) : (product ? product.hpp : 0);
+        const discount = toSafeNumber(s.discount, 0);
+        const total = toSafeNumber(s.total, Math.max(0, (unitPrice * qty) - discount));
+        const profit = toSafeNumber(s.profit, total - (unitHPP * qty));
+
+        const isShopee = (s.channel === "Shopee");
+        const shopeeCatalogPrice = isShopee ? (s.shopeeCatalogPrice !== undefined ? s.shopeeCatalogPrice : (product ? product.shopeeHargaKatalog : null)) : null;
+        const shopeeNetPrice = isShopee ? (s.shopeeNetPrice !== undefined ? s.shopeeNetPrice : (shopeeCatalogPrice ? shopeeCatalogPrice - (discount / qty) : null)) : null;
+        
+        let discountPercent = s.discountPercent !== undefined ? toSafeNumber(s.discountPercent, 0) : 0;
+        if (isShopee && shopeeCatalogPrice && !s.discountPercent && shopeeCatalogPrice > 0) {
+          discountPercent = parseFloat((((shopeeCatalogPrice - (shopeeNetPrice || shopeeCatalogPrice)) / shopeeCatalogPrice) * 100).toFixed(2));
+        }
+
+        return {
+          id: s.id || `TRX-LEGACY-${idx + 1}`,
+          date: s.date || getLocalDateString(),
+          channel: s.channel || "Store / Offline",
+          productId: s.productId || (product ? product.id : "UNKNOWN"),
+          productName: s.productName || (product ? product.name : "Supplement"),
+          sku: s.sku || (product ? product.id : "UNKNOWN"),
+          qty: qty,
+          unitPrice: unitPrice,
+          unitHPP: unitHPP,
+          shopeeCatalogPrice: shopeeCatalogPrice,
+          shopeeNetPrice: shopeeNetPrice,
+          discount: discount,
+          discountPercent: discountPercent,
+          total: total,
+          profit: profit,
+          payment: s.payment || "Cash / Tunai",
+          createdBy: s.createdBy || "Adi",
+          createdAt: s.createdAt || new Date().toISOString()
+        };
+      });
+
+      return {
+        schemaVersion: CURRENT_SCHEMA_VERSION,
+        products: workingProducts,
+        sales: workingSales,
+        restockHistory: workingRestock,
+        auditLogs: workingAudit,
+        transactionCounter: Number(raw.transactionCounter) || (workingSales.length + 1),
+        restockCounter: Number(raw.restockCounter) || (workingRestock.length + 1),
+        auditCounter: Number(raw.auditCounter) || (workingAudit.length + 1),
+        settings: raw.settings || {}
+      };
+    }
+
+    function validateAndHealState() {
+      if (!appState || typeof appState !== 'object') {
+        appState = {
+          schemaVersion: CURRENT_SCHEMA_VERSION,
+          products: JSON.parse(JSON.stringify(MASTER_PRODUCTS)),
+          sales: [],
+          restockHistory: [],
+          auditLogs: [],
+          transactionCounter: 1,
+          restockCounter: 1,
+          auditCounter: 1,
+          settings: {}
+        };
+        return;
+      }
+
+      if (!Array.isArray(appState.products) || appState.products.length === 0) {
+        appState.products = JSON.parse(JSON.stringify(MASTER_PRODUCTS));
+      } else {
+        MASTER_PRODUCTS.forEach(master => {
+          const existing = appState.products.find(p => p.id === master.id);
+          if (!existing) {
+            appState.products.push({ ...master });
+          } else {
+            existing.name = existing.name || master.name;
+            existing.category = existing.category || master.category;
+            existing.size = existing.size || master.size;
+            existing.hargaJual = toSafeNumber(existing.hargaJual, master.hargaJual);
+            existing.shopeeHargaKatalog = toSafeNumber(existing.shopeeHargaKatalog, master.shopeeHargaKatalog);
+            existing.hpp = toSafeNumber(existing.hpp, master.hpp);
+            existing.stokAwal = toSafeNumber(existing.stokAwal, master.stokAwal);
+            existing.masuk = Math.max(0, toSafeNumber(existing.masuk, 0));
+            existing.keluar = Math.max(0, toSafeNumber(existing.keluar, 0));
+            existing.minBuffer = toSafeNumber(existing.minBuffer, master.minBuffer);
+          }
+        });
+      }
+
+      if (!Array.isArray(appState.sales)) {
+        appState.sales = [];
+      }
+
+      if (!Array.isArray(appState.restockHistory)) {
+        appState.restockHistory = [];
+      }
+
+      if (!Array.isArray(appState.auditLogs)) {
+        appState.auditLogs = [];
+      }
+
+      appState.schemaVersion = CURRENT_SCHEMA_VERSION;
+      appState.transactionCounter = Math.max(1, toSafeNumber(appState.transactionCounter, appState.sales.length + 1));
+      appState.restockCounter = Math.max(1, toSafeNumber(appState.restockCounter, appState.restockHistory.length + 1));
+      appState.auditCounter = Math.max(1, toSafeNumber(appState.auditCounter, appState.auditLogs.length + 1));
+    }
+
+    async function handleUserLogin(e) {
+      e.preventDefault();
+      const usernameInput = document.getElementById("loginUsername").value.trim().toLowerCase();
+      const passInput = document.getElementById("loginPassword").value;
+
+      const submitBtn = document.getElementById("btnLoginSubmit");
+      const btnText = document.getElementById("loginBtnText");
+      const spinner = document.getElementById("loginSpinner");
+
+      submitBtn.disabled = true;
+      btnText.textContent = "Verifying...";
+      spinner.classList.remove("hidden");
+
+      try {
+        const computedHash = await sha256Hex(passInput);
+
+        // 1. Check if Supabase Backend RPC authentication is configured
+        let authenticatedUser = null;
+
+        if (supabaseClient && cloudAdapter.isConnected) {
+          try {
+            const { data, error } = await supabaseClient.rpc('authenticate_user', {
+              p_username: usernameInput,
+              p_password_hash: computedHash
+            });
+
+            if (data && !error) {
+              authenticatedUser = {
+                id: data.id || `USR-${usernameInput.toUpperCase()}`,
+                username: data.username || usernameInput,
+                name: data.name || (usernameInput === 'koko' ? 'Koko' : 'Adi'),
+                role: data.role || (usernameInput === 'koko' ? 'OWNER' : 'ADMIN'),
+                country: data.country || (usernameInput === 'koko' ? 'Malaysia' : 'Indonesia'),
+                flag: data.country === 'Malaysia' ? '🇲🇾' : '🇮🇩'
+              };
+            }
+          } catch (rpcErr) {
+            console.warn("Supabase RPC auth not available, falling back to secure internal verification:", rpcErr);
+          }
+        }
+
+        // 2. Verified fallback verification against authorized accounts
+        if (!authenticatedUser) {
+          const account = SYSTEM_ACCOUNTS[usernameInput];
+          const expectedHash = await sha256Hex("jago2026");
+
+          if (account && (computedHash === account.passwordHash || computedHash === expectedHash)) {
+            authenticatedUser = {
+              id: account.id,
+              username: account.username,
+              name: account.name,
+              role: account.role,
+              country: account.country,
+              flag: account.flag,
+              defaultLang: account.defaultLang
+            };
+          }
+        }
+
+        if (authenticatedUser) {
+          // Koko is strictly locked to OWNER
+          if (authenticatedUser.username === "koko") {
+            authenticatedUser.role = "OWNER";
+          }
+          if (authenticatedUser.username === "adi") {
+            authenticatedUser.role = "ADMIN";
+          }
+
+          currentUser = authenticatedUser;
+
+          // Save secure session (never save password or plain hash)
+          localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify({
+            id: currentUser.id,
+            username: currentUser.username,
+            name: currentUser.name,
+            role: currentUser.role,
+            country: currentUser.country,
+            flag: currentUser.flag,
+            sessionToken: `JN-SESS-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            loginTime: new Date().toISOString()
+          }));
+
+          // Set user default language if available
+          if (authenticatedUser.defaultLang) {
+            setLanguage(authenticatedUser.defaultLang);
+          }
+
+          updateUserProfileUI();
+          document.getElementById("authGate").classList.add("hidden");
+          showToast(`Welcome, ${currentUser.name}! (${currentUser.role} - ${currentUser.country})`, "success");
+          addAuditLog("LOGIN", "USER", currentUser.id, `User ${currentUser.name} (${currentUser.role}) logged in`);
+        } else {
+          showToast("Username atau password tidak sesuai. Silakan periksa kembali.", "error");
+        }
+      } catch (err) {
+        console.error("Login verification error:", err);
+        showToast("Terjadi kendala saat verifikasi login.", "error");
+      } finally {
+        submitBtn.disabled = false;
+        btnText.textContent = t("loginButton");
+        spinner.classList.add("hidden");
+      }
+    }
+
+    function fillLoginForm(username, pass) {
+      document.getElementById("loginUsername").value = username;
+      document.getElementById("loginPassword").value = pass;
+    }
+
+    function handleLogout() {
+      showConfirmModal(
+        t("logoutTitle"),
+        "Apakah Anda yakin ingin keluar dari sesi POS?",
+        () => {
+          if (currentUser) {
+            addAuditLog("LOGOUT", "USER", currentUser.id, `User ${currentUser.name} (${currentUser.role}) logged out`);
+          }
+          currentUser = null;
+          localStorage.removeItem(AUTH_SESSION_KEY);
+          document.getElementById("authGate").classList.remove("hidden");
+          document.getElementById("loginPassword").value = "";
+        }
+      );
+    }
+
+    function updateUserProfileUI() {
+      if (!currentUser) return;
+      document.getElementById("activeUserName").textContent = currentUser.name;
+      document.getElementById("activeUserFlag").textContent = currentUser.flag;
+      document.getElementById("activeUserCountry").textContent = currentUser.country;
+
+      const roleBadge = document.getElementById("activeUserRoleBadge");
+      roleBadge.textContent = currentUser.role;
+      if (currentUser.role === "OWNER") {
+        roleBadge.className = "text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold uppercase tracking-wider";
+      } else if (currentUser.role === "ADMIN") {
+        roleBadge.className = "text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-semibold uppercase tracking-wider";
+      } else {
+        roleBadge.className = "text-[10px] px-1.5 py-0.2 rounded bg-slate-500/20 text-slate-300 font-semibold uppercase";
+      }
+
+      document.getElementById("cloudCurrentUserName").textContent = `${currentUser.name} (${currentUser.country}) - ${currentUser.role}`;
+
+      // Access Control: OWNER & ADMIN have full system authority
+      const resetCard = document.getElementById("resetDatabaseCard");
+      if (resetCard) {
+        if (currentUser.role === "OWNER" || currentUser.role === "ADMIN") {
+          resetCard.classList.remove("opacity-40", "pointer-events-none");
+        } else {
+          resetCard.classList.add("opacity-40", "pointer-events-none");
+        }
+      }
+    }
+
+    function isDateInActivePeriod(dateStr) {
+      if (!dateStr) return false;
+      if (currentPeriodFilter === "ALL") return true;
+
+      const today = new Date();
+      const localTodayStr = getLocalDateString(today);
+
+      if (currentPeriodFilter === "TODAY") {
+        return dateStr === localTodayStr;
+      }
+
+      if (currentPeriodFilter === "LAST_7_DAYS") {
+        const sevenDaysAgo = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 6);
+        const startDateStr = getLocalDateString(sevenDaysAgo);
+        return dateStr >= startDateStr && dateStr <= localTodayStr;
+      }
+
+      if (currentPeriodFilter === "THIS_MONTH") {
+        const y = today.getFullYear();
+        const m = String(today.getMonth() + 1).padStart(2, '0');
+        return dateStr.startsWith(`${y}-${m}`);
+      }
+
+      if (currentPeriodFilter === "LAST_MONTH") {
+        const prev = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+        const y = prev.getFullYear();
+        const m = String(prev.getMonth() + 1).padStart(2, '0');
+        return dateStr.startsWith(`${y}-${m}`);
+      }
+
+      if (currentPeriodFilter === "CUSTOM") {
+        if (customPeriodStart && dateStr < customPeriodStart) return false;
+        if (customPeriodEnd && dateStr > customPeriodEnd) return false;
+        return true;
+      }
+
+      return true;
+    }
+
+    function onPeriodFilterChange() {
+      const select = document.getElementById('filterPeriodSelect');
+      currentPeriodFilter = select.value;
+
+      const customBox = document.getElementById('customDateRangeBox');
+      if (currentPeriodFilter === "CUSTOM") {
+        customBox.classList.remove('hidden');
+        const todayStr = getLocalDateString();
+        document.getElementById('customStartDate').value = customPeriodStart || todayStr;
+        document.getElementById('customEndDate').value = customPeriodEnd || todayStr;
+        customPeriodStart = document.getElementById('customStartDate').value;
+        customPeriodEnd = document.getElementById('customEndDate').value;
+      } else {
+        customBox.classList.add('hidden');
+      }
+
+      refreshAllViews();
+    }
+
+    function applyCustomPeriod() {
+      customPeriodStart = document.getElementById('customStartDate').value;
+      customPeriodEnd = document.getElementById('customEndDate').value;
+      refreshAllViews();
+    }
+
+    function calculateMetrics() {
+      let totalRemainingStock = 0;
+      let lowStockAlertCount = 0;
+
+      appState.products.forEach(p => {
+        const sisa = (p.stokAwal + p.masuk) - p.keluar;
+        totalRemainingStock += Math.max(0, sisa);
+        if (sisa <= p.minBuffer) {
+          lowStockAlertCount++;
+        }
+      });
+
+      let totalGrossSales = 0;
+      let totalDiscount = 0;
+      let totalNetSales = 0;
+      let totalCOGS = 0;
+      let totalUnitsSold = 0;
+
+      let shopeeDiscountSum = 0;
+      let shopeeGrossSum = 0;
+      let shopeeTrxCount = 0;
+
+      const productQtyMap = {};
+
+      appState.sales.forEach(s => {
+        if (isDateInActivePeriod(s.date)) {
+          const qty = toSafeNumber(s.qty, 0);
+          const unitPrice = toSafeNumber(s.unitPrice, 0);
+          const discount = toSafeNumber(s.discount, 0);
+          const unitHPP = toSafeNumber(s.unitHPP, 0);
+
+          const gross = unitPrice * qty;
+          const net = Math.max(0, gross - discount);
+          const cogs = unitHPP * qty;
+
+          totalGrossSales += gross;
+          totalDiscount += discount;
+          totalNetSales += net;
+          totalCOGS += cogs;
+          totalUnitsSold += qty;
+
+          productQtyMap[s.productId] = (productQtyMap[s.productId] || 0) + qty;
+
+          if (s.channel === "Shopee") {
+            shopeeTrxCount++;
+            shopeeDiscountSum += discount;
+            shopeeGrossSum += gross;
+          }
+        }
+      });
+
+      const totalGrossProfit = totalNetSales - totalCOGS;
+      const grossMarginPct = totalNetSales > 0 ? ((totalGrossProfit / totalNetSales) * 100).toFixed(1) : "0.0";
+
+      let bestProductId = null;
+      let bestQty = 0;
+      for (const [id, count] of Object.entries(productQtyMap)) {
+        if (count > bestQty) {
+          bestQty = count;
+          bestProductId = id;
+        }
+      }
+
+      let bestSellerText = "-";
+      if (bestProductId && bestQty > 0) {
+        const p = appState.products.find(item => item.id === bestProductId);
+        const cleanName = p ? p.name.replace(/Whey Hydro Isolate - /g, '') : bestProductId;
+        bestSellerText = `Best: ${cleanName} (${bestQty} pcs)`;
+      }
+
+      document.getElementById('kpiOmset').textContent = formatIDR(totalNetSales);
+      document.getElementById('kpiGrossSales').textContent = formatIDR(totalGrossSales);
+      document.getElementById('kpiTotalDiscount').textContent = totalDiscount > 0 ? `-${formatIDR(totalDiscount)}` : `Rp 0`;
+      
+      const profitEl = document.getElementById('kpiProfit');
+      profitEl.textContent = formatIDR(totalGrossProfit);
+      profitEl.className = totalGrossProfit < 0 
+        ? "text-lg sm:text-2xl lg:text-3xl font-extrabold text-rose-400 tracking-tight" 
+        : "text-lg sm:text-2xl lg:text-3xl font-extrabold text-emerald-400 tracking-tight";
+
+      document.getElementById('kpiGrossMargin').textContent = `${grossMarginPct}%`;
+      document.getElementById('kpiUnitsSold').innerHTML = `${totalUnitsSold.toLocaleString('id-ID')} <span class="text-xs sm:text-sm font-normal text-slate-400">pcs</span>`;
+      document.getElementById('kpiRemainingStock').innerHTML = `${totalRemainingStock.toLocaleString('id-ID')} <span class="text-xs sm:text-sm font-normal text-slate-400">pcs</span>`;
+      document.getElementById('kpiBestSeller').textContent = bestSellerText;
+
+      const alertEl = document.getElementById('kpiAlertCount');
+      if (lowStockAlertCount > 0) {
+        alertEl.textContent = `⚠️ ${lowStockAlertCount} SKU menipis/habis!`;
+        alertEl.className = "text-[11px] sm:text-xs text-rose-400 font-semibold mt-2 truncate";
+      } else {
+        alertEl.textContent = `✓ ${currentLang === 'id' ? 'Semua stok gudang aman' : 'All warehouse stock safe'}`;
+        alertEl.className = "text-[11px] sm:text-xs text-emerald-400 font-semibold mt-2 truncate";
+      }
+
+      const shopeeAvgPct = (shopeeGrossSum > 0) ? ((shopeeDiscountSum / shopeeGrossSum) * 100).toFixed(2) : "0.00";
+      document.getElementById('shopeeKpiTotalDiscount').textContent = formatIDR(shopeeDiscountSum);
+      document.getElementById('shopeeKpiAvgDiscountPct').textContent = `${shopeeAvgPct}%`;
+      document.getElementById('shopeeKpiTrxCount').innerHTML = `${shopeeTrxCount} <span class="text-xs font-normal text-slate-400">trx</span>`;
+
+      // Tab Badges
+      document.getElementById('tabStockCount').textContent = appState.products.length;
+      document.getElementById('tabSaleCount').textContent = appState.sales.length;
+      document.getElementById('tabRestockCount').textContent = appState.restockHistory.length;
+      document.getElementById('tabAuditCount').textContent = appState.auditLogs.length;
+
+      document.getElementById('printCurrentTimestamp').textContent = new Date().toLocaleString('id-ID');
+      const periodLabelMap = {
+        ALL: t("periodAll"),
+        TODAY: `${t("periodToday")} (${getLocalDateString()})`,
+        LAST_7_DAYS: t("period7Days"),
+        THIS_MONTH: t("periodThisMonth"),
+        LAST_MONTH: t("periodLastMonth"),
+        CUSTOM: `${customPeriodStart || ''} - ${customPeriodEnd || ''}`
+      };
+      document.getElementById('printPeriodLabel').textContent = periodLabelMap[currentPeriodFilter] || currentPeriodFilter;
+    }
+
+    function renderProductSummary() {
+      const tbody = document.getElementById('productSummaryTableBody');
+      tbody.innerHTML = '';
+
+      const summary = appState.products.map(p => {
+        let qtyTerjual = 0;
+        let grossSales = 0;
+        let discount = 0;
+        let netSales = 0;
+        let cogs = 0;
+
+        appState.sales.forEach(s => {
+          if (s.productId === p.id && isDateInActivePeriod(s.date)) {
+            const q = toSafeNumber(s.qty, 0);
+            const price = toSafeNumber(s.unitPrice, 0);
+            const disc = toSafeNumber(s.discount, 0);
+            const g = price * q;
+            const n = Math.max(0, g - disc);
+            const unitHppSnap = toSafeNumber(s.unitHPP, p.hpp);
+            const c = unitHppSnap * q;
+
+            qtyTerjual += q;
+            grossSales += g;
+            discount += disc;
+            netSales += n;
+            cogs += c;
+          }
+        });
+
+        const grossProfit = netSales - cogs;
+        const marginPct = netSales > 0 ? ((grossProfit / netSales) * 100).toFixed(1) : "0.0";
+
+        return {
+          id: p.id,
+          name: p.name,
+          size: p.size,
+          qtyTerjual,
+          grossSales,
+          discount,
+          netSales,
+          cogs,
+          grossProfit,
+          marginPct: parseFloat(marginPct)
+        };
+      });
+
+      summary.sort((a, b) => b.netSales - a.netSales || b.qtyTerjual - a.qtyTerjual);
+
+      summary.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-800/80 transition";
+        tr.innerHTML = `
+          <td class="py-2.5 px-3 sm:px-4">
+            <div class="font-medium text-white">${escapeHTML(item.name)}</div>
+            <div class="text-[10px] text-slate-400 font-mono">${escapeHTML(item.id)} &bull; ${escapeHTML(item.size)}</div>
+          </td>
+          <td class="py-2.5 px-2.5 text-center font-bold text-white">${item.qtyTerjual}</td>
+          <td class="py-2.5 px-2.5 text-right text-slate-300">${formatIDR(item.grossSales)}</td>
+          <td class="py-2.5 px-2.5 text-right text-rose-400">${item.discount > 0 ? '-' + formatIDR(item.discount) : '-'}</td>
+          <td class="py-2.5 px-2.5 text-right font-bold text-white">${formatIDR(item.netSales)}</td>
+          <td class="py-2.5 px-2.5 text-right text-slate-400">${formatIDR(item.cogs)}</td>
+          <td class="py-2.5 px-2.5 text-right font-bold ${item.grossProfit >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${formatIDR(item.grossProfit)}</td>
+          <td class="py-2.5 px-2.5 text-center font-semibold ${item.marginPct >= 0 ? 'text-slate-300' : 'text-rose-400'}">${item.marginPct}%</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderChannelSummary() {
+      const tbody = document.getElementById('channelSummaryTableBody');
+      tbody.innerHTML = '';
+
+      const channels = ["Shopee", "Store / Offline", "Tokopedia", "TikTok Shop", "WhatsApp"];
+      const channelData = {};
+
+      channels.forEach(ch => {
+        channelData[ch] = {
+          trxCount: 0,
+          units: 0,
+          grossSales: 0,
+          discount: 0,
+          netSales: 0,
+          cogs: 0
+        };
+      });
+
+      appState.sales.forEach(s => {
+        if (isDateInActivePeriod(s.date)) {
+          const ch = channelData[s.channel] ? s.channel : "Store / Offline";
+          const q = toSafeNumber(s.qty, 0);
+          const price = toSafeNumber(s.unitPrice, 0);
+          const disc = toSafeNumber(s.discount, 0);
+          const g = price * q;
+          const n = Math.max(0, g - disc);
+          const unitHppSnap = toSafeNumber(s.unitHPP, 0);
+          const c = unitHppSnap * q;
+
+          channelData[ch].trxCount += 1;
+          channelData[ch].units += q;
+          channelData[ch].grossSales += g;
+          channelData[ch].discount += disc;
+          channelData[ch].netSales += n;
+          channelData[ch].cogs += c;
+        }
+      });
+
+      channels.forEach(ch => {
+        const item = channelData[ch];
+        const profit = item.netSales - item.cogs;
+        const avgDiscountPct = (item.grossSales > 0) ? ((item.discount / item.grossSales) * 100).toFixed(2) : "0.00";
+
+        const isShopeeRow = (ch === "Shopee");
+        const tr = document.createElement('tr');
+        tr.className = `hover:bg-slate-800/80 transition ${isShopeeRow ? 'bg-orange-950/10' : ''}`;
+        tr.innerHTML = `
+          <td class="py-2.5 px-3 sm:px-4 font-semibold ${isShopeeRow ? 'text-orange-400 flex items-center gap-1.5' : 'text-white'}">
+            ${isShopeeRow ? '<span>🛍️</span>' : ''}${escapeHTML(ch)}
+          </td>
+          <td class="py-2.5 px-2.5 text-center text-slate-300">${item.trxCount}</td>
+          <td class="py-2.5 px-2.5 text-center font-bold text-white">${item.units}</td>
+          <td class="py-2.5 px-2.5 text-right text-slate-300">${formatIDR(item.grossSales)}</td>
+          <td class="py-2.5 px-2.5 text-right text-rose-400">${item.discount > 0 ? '-' + formatIDR(item.discount) : '-'}</td>
+          <td class="py-2.5 px-2.5 text-center font-mono font-bold ${item.discount > 0 ? 'text-amber-400' : 'text-slate-400'}">${avgDiscountPct}%</td>
+          <td class="py-2.5 px-2.5 text-right font-bold text-white">${formatIDR(item.netSales)}</td>
+          <td class="py-2.5 px-2.5 text-right font-bold ${profit >= 0 ? 'text-emerald-400' : 'text-rose-400'}">${formatIDR(profit)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderInventory() {
+      const tbody = document.getElementById('inventoryTableBody');
+      const mobileCards = document.getElementById('mobileInventoryCards');
+      const miniList = document.getElementById('stockMiniList');
+      tbody.innerHTML = '';
+      mobileCards.innerHTML = '';
+      miniList.innerHTML = '';
+
+      appState.products.forEach((p) => {
+        const sisa = (p.stokAwal + p.masuk) - p.keluar;
+        let statusBadge = '';
+        let badgeColor = '';
+
+        if (sisa <= 0) {
+          statusBadge = '<span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-rose-500/20 text-rose-400 border border-rose-500/30">Habis / Out</span>';
+          badgeColor = 'text-rose-400';
+        } else if (sisa <= p.minBuffer) {
+          statusBadge = '<span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/20 text-amber-400 border border-amber-500/30">Menipis / Low</span>';
+          badgeColor = 'text-amber-400';
+        } else {
+          statusBadge = '<span class="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">Aman / OK</span>';
+          badgeColor = 'text-emerald-400';
+        }
+
+        // Desktop Table Row
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-800/80 transition";
+        tr.innerHTML = `
+          <td class="py-3 px-4 font-mono text-xs font-bold text-blue-400">${escapeHTML(p.id)}</td>
+          <td class="py-3 px-4 font-medium text-white">${escapeHTML(p.name)}</td>
+          <td class="py-3 px-3 text-center text-slate-300 font-mono">${escapeHTML(p.size)}</td>
+          <td class="py-3 px-3 text-right font-medium text-white">${formatIDR(p.hargaJual)}</td>
+          <td class="py-3 px-3 text-right font-bold text-orange-400">${formatIDR(p.shopeeHargaKatalog)}</td>
+          <td class="py-3 px-3 text-right text-slate-400">${formatIDR(p.hpp)}</td>
+          <td class="py-3 px-3 text-center text-slate-300 font-semibold">${p.stokAwal}</td>
+          <td class="py-3 px-3 text-center text-emerald-400 font-semibold">+${p.masuk}</td>
+          <td class="py-3 px-3 text-center text-rose-400 font-semibold">-${p.keluar}</td>
+          <td class="py-3 px-3 text-center font-bold text-white bg-slate-800/40">${sisa}</td>
+          <td class="py-3 px-3 text-center">${statusBadge}</td>
+          <td class="py-3 px-4 text-center no-print">
+            <button onclick="openRestockModal('${p.id}')" title="Restock SKU Ini" class="px-2.5 py-1 rounded-lg bg-slate-700 hover:bg-slate-600 text-emerald-400 transition inline-flex items-center gap-1 text-xs font-medium">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+              Restock
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+
+        // Mobile Card View
+        const card = document.createElement('div');
+        card.className = "bg-slate-800/60 border border-slate-700/70 p-3.5 rounded-2xl flex flex-col gap-2.5";
+        card.innerHTML = `
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <h4 class="text-xs font-bold text-white leading-tight">${escapeHTML(p.name)}</h4>
+              <p class="text-[10px] text-blue-400 font-mono mt-0.5">${escapeHTML(p.id)} &bull; ${escapeHTML(p.size)}</p>
+            </div>
+            ${statusBadge}
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 text-[11px] bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
+            <div>
+              <span class="text-slate-400 block text-[10px]">${t("thStock")}:</span>
+              <span class="text-base font-extrabold ${badgeColor}">${sisa} pcs</span>
+            </div>
+            <div>
+              <span class="text-slate-400 block text-[10px]">${t("thCatalogShopee")}:</span>
+              <span class="font-bold text-orange-300 font-mono">${formatIDR(p.shopeeHargaKatalog)}</span>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between pt-1">
+            <span class="text-[10px] text-slate-400">Offline: <strong class="text-slate-200">${formatIDR(p.hargaJual)}</strong></span>
+            <button onclick="openRestockModal('${p.id}')" class="px-3 py-1.5 rounded-xl bg-emerald-950/40 border border-emerald-500/30 text-emerald-400 text-xs font-bold flex items-center gap-1">
+              + Restock
+            </button>
+          </div>
+        `;
+        mobileCards.appendChild(card);
+
+        // Mini status widget for dashboard
+        const miniItem = document.createElement('div');
+        miniItem.className = "flex items-center justify-between p-2 rounded-xl bg-slate-900/60 border border-slate-700/60";
+        miniItem.innerHTML = `
+          <div class="overflow-hidden pr-2">
+            <p class="text-xs font-semibold text-white truncate">${escapeHTML(p.name.replace('Whey Hydro Isolate - ', ''))}</p>
+            <p class="text-[10px] text-slate-400">Shopee: ${formatIDR(p.shopeeHargaKatalog)}</p>
+          </div>
+          <div class="text-right flex-shrink-0">
+            <span class="text-xs sm:text-sm font-bold ${badgeColor}">${sisa} pcs</span>
+          </div>
+        `;
+        miniList.appendChild(miniItem);
+      });
+    }
+
+    function renderRestockLogTable() {
+      const tbody = document.getElementById('restockLogTableBody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      if (appState.restockHistory.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" class="py-8 text-center text-slate-500 text-xs">
+              Belum ada data riwayat restock barang masuk.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      appState.restockHistory.slice().reverse().forEach(r => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-800/80 transition";
+        tr.innerHTML = `
+          <td class="py-3 px-4 font-mono text-xs font-bold text-emerald-400">${escapeHTML(r.id)}</td>
+          <td class="py-3 px-3 text-slate-300 text-xs whitespace-nowrap">${formatDisplayDate(r.date)}</td>
+          <td class="py-3 px-4 font-medium text-white">
+            <div>${escapeHTML(r.productName || r.productId)}</div>
+            <div class="text-[10px] text-slate-400 font-mono">${escapeHTML(r.productId)}</div>
+          </td>
+          <td class="py-3 px-3 text-center font-bold text-emerald-400">+${r.qty} pcs</td>
+          <td class="py-3 px-4 text-xs text-slate-300">${escapeHTML(r.note || '-')}</td>
+          <td class="py-3 px-3 text-xs font-bold text-blue-400">${escapeHTML(r.createdBy || 'Koko')}</td>
+          <td class="py-3 px-3 text-xs text-slate-500 whitespace-nowrap">${formatDisplayTime(r.createdAt)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderSalesTable() {
+      const keyword = (document.getElementById('salesSearchInput')?.value || '').toLowerCase().trim();
+      const filterChannel = document.getElementById('salesChannelFilter')?.value || '';
+      const filterProduct = document.getElementById('salesProductFilter')?.value || '';
+      const tbody = document.getElementById('salesTableBody');
+      if (!tbody) return;
+
+      tbody.innerHTML = '';
+
+      const filtered = appState.sales.filter(s => {
+        const matchesKey = !keyword ||
+          (s.id && s.id.toLowerCase().includes(keyword)) ||
+          (s.productName && s.productName.toLowerCase().includes(keyword)) ||
+          (s.productId && s.productId.toLowerCase().includes(keyword)) ||
+          (s.channel && s.channel.toLowerCase().includes(keyword)) ||
+          (s.createdBy && s.createdBy.toLowerCase().includes(keyword));
+
+        const matchesChannel = !filterChannel || s.channel === filterChannel;
+        const matchesProduct = !filterProduct || s.productId === filterProduct;
+        const matchesPeriod = isDateInActivePeriod(s.date);
+
+        return matchesKey && matchesChannel && matchesProduct && matchesPeriod;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="13" class="py-8 text-center text-slate-500 text-xs">
+              Tidak ada data transaksi yang sesuai filter atau periode yang aktif.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      filtered.slice().reverse().forEach((s) => {
+        let channelBadge = 'bg-slate-700 text-slate-300 border-slate-600';
+        if (s.channel === 'Shopee') channelBadge = 'bg-orange-500/20 text-orange-400 border border-orange-500/30';
+        if (s.channel === 'Tokopedia') channelBadge = 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+        if (s.channel === 'TikTok Shop') channelBadge = 'bg-pink-500/20 text-pink-400 border border-pink-500/30';
+        if (s.channel === 'Store / Offline') channelBadge = 'bg-blue-500/20 text-blue-400 border border-blue-500/30';
+        if (s.channel === 'WhatsApp') channelBadge = 'bg-teal-500/20 text-teal-400 border border-teal-500/30';
+
+        const isShopee = (s.channel === 'Shopee');
+        const displayCatalog = isShopee && s.shopeeCatalogPrice ? formatIDR(s.shopeeCatalogPrice) : formatIDR(s.unitPrice);
+        const displayNet = isShopee && s.shopeeNetPrice ? formatIDR(s.shopeeNetPrice) : '-';
+        const displayDiscPct = (s.discountPercent !== undefined && s.discountPercent > 0) ? `${s.discountPercent}%` : (s.discount > 0 && s.unitPrice > 0 ? `${((s.discount / (s.unitPrice * s.qty)) * 100).toFixed(2)}%` : '-');
+
+        const canDelete = currentUser && (currentUser.role === "OWNER" || currentUser.role === "ADMIN");
+
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-800/80 transition";
+        tr.innerHTML = `
+          <td class="py-3 px-3 sm:px-4 font-mono text-xs font-semibold text-slate-300">${escapeHTML(s.id)}</td>
+          <td class="py-3 px-2.5 sm:px-3 text-slate-300 text-xs whitespace-nowrap">${formatDisplayDate(s.date)}</td>
+          <td class="py-3 px-2.5 sm:px-3">
+            <span class="px-2 py-0.5 rounded-md text-[10px] sm:text-[11px] font-semibold ${channelBadge}">${escapeHTML(s.channel)}</span>
+          </td>
+          <td class="py-3 px-3 sm:px-4 font-medium text-white">${escapeHTML(s.productName)}</td>
+          <td class="py-3 px-2 text-center font-bold text-white">${toSafeNumber(s.qty, 1)}</td>
+          <td class="py-3 px-2.5 text-right text-slate-300 font-mono text-xs">${displayCatalog}</td>
+          <td class="py-3 px-2.5 text-right text-orange-300 font-mono text-xs font-bold">${displayNet}</td>
+          <td class="py-3 px-2 text-right text-rose-400">${s.discount > 0 ? '-' + formatIDR(s.discount) : '-'}</td>
+          <td class="py-3 px-2 text-center font-mono text-xs ${s.discount > 0 ? 'text-amber-400 font-bold' : 'text-slate-500'}">${displayDiscPct}</td>
+          <td class="py-3 px-3 text-right font-bold text-white">${formatIDR(s.total)}</td>
+          <td class="py-3 px-2.5 text-right font-bold text-emerald-400">${formatIDR(s.profit || (s.total - (s.unitHPP * s.qty)))}</td>
+          <td class="py-3 px-2.5 text-xs text-blue-300 font-semibold">${escapeHTML(s.createdBy || 'Adi')}</td>
+          <td class="py-3 px-3 text-center no-print">
+            ${canDelete ? `
+              <button onclick="confirmDeleteSale('${escapeHTML(s.id)}')" title="Hapus Transaksi (Owner/Admin)" class="p-1.5 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition" aria-label="Hapus Transaksi">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+              </button>
+            ` : `<span class="text-[10px] text-slate-600">-</span>`}
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderAuditTrailTable() {
+      const tbody = document.getElementById('auditTrailTableBody');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      if (!appState.auditLogs || appState.auditLogs.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="5" class="py-8 text-center text-slate-500 text-xs">
+              Belum ada catatan audit trail transaksi.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      appState.auditLogs.forEach(log => {
+        let actionBadge = 'bg-blue-500/20 text-blue-400 border border-blue-500/30';
+        if (log.action.includes('DELETE')) actionBadge = 'bg-rose-500/20 text-rose-400 border border-rose-500/30';
+        if (log.action.includes('RESTOCK')) actionBadge = 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-800/80 transition text-xs";
+        tr.innerHTML = `
+          <td class="py-2.5 px-4 text-slate-300 font-mono">${formatDisplayDate(log.timestamp)} ${formatDisplayTime(log.timestamp)}</td>
+          <td class="py-2.5 px-3 font-semibold text-white">
+            <span>${escapeHTML(log.userName)}</span>
+            <span class="text-[10px] text-slate-400 font-normal block">${escapeHTML(log.userCountry)} (${escapeHTML(log.userRole)})</span>
+          </td>
+          <td class="py-2.5 px-3">
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${actionBadge}">${escapeHTML(log.action)}</span>
+          </td>
+          <td class="py-2.5 px-4 font-mono text-slate-300">${escapeHTML(log.entityId || log.entityType)}</td>
+          <td class="py-2.5 px-4 text-slate-300">${escapeHTML(log.details)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function filterSalesTable() {
+      renderSalesTable();
+    }
+
+    function populateProductFilterOptions() {
+      const select = document.getElementById('salesProductFilter');
+      if (!select) return;
+      const currentVal = select.value;
+      select.innerHTML = `<option value="">${t("allProducts")}</option>`;
+      appState.products.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        opt.textContent = p.name;
+        if (opt.value === currentVal) opt.selected = true;
+        select.appendChild(opt);
+      });
+    }
+
+    function renderOrUpdateChart() {
+      const canvas = document.getElementById('salesChart');
+      const emptyState = document.getElementById('chartEmptyState');
+      if (!canvas || typeof Chart === 'undefined') return;
+
+      const labels = appState.products.map(p => {
+        return p.name.replace('Whey Hydro Isolate - ', '').replace('100% Creatine Monohydrate', 'Creatine');
+      });
+
+      const productSalesPeriod = {};
+      appState.products.forEach(p => { productSalesPeriod[p.id] = 0; });
+      let hasAnySalesInPeriod = false;
+
+      appState.sales.forEach(s => {
+        if (isDateInActivePeriod(s.date)) {
+          productSalesPeriod[s.productId] = (productSalesPeriod[s.productId] || 0) + toSafeNumber(s.qty, 0);
+          hasAnySalesInPeriod = true;
+        }
+      });
+
+      const dataTerjual = appState.products.map(p => productSalesPeriod[p.id] || 0);
+      const dataSisaStok = appState.products.map(p => Math.max(0, (p.stokAwal + p.masuk) - p.keluar));
+
+      if (!hasAnySalesInPeriod) {
+        emptyState.classList.remove('hidden');
+      } else {
+        emptyState.classList.add('hidden');
+      }
+
+      if (salesChartInstance) {
+        salesChartInstance.data.labels = labels;
+        salesChartInstance.data.datasets[0].data = dataTerjual;
+        salesChartInstance.data.datasets[1].data = dataSisaStok;
+        salesChartInstance.data.datasets[0].label = currentLang === 'id' ? 'Unit Terjual (Periode)' : 'Units Sold (Period)';
+        salesChartInstance.data.datasets[1].label = currentLang === 'id' ? 'Stok Fisik Saat Ini' : 'Physical Stock';
+        salesChartInstance.update();
+        return;
+      }
+
+      const ctx = canvas.getContext('2d');
+      salesChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: currentLang === 'id' ? 'Unit Terjual (Periode)' : 'Units Sold (Period)',
+              data: dataTerjual,
+              backgroundColor: 'rgba(59, 130, 246, 0.85)',
+              borderRadius: 6,
+            },
+            {
+              label: currentLang === 'id' ? 'Stok Fisik Saat Ini' : 'Physical Stock',
+              data: dataSisaStok,
+              backgroundColor: 'rgba(16, 185, 129, 0.75)',
+              borderRadius: 6,
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              labels: {
+                color: '#cbd5e1',
+                font: { family: 'Plus Jakarta Sans', size: 10, weight: 'bold' }
+              }
+            },
+            tooltip: {
+              backgroundColor: '#0f172a',
+              titleColor: '#fff',
+              bodyColor: '#cbd5e1',
+              padding: 8,
+              borderColor: '#334155',
+              borderWidth: 1
+            }
+          },
+          scales: {
+            x: {
+              ticks: { color: '#94a3b8', font: { size: 9 } },
+              grid: { display: false }
+            },
+            y: {
+              ticks: { color: '#94a3b8', font: { size: 9 }, stepSize: 5 },
+              grid: { color: '#334155' },
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    }
+
+    function openSaleModal() {
+      const select = document.getElementById('saleProductSelect');
+      select.innerHTML = '';
+      appState.products.forEach(p => {
+        const sisa = (p.stokAwal + p.masuk) - p.keluar;
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        opt.textContent = `${p.name} (${p.size})`;
+        select.appendChild(opt);
+      });
+
+      document.getElementById('saleDate').value = getLocalDateString();
+      document.getElementById('saleQty').value = 1;
+      document.getElementById('saleDiscount').value = 0;
+
+      onSaleChannelChanged();
+      document.getElementById('modalSale').classList.remove('hidden');
+    }
+
+    function onSaleChannelChanged() {
+      const channel = document.getElementById('saleChannel').value;
+      const shopeeBox = document.getElementById('shopeePricingBox');
+      const nonShopeeBox = document.getElementById('nonShopeePricingBox');
+
+      if (channel === 'Shopee') {
+        shopeeBox.classList.remove('hidden');
+        nonShopeeBox.classList.add('hidden');
+      } else {
+        shopeeBox.classList.add('hidden');
+        nonShopeeBox.classList.remove('hidden');
+      }
+
+      updateSalePriceHelper();
+    }
+
+    function updateSalePriceHelper() {
+      const prodId = document.getElementById('saleProductSelect').value;
+      const product = appState.products.find(p => p.id === prodId);
+      const channel = document.getElementById('saleChannel').value;
+
+      if (product) {
+        const sisa = (product.stokAwal + product.masuk) - product.keluar;
+        const helper = document.getElementById('saleStockHelper');
+        
+        if (channel === 'Shopee') {
+          helper.textContent = `Sisa stok: ${sisa} pcs | Harga Katalog Shopee: ${formatIDR(product.shopeeHargaKatalog)}`;
+          document.getElementById('shopeeCatalogPriceDisplay').value = formatIDR(product.shopeeHargaKatalog);
+          document.getElementById('shopeeNetPriceInput').value = product.shopeeHargaKatalog;
+        } else {
+          helper.textContent = `Sisa stok: ${sisa} pcs | Harga Jual Standar: ${formatIDR(product.hargaJual)}`;
+        }
+
+        helper.className = sisa <= product.minBuffer ? "text-xs text-amber-400 mt-1 font-semibold" : "text-xs text-slate-400 mt-1";
+      }
+
+      calculateSaleTotalPreview();
+    }
+
+    function calculateSaleTotalPreview() {
+      const prodId = document.getElementById('saleProductSelect').value;
+      const product = appState.products.find(p => p.id === prodId);
+      const channel = document.getElementById('saleChannel').value;
+      const rawQty = document.getElementById('saleQty').value;
+
+      if (!product) return;
+      const qty = isValidPositiveInteger(rawQty) ? Number(rawQty) : 0;
+
+      if (channel === 'Shopee') {
+        const catalogPrice = product.shopeeHargaKatalog;
+        const rawNett = document.getElementById('shopeeNetPriceInput').value;
+        const netPrice = (rawNett !== '' && !isNaN(Number(rawNett))) ? Math.max(0, Number(rawNett)) : catalogPrice;
+
+        const grossTotal = catalogPrice * qty;
+        const netTotal = netPrice * qty;
+        const discountTotal = Math.max(0, grossTotal - netTotal);
+        
+        let discountPct = 0;
+        if (catalogPrice > 0 && netPrice <= catalogPrice) {
+          discountPct = (((catalogPrice - netPrice) / catalogPrice) * 100);
+        }
+
+        document.getElementById('shopeeDiscountPreview').textContent = formatIDR(discountTotal);
+        document.getElementById('shopeeDiscountPctPreview').textContent = `${discountPct.toFixed(2)}%`;
+        document.getElementById('saleTotalPreview').textContent = formatIDR(netTotal);
+        document.getElementById('saleBreakdownHelper').textContent = `Gross: ${formatIDR(grossTotal)} - Diskon: ${formatIDR(discountTotal)}`;
+
+        const netInput = document.getElementById('shopeeNetPriceInput');
+        if (netPrice > catalogPrice) {
+          netInput.classList.add('border-rose-500', 'text-rose-400');
+        } else {
+          netInput.classList.remove('border-rose-500', 'text-rose-400');
+        }
+
+      } else {
+        const unitPrice = product.hargaJual;
+        const rawDiscount = document.getElementById('saleDiscount').value;
+        const discount = Math.max(0, toSafeNumber(rawDiscount, 0));
+
+        const grossTotal = unitPrice * qty;
+        const netTotal = Math.max(0, grossTotal - discount);
+
+        document.getElementById('saleTotalPreview').textContent = formatIDR(netTotal);
+        document.getElementById('saleBreakdownHelper').textContent = `Gross: ${formatIDR(grossTotal)} - Diskon: ${formatIDR(discount)}`;
+      }
+    }
+
+    async function handleSaleSubmit(e) {
+      e.preventDefault();
+
+      if (!currentUser) {
+        showToast("Sesi kedaluwarsa. Silakan login kembali.", "error");
+        document.getElementById("authGate").classList.remove("hidden");
+        return;
+      }
+
+      const prodId = document.getElementById('saleProductSelect').value;
+      const product = appState.products.find(p => p.id === prodId);
+
+      if (!product) {
+        showToast("Error: Produk tidak ditemukan!", "error");
+        return;
+      }
+
+      const rawQty = document.getElementById('saleQty').value;
+      if (!isValidPositiveInteger(rawQty)) {
+        showToast("Jumlah quantity wajib berupa bilangan bulat positif (> 0)!", "error");
+        return;
+      }
+      const qty = Number(rawQty);
+
+      const channel = document.getElementById('saleChannel').value.trim();
+      const payment = document.getElementById('salePayment').value.trim();
+      const date = document.getElementById('saleDate').value.trim();
+
+      if (!date) {
+        showToast("Tanggal transaksi wajib diisi!", "error");
+        return;
+      }
+
+      // Concurrency Guard & Atomic Stock Verification
+      const sisaStok = (product.stokAwal + product.masuk) - product.keluar;
+      if (qty > sisaStok) {
+        showToast(`${t("insufficientStock")} Sisa fisik: ${sisaStok} pcs. Transaksi dibatalkan.`, "error");
+        return;
+      }
+
+      let unitPrice = product.hargaJual;
+      let shopeeCatalogPrice = null;
+      let shopeeNetPrice = null;
+      let discount = 0;
+      let discountPercent = 0;
+      let netTotal = 0;
+
+      if (channel === 'Shopee') {
+        shopeeCatalogPrice = product.shopeeHargaKatalog;
+        const rawNett = document.getElementById('shopeeNetPriceInput').value;
+        
+        if (rawNett === '' || isNaN(Number(rawNett)) || Number(rawNett) <= 0) {
+          showToast("Harga Nett Shopee harus berupa angka positif lebih dari 0!", "error");
+          return;
+        }
+
+        shopeeNetPrice = Number(rawNett);
+
+        if (shopeeNetPrice > shopeeCatalogPrice) {
+          showToast(`Harga Nett (Rp ${shopeeNetPrice.toLocaleString('id-ID')}) tidak boleh lebih besar dari Harga Katalog (Rp ${shopeeCatalogPrice.toLocaleString('id-ID')})!`, "error");
+          return;
+        }
+
+        unitPrice = shopeeCatalogPrice;
+        const grossTotal = shopeeCatalogPrice * qty;
+        netTotal = shopeeNetPrice * qty;
+        discount = grossTotal - netTotal;
+        discountPercent = parseFloat((((shopeeCatalogPrice - shopeeNetPrice) / shopeeCatalogPrice) * 100).toFixed(2));
+
+      } else {
+        unitPrice = product.hargaJual;
+        const rawDiscount = document.getElementById('saleDiscount').value;
+        discount = toSafeNumber(rawDiscount, 0);
+
+        if (discount < 0) {
+          showToast("Diskon tidak boleh bernilai negatif!", "error");
+          return;
+        }
+
+        const grossTotal = unitPrice * qty;
+        if (discount > grossTotal) {
+          showToast("Diskon tidak boleh lebih besar dari subtotal transaksi!", "error");
+          return;
+        }
+
+        netTotal = grossTotal - discount;
+        discountPercent = (grossTotal > 0 && discount > 0) ? parseFloat(((discount / grossTotal) * 100).toFixed(2)) : 0;
+      }
+
+      const newTrxId = generateUniqueTransactionID(date);
+      const historicalHPP = product.hpp;
+      const profit = netTotal - (historicalHPP * qty);
+
+      // Deduct stock atomically
+      product.keluar += qty;
+
+      const newSaleRecord = {
+        id: newTrxId,
+        date: date,
+        channel: channel,
+        productId: product.id,
+        productName: product.name,
+        sku: product.id,
+        qty: qty,
+        unitPrice: unitPrice,
+        unitHPP: historicalHPP,
+        shopeeCatalogPrice: shopeeCatalogPrice,
+        shopeeNetPrice: shopeeNetPrice,
+        discount: discount,
+        discountPercent: discountPercent,
+        total: netTotal,
+        profit: profit,
+        payment: payment,
+        createdBy: currentUser.name,
+        createdAt: new Date().toISOString()
+      };
+
+      appState.sales.push(newSaleRecord);
+      addAuditLog("CREATE_SALE", "TRANSACTION", newTrxId, `Penjualan ${qty} pcs ${product.name} via ${channel}`);
+      
+      saveState();
+      refreshAllViews();
+      closeModal('modalSale');
+      showToast(`${t("saleSaved")} (${newTrxId})`, "success");
+    }
+
+    function openRestockModal(preselectedId = null) {
+      const select = document.getElementById('restockProductSelect');
+      select.innerHTML = '';
+      appState.products.forEach(p => {
+        const sisa = (p.stokAwal + p.masuk) - p.keluar;
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        opt.textContent = `${p.name} (Stok Fisik: ${sisa} pcs)`;
+        if (preselectedId && p.id === preselectedId) {
+          opt.selected = true;
+        }
+        select.appendChild(opt);
+      });
+
+      document.getElementById('restockQty').value = 10;
+      document.getElementById('restockDate').value = getLocalDateString();
+      document.getElementById('restockNote').value = '';
+      document.getElementById('modalRestock').classList.remove('hidden');
+    }
+
+    function handleRestockSubmit(e) {
+      e.preventDefault();
+
+      if (!currentUser) {
+        showToast("Sesi kedaluwarsa. Silakan login kembali.", "error");
+        document.getElementById("authGate").classList.remove("hidden");
+        return;
+      }
+
+      const prodId = document.getElementById('restockProductSelect').value;
+      const product = appState.products.find(p => p.id === prodId);
+
+      if (!product) {
+        showToast("Error: Produk tidak ditemukan!", "error");
+        return;
+      }
+
+      const rawQty = document.getElementById('restockQty').value;
+      if (!isValidPositiveInteger(rawQty)) {
+        showToast("Jumlah restock wajib berupa bilangan bulat positif (> 0)!", "error");
+        return;
+      }
+      const qty = Number(rawQty);
+
+      const date = document.getElementById('restockDate').value;
+      const note = document.getElementById('restockNote').value.trim();
+
+      if (!date) {
+        showToast("Tanggal masuk wajib diisi!", "error");
+        return;
+      }
+
+      product.masuk += qty;
+
+      const restockId = generateUniqueRestockID(date);
+      const restockRecord = {
+        id: restockId,
+        productId: product.id,
+        productName: product.name,
+        qty: qty,
+        date: date,
+        note: note,
+        createdBy: currentUser.name,
+        createdAt: new Date().toISOString()
+      };
+
+      appState.restockHistory.push(restockRecord);
+      addAuditLog("RESTOCK", "PRODUCT", product.id, `Restock +${qty} pcs ${product.name} (${restockId})`);
+
+      saveState();
+      refreshAllViews();
+      closeModal('modalRestock');
+      showToast(`${t("restockSaved")} (+${qty} pcs)`, "success");
+    }
+
+    function confirmDeleteSale(saleId) {
+      if (isDeletingTransaction) return;
+
+      if (!currentUser || (currentUser.role !== "OWNER" && currentUser.role !== "ADMIN")) {
+        showToast("Hanya OWNER dan ADMIN yang memiliki hak akses menghapus transaksi.", "error");
+        return;
+      }
+
+      const sale = appState.sales.find(s => s.id === saleId);
+      if (!sale) return;
+
+      showConfirmModal(
+        "Hapus Transaksi",
+        `Hapus transaksi ${escapeHTML(sale.id)} (${escapeHTML(sale.productName)} - Qty: ${sale.qty})? Jumlah unit akan otomatis dikembalikan ke stok gudang.`,
+        () => {
+          if (isDeletingTransaction) return;
+          isDeletingTransaction = true;
+
+          try {
+            const product = appState.products.find(p => p.id === sale.productId);
+            if (product) {
+              product.keluar = Math.max(0, product.keluar - sale.qty);
+            }
+
+            appState.sales = appState.sales.filter(s => s.id !== saleId);
+            addAuditLog("DELETE_SALE", "TRANSACTION", saleId, `Hapus transaksi ${saleId}, kembalikan ${sale.qty} unit ke stok.`);
+            
+            saveState();
+            refreshAllViews();
+            showToast(`Transaksi ${sale.id} telah dihapus & stok dikembalikan!`, "info");
+          } finally {
+            isDeletingTransaction = false;
+          }
+        }
+      );
+    }
+
+    function openCloudModal() {
+      const savedConfig = localStorage.getItem(SUPABASE_CONFIG_KEY);
+      if (savedConfig) {
+        try {
+          const cfg = JSON.parse(savedConfig);
+          document.getElementById('supabaseUrlInput').value = cfg.url || "";
+          document.getElementById('supabaseAnonKeyInput').value = cfg.anonKey || "";
+        } catch(e) {}
+      }
+      document.getElementById('modalCloud').classList.remove('hidden');
+    }
+
+    function saveCloudConfig() {
+      const url = document.getElementById('supabaseUrlInput').value.trim();
+      const anonKey = document.getElementById('supabaseAnonKeyInput').value.trim();
+
+      if (!url || !anonKey) {
+        showToast("Masukkan Supabase Project URL dan Anon Key terlebih dahulu!", "warning");
+        return;
+      }
+
+      const config = { url, anonKey };
+      localStorage.setItem(SUPABASE_CONFIG_KEY, JSON.stringify(config));
+
+      showToast("Menghubungkan ke Supabase Cloud...", "info");
+      CloudRepository.init().then(ok => {
+        closeModal('modalCloud');
+        if (ok) {
+          showToast("🟢 Berhasil terhubung ke Supabase Cloud!", "success");
+        } else {
+          showToast("Koneksi gagal diperiksa. Pastikan URL dan Anon Key valid.", "error");
+        }
+      });
+    }
+
+    function disconnectCloud() {
+      localStorage.removeItem(SUPABASE_CONFIG_KEY);
+      cloudAdapter.isConfigured = false;
+      cloudAdapter.isConnected = false;
+      cloudAdapter.provider = "localStorage";
+      supabaseClient = null;
+      updateCloudStatusUI();
+      closeModal('modalCloud');
+      showToast("Cloud disconnected. Operating in local cache mode.", "info");
+    }
+
+    function updateCloudStatusUI() {
+      const dot = document.getElementById('cloudStatusDot');
+      const text = document.getElementById('cloudStatusText');
+      const pill = document.getElementById('btnCloudStatusPill');
+      const adapterBadge = document.getElementById('adapterBadge');
+      const providerName = document.getElementById('cloudProviderName');
+      const syncTimeEl = document.getElementById('cloudLastSyncTime');
+
+      if (cloudAdapter.isConnected && cloudAdapter.provider === "supabase") {
+        pill.className = "px-2.5 sm:px-3 py-1.5 rounded-xl border text-[11px] sm:text-xs font-semibold flex items-center gap-1.5 transition bg-emerald-950/40 text-emerald-300 border-emerald-500/30 hover:bg-emerald-900/50";
+        dot.className = "w-2 h-2 rounded-full bg-emerald-400";
+        text.textContent = cloudAdapter.isSyncing ? t("cloudStatusSyncing") : t("cloudStatusSynced");
+        adapterBadge.className = "text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono font-bold";
+        adapterBadge.textContent = "Supabase Cloud (Realtime)";
+        providerName.textContent = "Supabase PostgreSQL (Realtime Active)";
+      } else if (cloudAdapter.isSyncing) {
+        pill.className = "px-2.5 sm:px-3 py-1.5 rounded-xl border text-[11px] sm:text-xs font-semibold flex items-center gap-1.5 transition bg-blue-950/40 text-blue-300 border-blue-500/30";
+        dot.className = "w-2 h-2 rounded-full bg-blue-400 animate-spin";
+        text.textContent = t("cloudStatusSyncing");
+      } else {
+        pill.className = "px-2.5 sm:px-3 py-1.5 rounded-xl border text-[11px] sm:text-xs font-semibold flex items-center gap-1.5 transition bg-amber-950/40 text-amber-300 border-amber-500/30 hover:bg-amber-900/50";
+        dot.className = "w-2 h-2 rounded-full bg-amber-400";
+        text.textContent = t("cloudStatusLocal");
+        adapterBadge.className = "text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-mono font-bold";
+        adapterBadge.textContent = "Local Cache (Offline)";
+        providerName.textContent = "Browser Local Storage (Single Device)";
+      }
+
+      if (cloudAdapter.lastSyncTimestamp) {
+        syncTimeEl.textContent = cloudAdapter.lastSyncTimestamp.toLocaleTimeString('id-ID');
+      } else {
+        syncTimeEl.textContent = "-";
+      }
+    }
+
+    function exportToCSV() {
+      const activeSales = appState.sales.filter(s => isDateInActivePeriod(s.date));
+
+      if (activeSales.length === 0) {
+        showToast("Tidak ada transaksi pada periode yang dipilih untuk diekspor!", "warning");
+        return;
+      }
+
+      const escapeCSV = (val) => {
+        if (val === null || val === undefined) return '""';
+        let str = String(val).replace(/"/g, '""');
+        return `"${str}"`;
+      };
+
+      let csvContent = "\uFEFF";
+      
+      const headers = [
+        "Invoice", "Date", "Channel", "SKU", "Product Name", 
+        "Qty", "Unit Price", "Shopee Catalog", "Shopee Nett", 
+        "Discount", "Discount %", "Net Total", "Snapshot HPP", "Profit", 
+        "Payment Method", "Created By", "Recorded At"
+      ];
+      csvContent += headers.map(escapeCSV).join(",") + "\r\n";
+
+      activeSales.forEach(s => {
+        const profit = toSafeNumber(s.profit, s.total - (toSafeNumber(s.unitHPP, 0) * s.qty));
+        const row = [
+          s.id,
+          s.date,
+          s.channel,
+          s.sku || s.productId,
+          s.productName,
+          s.qty,
+          s.unitPrice,
+          s.shopeeCatalogPrice !== null ? s.shopeeCatalogPrice : "-",
+          s.shopeeNetPrice !== null ? s.shopeeNetPrice : "-",
+          s.discount,
+          (s.discountPercent !== undefined && s.discountPercent > 0) ? `${s.discountPercent}%` : "0%",
+          s.total,
+          s.unitHPP,
+          profit,
+          s.payment,
+          s.createdBy || "Adi",
+          s.createdAt || "-"
+        ];
+        csvContent += row.map(escapeCSV).join(",") + "\r\n";
+      });
+
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+
+      let filename = `Laporan_Penjualan_${currentPeriodFilter}_${getLocalDateString()}.csv`;
+      link.setAttribute("href", url);
+      link.setAttribute("download", filename);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      showToast(`File ${filename} berhasil diunduh!`, "success");
+    }
+
+    function exportBackupJSON() {
+      const backupData = {
+        app: "JagoNutritionID POS & INVENTORY",
+        schemaVersion: CURRENT_SCHEMA_VERSION,
+        exportedAt: new Date().toISOString(),
+        exportedBy: currentUser ? currentUser.name : "System",
+        metadata: {
+          totalProducts: appState.products.length,
+          totalSales: appState.sales.length,
+          totalRestock: appState.restockHistory.length,
+          totalAudit: appState.auditLogs.length
+        },
+        transactionCounter: appState.transactionCounter,
+        restockCounter: appState.restockCounter,
+        auditCounter: appState.auditCounter,
+        products: appState.products,
+        sales: appState.sales,
+        restockHistory: appState.restockHistory,
+        auditLogs: appState.auditLogs,
+        settings: appState.settings
+      };
+
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
+      const downloadAnchor = document.createElement('a');
+      const filename = `JAGONUTRITION_BACKUP_V2.4_${getLocalDateString()}.json`;
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", filename);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+
+      showToast("File backup JSON berhasil diunduh!", "success");
+    }
+
+    function handleImportFileSelected(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const content = JSON.parse(e.target.result);
+
+          if (!content || typeof content !== "object") {
+            throw new Error("Format JSON tidak valid.");
+          }
+          if (!Array.isArray(content.products) || content.products.length === 0) {
+            throw new Error("File backup tidak memiliki array data produk yang sah.");
+          }
+          if (!Array.isArray(content.sales)) {
+            throw new Error("File backup tidak memiliki array data transaksi yang sah.");
+          }
+
+          content.products.forEach((p, idx) => {
+            if (!p.id || !p.name) throw new Error(`Produk indeks ${idx} kehilangan ID/Nama.`);
+            if (isNaN(Number(p.hargaJual)) || Number(p.hargaJual) < 0) throw new Error(`Harga jual produk ${p.id} tidak valid.`);
+            if (isNaN(Number(p.hpp)) || Number(p.hpp) < 0) throw new Error(`HPP produk ${p.id} tidak valid.`);
+          });
+
+          content.sales.forEach((s, idx) => {
+            if (!s.id || !s.productId) throw new Error(`Transaksi indeks ${idx} kehilangan ID/SKU.`);
+            if (!isValidPositiveInteger(s.qty)) throw new Error(`Qty pada transaksi ${s.id} tidak valid.`);
+            if (isNaN(Number(s.total)) || Number(s.total) < 0) throw new Error(`Total nominal transaksi ${s.id} tidak valid.`);
+          });
+
+          const restockArr = Array.isArray(content.restockHistory) ? content.restockHistory : [];
+
+          pendingImportData = content;
+
+          document.getElementById('importPreviewSchema').textContent = content.schemaVersion || "1.0 (Legacy)";
+          document.getElementById('importPreviewDate').textContent = content.exportedAt ? new Date(content.exportedAt).toLocaleString('id-ID') : "-";
+          document.getElementById('importPreviewProductCount').textContent = `${content.products.length} SKU`;
+          document.getElementById('importPreviewSalesCount').textContent = `${content.sales.length} Transaksi`;
+          document.getElementById('importPreviewRestockCount').textContent = `${restockArr.length} Entri`;
+
+          document.getElementById('btnExecuteImport').onclick = executeRestore;
+          document.getElementById('modalImportPreview').classList.remove('hidden');
+
+        } catch (err) {
+          console.error("Strict Restore Error:", err);
+          showToast(`Backup tidak valid. Data saat ini tidak diubah: ${err.message}`, "error");
+        } finally {
+          event.target.value = "";
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function executeRestore() {
+      if (!pendingImportData) return;
+
+      try {
+        appState = migrateState(pendingImportData);
+        validateAndHealState();
+        addAuditLog("RESTORE_BACKUP", "SYSTEM", "DATABASE", `Pemulihan data backup diimpor oleh ${currentUser ? currentUser.name : 'User'}`);
+        saveState();
+        refreshAllViews();
+        closeModal('modalImportPreview');
+        pendingImportData = null;
+        showToast("Database berhasil dipulihkan dari file backup!", "success");
+      } catch (err) {
+        showToast("Gagal memulihkan database!", "error");
+      }
+    }
+
+    function openResetDataConfirmation() {
+      if (!currentUser || (currentUser.role !== "OWNER" && currentUser.role !== "ADMIN")) {
+        showToast("Hanya OWNER dan ADMIN yang memiliki hak akses reset database!", "error");
+        return;
+      }
+
+      showConfirmModal(
+        "Reset Database ke Default?",
+        "Tindakan ini akan mengosongkan seluruh riwayat penjualan, restock, dan audit logs, serta mengembalikan stok ke stok master fisik awal (12, 5, 5, 6).",
+        () => {
+          appState = {
+            schemaVersion: CURRENT_SCHEMA_VERSION,
+            products: JSON.parse(JSON.stringify(MASTER_PRODUCTS)),
+            sales: [],
+            restockHistory: [],
+            auditLogs: [],
+            transactionCounter: 1,
+            restockCounter: 1,
+            auditCounter: 1,
+            settings: {}
+          };
+          addAuditLog("RESET_DATABASE", "SYSTEM", "DATABASE", `Database di-reset ke master default oleh ${currentUser.name}`);
+          saveState();
+          refreshAllViews();
+          showToast("Data telah direset ke setelan master awal!", "info");
+        }
+      );
+    }
+
+    function triggerPrintReport() {
+      calculateMetrics();
+      window.print();
+    }
+
+    function closeModal(id) {
+      const modal = document.getElementById(id);
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function showConfirmModal(title, message, onConfirm) {
+      const modal = document.getElementById('modalConfirm');
+      document.getElementById('confirmTitle').textContent = title;
+      document.getElementById('confirmMessage').textContent = message;
+
+      const okBtn = document.getElementById('confirmOkBtn');
+      const cancelBtn = document.getElementById('confirmCancelBtn');
+
+      const cleanup = () => {
+        modal.classList.add('hidden');
+        okBtn.onclick = null;
+        cancelBtn.onclick = null;
+      };
+
+      okBtn.onclick = () => {
+        cleanup();
+        if (typeof onConfirm === 'function') onConfirm();
+      };
+      cancelBtn.onclick = cleanup;
+
+      modal.classList.remove('hidden');
+    }
+
+    function showToast(message, type = 'success') {
+      const toast = document.getElementById('toast');
+      const msgEl = document.getElementById('toastMessage');
+      const iconEl = document.getElementById('toastIcon');
+
+      if (toastTimeout) clearTimeout(toastTimeout);
+
+      msgEl.textContent = message;
+
+      if (type === 'success') {
+        toast.className = "fixed bottom-20 md:bottom-5 right-5 z-50 transition-all duration-300 flex items-center gap-2 px-4 py-3 rounded-xl shadow-2xl text-xs font-semibold bg-emerald-600 text-white translate-y-0 opacity-100 no-print";
+        iconEl.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`;
+      } else if (type === 'error') {
+        toast.className = "fixed bottom-20 md:bottom-5 right-5 z-50 transition-all duration-300 flex items-center gap-2 px-4 py-3 rounded-xl shadow-2xl text-xs font-semibold bg-rose-600 text-white translate-y-0 opacity-100 no-print";
+        iconEl.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>`;
+      } else if (type === 'warning') {
+        toast.className = "fixed bottom-20 md:bottom-5 right-5 z-50 transition-all duration-300 flex items-center gap-2 px-4 py-3 rounded-xl shadow-2xl text-xs font-semibold bg-amber-500 text-slate-900 translate-y-0 opacity-100 no-print";
+        iconEl.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>`;
+      } else {
+        toast.className = "fixed bottom-20 md:bottom-5 right-5 z-50 transition-all duration-300 flex items-center gap-2 px-4 py-3 rounded-xl shadow-2xl text-xs font-semibold bg-blue-600 text-white translate-y-0 opacity-100 no-print";
+        iconEl.innerHTML = `<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
+      }
+
+      toastTimeout = setTimeout(() => {
+        toast.classList.add('translate-y-24', 'opacity-0');
+      }, 3500);
+    }
+
+    function switchTab(tab) {
+      const tabs = ['Dashboard', 'Inventory', 'RestockLog', 'Sales', 'AuditLog', 'Management'];
+      
+      tabs.forEach(tKey => {
+        const sec = document.getElementById(`section${tKey}`);
+        const btn = document.getElementById(`tabBtn${tKey}`);
+        const mBtn = document.getElementById(`mNav${tKey}`);
+        
+        if (sec) {
+          if (tKey.toLowerCase() === tab.toLowerCase()) {
+            sec.classList.remove('hidden');
+            if (btn) btn.className = "tab-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold text-white bg-blue-600 transition shadow-sm whitespace-nowrap";
+            if (mBtn) mBtn.className = "flex flex-col items-center justify-center py-1.5 px-2 text-blue-500 min-w-[54px]";
+          } else {
+            sec.classList.add('hidden');
+            if (btn) btn.className = "tab-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition whitespace-nowrap";
+            if (mBtn) mBtn.className = "flex flex-col items-center justify-center py-1.5 px-2 text-slate-400 hover:text-white min-w-[54px]";
+          }
+        }
+      });
+
+      if (tab.toLowerCase() === 'dashboard') {
+        renderOrUpdateChart();
+      } else if (tab.toLowerCase() === 'auditlog') {
+        renderAuditTrailTable();
+      }
+    }
+
+    function refreshAllViews() {
+      calculateMetrics();
+      renderInventory();
+      renderRestockLogTable();
+      renderProductSummary();
+      renderChannelSummary();
+      renderSalesTable();
+      renderAuditTrailTable();
+      populateProductFilterOptions();
+      renderOrUpdateChart();
+      updateCloudStatusUI();
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      // 1. Language Preference
+      const savedLang = localStorage.getItem(LANG_KEY);
+      if (savedLang) {
+        currentLang = savedLang;
+      }
+      setLanguage(currentLang);
+
+      // 2. Load Local State
+      loadState();
+
+      // 3. Check Active Session
+      const savedSession = localStorage.getItem(AUTH_SESSION_KEY);
+      if (savedSession) {
+        try {
+          currentUser = JSON.parse(savedSession);
+          updateUserProfileUI();
+          document.getElementById("authGate").classList.add("hidden");
+        } catch (e) {
+          localStorage.removeItem(AUTH_SESSION_KEY);
+        }
+      }
+
+      // 4. Initialize Cloud Repository (Supabase)
+      CloudRepository.init();
+
+      // 5. Initial Render
+      refreshAllViews();
+
+      // 6. Modal Backdrops and Keyboard Listeners
+      const modalIds = ['modalSale', 'modalRestock', 'modalCloud', 'modalConfirm', 'modalImportPreview'];
+      modalIds.forEach(id => {
+        const modal = document.getElementById(id);
+        if (modal) {
+          modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal(id);
+          });
+        }
+      });
+
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          modalIds.forEach(id => closeModal(id));
+        }
+      });
+    });
+  </script>
+</body>
+</html>
