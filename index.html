@@ -1211,7 +1211,6 @@
         loginUsername: "Username",
         loginPassword: "Password",
         loginButton: "Masuk ke Sistem",
-        loginPresetsTitle: "Akun Terdaftar:",
         cloudStatusLocal: "Mode Cache Lokal",
         cloudStatusSyncing: "Menyinkronkan...",
         cloudStatusSynced: "Cloud Terhubung (Realtime)",
@@ -1352,7 +1351,6 @@
         loginUsername: "Username",
         loginPassword: "Password",
         loginButton: "Sign In to System",
-        loginPresetsTitle: "Registered Accounts:",
         cloudStatusLocal: "Local Cache Mode",
         cloudStatusSyncing: "Syncing...",
         cloudStatusSynced: "Cloud Connected (Realtime)",
@@ -2258,10 +2256,6 @@
       return Math.max(0, (toSafeNumber(p.stokAwal, 0) + toSafeNumber(p.masuk, 0)) - toSafeNumber(p.keluar, 0));
     }
 
-    function fillLoginForm(username, pass) {
-      document.getElementById("loginUsername").value = username;
-      document.getElementById("loginPassword").value = pass;
-    }
 
     function handleLogout() {
       showConfirmModal(
