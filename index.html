@@ -11,6 +11,8 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <!-- Supabase JS Client v2 CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Supabase Auth Client Module -->
+  <script src="supabase/auth-client.js"></script>
   <!-- Google Fonts: Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -174,21 +176,6 @@
           />
         </div>
 
-        <!-- Quick Demo Profiles Hint -->
-        <div class="p-3 bg-slate-800/60 rounded-xl border border-slate-700/60 text-[11px] text-slate-300 space-y-1">
-          <div class="font-bold text-blue-400 flex items-center justify-between">
-            <span data-i18n="loginPresetsTitle">Akun Terdaftar:</span>
-            <span class="text-[9px] uppercase px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-300">Auth Username</span>
-          </div>
-          <div class="flex items-center justify-between text-[10px] text-slate-400">
-            <span>🇮🇩 Adi: <code>adi</code> (ADMIN)</span>
-            <button type="button" onclick="fillLoginForm('adi', 'jago2026')" class="text-blue-400 hover:underline">Pilih</button>
-          </div>
-          <div class="flex items-center justify-between text-[10px] text-slate-400">
-            <span>🇲🇾 Koko: <code>koko</code> (OWNER)</span>
-            <button type="button" onclick="fillLoginForm('koko', 'jago2026')" class="text-blue-400 hover:underline">Pilih</button>
-          </div>
-        </div>
 
         <button 
           type="submit" 
@@ -1505,61 +1492,12 @@
 
     const ATOMIC_STORAGE_KEY = "JN_APP_STATE";
     const SUPABASE_CONFIG_KEY = "JN_SUPABASE_CONFIG";
-    const AUTH_SESSION_KEY = "JN_AUTH_SESSION";
     const LANG_KEY = "JN_APP_LANG";
     const CURRENT_SCHEMA_VERSION = 2.4;
 
-    // Helper to compute SHA-256 hash using native Web Crypto API
-    async function sha256Hex(plainText) {
-      if (!plainText) return "";
-      try {
-        const encoder = new TextEncoder();
-        const data = encoder.encode(plainText);
-        const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
-        return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
-      } catch (err) {
-        // Fallback simple bitwise hash if Web Crypto unavailable
-        let hash = 0;
-        for (let i = 0; i < plainText.length; i++) {
-          hash = ((hash << 5) - hash) + plainText.charCodeAt(i);
-          hash |= 0;
-        }
-        return Math.abs(hash).toString(16);
-      }
-    }
-
-    // Defined System Users: Authenticated by Username + Cryptographic SHA-256 Password Hash
-    // Default master password "jago2026" hashed with SHA-256
-    const SYSTEM_ACCOUNTS = {
-      "adi": {
-        id: "USR-ADI-ID",
-        username: "adi",
-        name: "Adi",
-        role: "ADMIN",
-        country: "Indonesia",
-        flag: "🇮🇩",
-        defaultLang: "id",
-        passwordHash: "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824" // sha256('hello') placeholder or computed below
-      },
-      "koko": {
-        id: "USR-KOKO-MY",
-        username: "koko",
-        name: "Koko",
-        role: "OWNER",
-        country: "Malaysia",
-        flag: "🇲🇾",
-        defaultLang: "en",
-        passwordHash: "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
-      }
-    };
-
-    // Precompute standard hash for demo accounts safely at initialization
-    (async () => {
-      const demoHash = await sha256Hex("jago2026");
-      SYSTEM_ACCOUNTS["adi"].passwordHash = demoHash;
-      SYSTEM_ACCOUNTS["koko"].passwordHash = demoHash;
-    })();
+    // Application Project Constants
+    const SUPABASE_PROJECT_URL = "https://ambtsbakxcktbnuxjpfj.supabase.co";
+    const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_N0ZJ3fozzwg4T9sgb5kRNA_RaOB0i0u";
 
     // Current State
     let currentUser = null;
@@ -1777,22 +1715,21 @@
 
     const CloudRepository = {
       async init() {
-        const saved = localStorage.getItem(SUPABASE_CONFIG_KEY);
-        if (!saved) return false;
         try {
-          const cfg = JSON.parse(saved);
-          if (!cfg.url || !cfg.anonKey) return false;
-
           if (typeof window.supabase !== "undefined" && window.supabase.createClient) {
-            supabaseClient = window.supabase.createClient(cfg.url, cfg.anonKey, {
+            supabaseClient = window.supabase.createClient(SUPABASE_PROJECT_URL, SUPABASE_PUBLISHABLE_KEY, {
               auth: { persistSession: true }
             });
             cloudAdapter.isConfigured = true;
             cloudAdapter.provider = "supabase";
-            
-            // Subscribe to realtime changes on shared_state table
+
+            if (window.JNAuthClient) {
+              window.JNAuthClient.init(supabaseClient);
+            }
+
+            // Subscribe to realtime changes on inventory
             this.subscribeRealtime();
-            await this.fetchRemoteState();
+            await this.fetchProductsAndInventory();
             return true;
           }
         } catch (e) {
@@ -1805,18 +1742,10 @@
         if (!supabaseClient) return;
         try {
           const channel = supabaseClient
-            .channel('public:prosupps_shared_state')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'prosupps_shared_state' }, payload => {
-              if (payload && payload.new && payload.new.state_data) {
-                const incoming = payload.new.state_data;
-                // Merge smoothly without wiping local view
-                appState = migrateState(incoming);
-                validateAndHealState();
-                localStorage.setItem(ATOMIC_STORAGE_KEY, JSON.stringify(appState));
-                refreshAllViews();
-                cloudAdapter.lastSyncTimestamp = new Date();
-                updateCloudStatusUI();
-                showToast(t("cloudStatusSynced"), "info");
+            .channel('public:inventory_changes')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'inventory' }, () => {
+              if (this.fetchProductsAndInventory) {
+                this.fetchProductsAndInventory();
               }
             })
             .subscribe((status) => {
@@ -1831,6 +1760,167 @@
             });
         } catch (e) {
           console.error("Realtime subscription error:", e);
+        }
+      },
+
+      async fetchProductsAndInventory() {
+        if (!supabaseClient) return false;
+        try {
+          cloudAdapter.isSyncing = true;
+          updateCloudStatusUI();
+
+          const { data: productsData, error: prodErr } = await supabaseClient
+            .from('products')
+            .select('id, sku, name, size, sale_price, hpp, min_buffer, shopee_catalog_price')
+            .order('id');
+
+          if (prodErr || !productsData) {
+            console.error("Cloud products query error:", prodErr);
+            showToast("Gagal memuat data produk dari Supabase Cloud.", "error");
+            cloudAdapter.isSyncing = false;
+            updateCloudStatusUI();
+            return false;
+          }
+
+          const { data: inventoryData, error: invErr } = await supabaseClient
+            .from('inventory')
+            .select('product_id, initial_stock, total_in, total_out, current_stock');
+
+          if (invErr || !inventoryData) {
+            console.error("Cloud inventory query error:", invErr);
+            showToast("Gagal memuat data inventaris dari Supabase Cloud.", "error");
+            cloudAdapter.isSyncing = false;
+            updateCloudStatusUI();
+            return false;
+          }
+
+          const invMap = {};
+          inventoryData.forEach(inv => {
+            invMap[inv.product_id] = inv;
+          });
+
+          const cloudProducts = productsData.map(prod => {
+            const inv = invMap[prod.id] || { initial_stock: 0, total_in: 0, total_out: 0, current_stock: 0 };
+            return {
+              id: prod.id,
+              sku: prod.sku || prod.id,
+              name: prod.name,
+              category: prod.name.toLowerCase().includes('creatine') ? 'Creatine' : 'Protein Powder',
+              size: prod.size,
+              hargaJual: Number(prod.sale_price),
+              shopeeHargaKatalog: Number(prod.shopee_catalog_price),
+              hpp: Number(prod.hpp),
+              stokAwal: Number(inv.initial_stock),
+              masuk: Number(inv.total_in),
+              keluar: Number(inv.total_out),
+              stok: Number(inv.current_stock),
+              current_stock: Number(inv.current_stock),
+              minBuffer: Number(prod.min_buffer)
+            };
+          });
+
+          appState.products = cloudProducts;
+
+          // Fetch sales from public.sales
+          try {
+            const { data: salesData } = await supabaseClient
+              .from('sales')
+              .select('*')
+              .order('created_at', { ascending: false });
+
+            if (salesData) {
+              appState.sales = salesData.map(s => {
+                const product = cloudProducts.find(p => p.id === s.product_id);
+                return {
+                  id: s.id,
+                  date: s.sale_date || (s.created_at ? s.created_at.split('T')[0] : getLocalDateString()),
+                  channel: s.channel || "Store / Offline",
+                  productId: s.product_id,
+                  productName: product ? product.name : s.product_id,
+                  sku: s.product_id,
+                  qty: Number(s.qty),
+                  unitPrice: Number(s.unit_price),
+                  unitHPP: Number(s.unit_hpp),
+                  shopeeCatalogPrice: s.shopee_catalog_price ? Number(s.shopee_catalog_price) : null,
+                  shopeeNetPrice: s.shopee_net_price ? Number(s.shopee_net_price) : null,
+                  discount: Number(s.discount),
+                  discountPercent: Number(s.discount_percent),
+                  total: Number(s.total),
+                  profit: Number(s.profit),
+                  payment: s.payment_method || "Cash / Tunai",
+                  status: s.status,
+                  createdBy: s.created_by || "Adi",
+                  createdAt: s.created_at,
+                  voidedBy: s.voided_by,
+                  voidedAt: s.voided_at,
+                  voidReason: s.void_reason
+                };
+              });
+            }
+          } catch (e) {
+            console.warn("Unable to fetch sales from cloud:", e);
+          }
+
+          // Fetch restock history from public.restock_history
+          try {
+            const { data: restockData } = await supabaseClient
+              .from('restock_history')
+              .select('*')
+              .order('created_at', { ascending: false });
+
+            if (restockData) {
+              appState.restockHistory = restockData.map(r => {
+                const product = cloudProducts.find(p => p.id === r.product_id);
+                return {
+                  id: r.id,
+                  productId: r.product_id,
+                  productName: product ? product.name : r.product_id,
+                  qty: Number(r.qty),
+                  date: r.restock_date || (r.created_at ? r.created_at.split('T')[0] : getLocalDateString()),
+                  note: r.notes || "",
+                  createdBy: r.created_by || "Adi",
+                  createdAt: r.created_at
+                };
+              });
+            }
+          } catch (e) {
+            console.warn("Unable to fetch restock history from cloud:", e);
+          }
+
+          // Fetch audit logs from public.audit_logs
+          try {
+            const { data: auditData } = await supabaseClient
+              .from('audit_logs')
+              .select('*')
+              .order('created_at', { ascending: false });
+
+            if (auditData) {
+              appState.auditLogs = auditData.map(a => ({
+                id: a.id,
+                action: a.event_type,
+                category: a.category,
+                target: a.reference_id,
+                details: a.details,
+                performedBy: a.performed_by,
+                timestamp: a.created_at
+              }));
+            }
+          } catch (e) {
+            console.warn("Unable to fetch audit logs from cloud:", e);
+          }
+
+          cloudAdapter.isConnected = true;
+          cloudAdapter.lastSyncTimestamp = new Date();
+          cloudAdapter.isSyncing = false;
+          updateCloudStatusUI();
+          refreshAllViews();
+          return true;
+        } catch (err) {
+          console.error("Cloud products/inventory load exception:", err);
+          showToast("Error saat menghubungi cloud database produk.", "error");
+          cloudAdapter.isSyncing = false;
+          updateCloudStatusUI();
+          return false;
         }
       },
 
@@ -2127,94 +2217,45 @@
       spinner.classList.remove("hidden");
 
       try {
-        const computedHash = await sha256Hex(passInput);
-
-        // 1. Check if Supabase Backend RPC authentication is configured
-        let authenticatedUser = null;
-
-        if (supabaseClient && cloudAdapter.isConnected) {
-          try {
-            const { data, error } = await supabaseClient.rpc('authenticate_user', {
-              p_username: usernameInput,
-              p_password_hash: computedHash
-            });
-
-            if (data && !error) {
-              authenticatedUser = {
-                id: data.id || `USR-${usernameInput.toUpperCase()}`,
-                username: data.username || usernameInput,
-                name: data.name || (usernameInput === 'koko' ? 'Koko' : 'Adi'),
-                role: data.role || (usernameInput === 'koko' ? 'OWNER' : 'ADMIN'),
-                country: data.country || (usernameInput === 'koko' ? 'Malaysia' : 'Indonesia'),
-                flag: data.country === 'Malaysia' ? '🇲🇾' : '🇮🇩'
-              };
-            }
-          } catch (rpcErr) {
-            console.warn("Supabase RPC auth not available, falling back to secure internal verification:", rpcErr);
-          }
+        if (!window.JNAuthClient) {
+          throw new Error("Modul autentikasi belum siap.");
         }
 
-        // 2. Verified fallback verification against authorized accounts
-        if (!authenticatedUser) {
-          const account = SYSTEM_ACCOUNTS[usernameInput];
-          const expectedHash = await sha256Hex("jago2026");
+        const userProfile = await window.JNAuthClient.login(usernameInput, passInput);
+        currentUser = userProfile;
 
-          if (account && (computedHash === account.passwordHash || computedHash === expectedHash)) {
-            authenticatedUser = {
-              id: account.id,
-              username: account.username,
-              name: account.name,
-              role: account.role,
-              country: account.country,
-              flag: account.flag,
-              defaultLang: account.defaultLang
-            };
-          }
-        }
-
-        if (authenticatedUser) {
-          // Koko is strictly locked to OWNER
-          if (authenticatedUser.username === "koko") {
-            authenticatedUser.role = "OWNER";
-          }
-          if (authenticatedUser.username === "adi") {
-            authenticatedUser.role = "ADMIN";
-          }
-
-          currentUser = authenticatedUser;
-
-          // Save secure session (never save password or plain hash)
-          localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify({
-            id: currentUser.id,
-            username: currentUser.username,
-            name: currentUser.name,
-            role: currentUser.role,
-            country: currentUser.country,
-            flag: currentUser.flag,
-            sessionToken: `JN-SESS-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-            loginTime: new Date().toISOString()
-          }));
-
-          // Set user default language if available
-          if (authenticatedUser.defaultLang) {
-            setLanguage(authenticatedUser.defaultLang);
-          }
-
-          updateUserProfileUI();
-          document.getElementById("authGate").classList.add("hidden");
-          showToast(`Welcome, ${currentUser.name}! (${currentUser.role} - ${currentUser.country})`, "success");
-          addAuditLog("LOGIN", "USER", currentUser.id, `User ${currentUser.name} (${currentUser.role}) logged in`);
+        // Set user default language based on account settings
+        if (currentUser.username === "koko") {
+          setLanguage("en");
         } else {
-          showToast("Username atau password tidak sesuai. Silakan periksa kembali.", "error");
+          setLanguage("id");
         }
+
+        updateUserProfileUI();
+        document.getElementById("authGate").classList.add("hidden");
+        document.getElementById("loginPassword").value = "";
+
+        if (CloudRepository && CloudRepository.fetchProductsAndInventory) {
+          await CloudRepository.fetchProductsAndInventory();
+        }
+
+        showToast(`Welcome, ${currentUser.name}! (${currentUser.role} - ${currentUser.country})`, "success");
+
       } catch (err) {
-        console.error("Login verification error:", err);
-        showToast("Terjadi kendala saat verifikasi login.", "error");
+        console.error("Login authentication error:", err);
+        showToast("Username atau password tidak sesuai.", "error");
       } finally {
         submitBtn.disabled = false;
         btnText.textContent = t("loginButton");
         spinner.classList.add("hidden");
       }
+    }
+
+    function getProductStock(p) {
+      if (!p) return 0;
+      if (typeof p.stok === 'number') return p.stok;
+      if (typeof p.current_stock === 'number') return p.current_stock;
+      return Math.max(0, (toSafeNumber(p.stokAwal, 0) + toSafeNumber(p.masuk, 0)) - toSafeNumber(p.keluar, 0));
     }
 
     function fillLoginForm(username, pass) {
@@ -2226,14 +2267,21 @@
       showConfirmModal(
         t("logoutTitle"),
         "Apakah Anda yakin ingin keluar dari sesi POS?",
-        () => {
-          if (currentUser) {
-            addAuditLog("LOGOUT", "USER", currentUser.id, `User ${currentUser.name} (${currentUser.role}) logged out`);
+        async () => {
+          try {
+            if (window.JNAuthClient) {
+              await window.JNAuthClient.logout();
+            } else if (supabaseClient && supabaseClient.auth) {
+              await supabaseClient.auth.signOut();
+            }
+          } catch (err) {
+            console.warn("SignOut notice:", err);
+          } finally {
+            currentUser = null;
+            document.getElementById("authGate").classList.remove("hidden");
+            document.getElementById("loginPassword").value = "";
+            showToast("Anda telah keluar dari sistem.", "info");
           }
-          currentUser = null;
-          localStorage.removeItem(AUTH_SESSION_KEY);
-          document.getElementById("authGate").classList.remove("hidden");
-          document.getElementById("loginPassword").value = "";
         }
       );
     }
@@ -2336,7 +2384,7 @@
       let lowStockAlertCount = 0;
 
       appState.products.forEach(p => {
-        const sisa = (p.stokAwal + p.masuk) - p.keluar;
+        const sisa = getProductStock(p);
         totalRemainingStock += Math.max(0, sisa);
         if (sisa <= p.minBuffer) {
           lowStockAlertCount++;
@@ -2587,7 +2635,7 @@
       miniList.innerHTML = '';
 
       appState.products.forEach((p) => {
-        const sisa = (p.stokAwal + p.masuk) - p.keluar;
+        const sisa = getProductStock(p);
         let statusBadge = '';
         let badgeColor = '';
 
@@ -2866,7 +2914,7 @@
       });
 
       const dataTerjual = appState.products.map(p => productSalesPeriod[p.id] || 0);
-      const dataSisaStok = appState.products.map(p => Math.max(0, (p.stokAwal + p.masuk) - p.keluar));
+      const dataSisaStok = appState.products.map(p => Math.max(0, getProductStock(p)));
 
       if (!hasAnySalesInPeriod) {
         emptyState.classList.remove('hidden');
@@ -2942,7 +2990,7 @@
       const select = document.getElementById('saleProductSelect');
       select.innerHTML = '';
       appState.products.forEach(p => {
-        const sisa = (p.stokAwal + p.masuk) - p.keluar;
+        const sisa = getProductStock(p);
         const opt = document.createElement('option');
         opt.value = p.id;
         opt.textContent = `${p.name} (${p.size})`;
@@ -2979,7 +3027,7 @@
       const channel = document.getElementById('saleChannel').value;
 
       if (product) {
-        const sisa = (product.stokAwal + product.masuk) - product.keluar;
+        const sisa = getProductStock(product);
         const helper = document.getElementById('saleStockHelper');
         
         if (channel === 'Shopee') {
@@ -3078,7 +3126,7 @@
       }
 
       // Concurrency Guard & Atomic Stock Verification
-      const sisaStok = (product.stokAwal + product.masuk) - product.keluar;
+      const sisaStok = getProductStock(product);
       if (qty > sisaStok) {
         showToast(`${t("insufficientStock")} Sisa fisik: ${sisaStok} pcs. Transaksi dibatalkan.`, "error");
         return;
@@ -3088,8 +3136,6 @@
       let shopeeCatalogPrice = null;
       let shopeeNetPrice = null;
       let discount = 0;
-      let discountPercent = 0;
-      let netTotal = 0;
 
       if (channel === 'Shopee') {
         shopeeCatalogPrice = product.shopeeHargaKatalog;
@@ -3109,9 +3155,8 @@
 
         unitPrice = shopeeCatalogPrice;
         const grossTotal = shopeeCatalogPrice * qty;
-        netTotal = shopeeNetPrice * qty;
+        const netTotal = shopeeNetPrice * qty;
         discount = grossTotal - netTotal;
-        discountPercent = parseFloat((((shopeeCatalogPrice - shopeeNetPrice) / shopeeCatalogPrice) * 100).toFixed(2));
 
       } else {
         unitPrice = product.hargaJual;
@@ -3128,53 +3173,63 @@
           showToast("Diskon tidak boleh lebih besar dari subtotal transaksi!", "error");
           return;
         }
-
-        netTotal = grossTotal - discount;
-        discountPercent = (grossTotal > 0 && discount > 0) ? parseFloat(((discount / grossTotal) * 100).toFixed(2)) : 0;
       }
 
       const newTrxId = generateUniqueTransactionID(date);
-      const historicalHPP = product.hpp;
-      const profit = netTotal - (historicalHPP * qty);
 
-      // Deduct stock atomically
-      product.keluar += qty;
+      // Disable submit button during RPC execution to prevent duplicate submissions
+      const submitBtn = document.getElementById('btnSaveSale');
+      if (submitBtn) submitBtn.disabled = true;
 
-      const newSaleRecord = {
-        id: newTrxId,
-        date: date,
-        channel: channel,
-        productId: product.id,
-        productName: product.name,
-        sku: product.id,
-        qty: qty,
-        unitPrice: unitPrice,
-        unitHPP: historicalHPP,
-        shopeeCatalogPrice: shopeeCatalogPrice,
-        shopeeNetPrice: shopeeNetPrice,
-        discount: discount,
-        discountPercent: discountPercent,
-        total: netTotal,
-        profit: profit,
-        payment: payment,
-        createdBy: currentUser.name,
-        createdAt: new Date().toISOString()
-      };
+      try {
+        if (!supabaseClient || !supabaseClient.rpc) {
+          throw new Error("Koneksi Supabase tidak tersedia.");
+        }
 
-      appState.sales.push(newSaleRecord);
-      addAuditLog("CREATE_SALE", "TRANSACTION", newTrxId, `Penjualan ${qty} pcs ${product.name} via ${channel}`);
-      
-      saveState();
-      refreshAllViews();
-      closeModal('modalSale');
-      showToast(`${t("saleSaved")} (${newTrxId})`, "success");
+        const { data, error } = await supabaseClient.rpc('rpc_create_sale', {
+          p_id: newTrxId,
+          p_date: date,
+          p_channel: channel,
+          p_product_id: product.id,
+          p_qty: qty,
+          p_unit_price: unitPrice,
+          p_shopee_catalog_price: shopeeCatalogPrice,
+          p_shopee_net_price: shopeeNetPrice,
+          p_discount: discount,
+          p_payment_method: payment
+        });
+
+        if (error) {
+          const errMsg = error.message || "Gagal memproses transaksi penjualan.";
+          if (errMsg.includes("Stok tidak mencukupi") || errMsg.includes("Insufficient")) {
+            showToast(`${t("insufficientStock")} Transaksi dibatalkan oleh database.`, "error");
+          } else {
+            showToast(`Gagal Transaksi: ${errMsg}`, "error");
+          }
+          return;
+        }
+
+        // RPC Success: Refresh product & inventory read model from Supabase
+        if (CloudRepository && CloudRepository.fetchProductsAndInventory) {
+          await CloudRepository.fetchProductsAndInventory();
+        }
+
+        closeModal('modalSale');
+        showToast(`${t("saleSaved")} (${newTrxId})`, "success");
+
+      } catch (err) {
+        console.error("RPC Sale Error:", err);
+        showToast(`Gagal: ${err.message || 'Error koneksi database.'}`, "error");
+      } finally {
+        if (submitBtn) submitBtn.disabled = false;
+      }
     }
 
     function openRestockModal(preselectedId = null) {
       const select = document.getElementById('restockProductSelect');
       select.innerHTML = '';
       appState.products.forEach(p => {
-        const sisa = (p.stokAwal + p.masuk) - p.keluar;
+        const sisa = getProductStock(p);
         const opt = document.createElement('option');
         opt.value = p.id;
         opt.textContent = `${p.name} (Stok Fisik: ${sisa} pcs)`;
@@ -3190,7 +3245,7 @@
       document.getElementById('modalRestock').classList.remove('hidden');
     }
 
-    function handleRestockSubmit(e) {
+    async function handleRestockSubmit(e) {
       e.preventDefault();
 
       if (!currentUser) {
@@ -3222,27 +3277,44 @@
         return;
       }
 
-      product.masuk += qty;
-
       const restockId = generateUniqueRestockID(date);
-      const restockRecord = {
-        id: restockId,
-        productId: product.id,
-        productName: product.name,
-        qty: qty,
-        date: date,
-        note: note,
-        createdBy: currentUser.name,
-        createdAt: new Date().toISOString()
-      };
 
-      appState.restockHistory.push(restockRecord);
-      addAuditLog("RESTOCK", "PRODUCT", product.id, `Restock +${qty} pcs ${product.name} (${restockId})`);
+      // Disable submit button during RPC execution
+      const submitBtn = document.getElementById('btnSaveRestock');
+      if (submitBtn) submitBtn.disabled = true;
 
-      saveState();
-      refreshAllViews();
-      closeModal('modalRestock');
-      showToast(`${t("restockSaved")} (+${qty} pcs)`, "success");
+      try {
+        if (!supabaseClient || !supabaseClient.rpc) {
+          throw new Error("Koneksi Supabase tidak tersedia.");
+        }
+
+        const { data, error } = await supabaseClient.rpc('rpc_create_restock', {
+          p_id: restockId,
+          p_date: date,
+          p_product_id: product.id,
+          p_qty: qty,
+          p_note: note || `Restock oleh ${currentUser.name}`
+        });
+
+        if (error) {
+          showToast(`Gagal Restock: ${error.message || 'Gagal menambahkan stok.'}`, "error");
+          return;
+        }
+
+        // RPC Success: Refresh product & inventory read model from Supabase
+        if (CloudRepository && CloudRepository.fetchProductsAndInventory) {
+          await CloudRepository.fetchProductsAndInventory();
+        }
+
+        closeModal('modalRestock');
+        showToast(`${t("restockSaved")} (+${qty} pcs)`, "success");
+
+      } catch (err) {
+        console.error("RPC Restock Error:", err);
+        showToast(`Gagal Restock: ${err.message || 'Error koneksi database.'}`, "error");
+      } finally {
+        if (submitBtn) submitBtn.disabled = false;
+      }
     }
 
     function confirmDeleteSale(saleId) {
@@ -3254,27 +3326,45 @@
       }
 
       const sale = appState.sales.find(s => s.id === saleId);
-      if (!sale) return;
+      const saleLabel = sale ? ` (${escapeHTML(sale.productName || sale.productId)} - Qty: ${sale.qty})` : '';
 
       showConfirmModal(
-        "Hapus Transaksi",
-        `Hapus transaksi ${escapeHTML(sale.id)} (${escapeHTML(sale.productName)} - Qty: ${sale.qty})? Jumlah unit akan otomatis dikembalikan ke stok gudang.`,
-        () => {
+        "Batalkan Transaksi (Void)",
+        `Batalkan transaksi ${escapeHTML(saleId)}${saleLabel}? Unit akan otomatis dikembalikan ke stok gudang melalui Supabase RPC.`,
+        async () => {
           if (isDeletingTransaction) return;
           isDeletingTransaction = true;
 
           try {
-            const product = appState.products.find(p => p.id === sale.productId);
-            if (product) {
-              product.keluar = Math.max(0, product.keluar - sale.qty);
+            if (!supabaseClient || !supabaseClient.rpc) {
+              throw new Error("Koneksi Supabase tidak tersedia.");
             }
 
-            appState.sales = appState.sales.filter(s => s.id !== saleId);
-            addAuditLog("DELETE_SALE", "TRANSACTION", saleId, `Hapus transaksi ${saleId}, kembalikan ${sale.qty} unit ke stok.`);
-            
-            saveState();
-            refreshAllViews();
-            showToast(`Transaksi ${sale.id} telah dihapus & stok dikembalikan!`, "info");
+            const { data, error } = await supabaseClient.rpc('rpc_void_sale', {
+              p_sale_id: saleId,
+              p_reason: `Dibatalkan dari UI oleh ${currentUser ? currentUser.name : 'User'}`
+            });
+
+            if (error) {
+              const errMsg = error.message || "Gagal membatalkan transaksi.";
+              if (errMsg.includes("already voided") || errMsg.includes("sudah pernah dibatalkan")) {
+                showToast("Transaksi ini sudah pernah dibatalkan sebelumnya.", "error");
+              } else {
+                showToast(`Gagal Void: ${errMsg}`, "error");
+              }
+              return;
+            }
+
+            // RPC Success: Refresh product & inventory read model from Supabase
+            if (CloudRepository && CloudRepository.fetchProductsAndInventory) {
+              await CloudRepository.fetchProductsAndInventory();
+            }
+
+            showToast(`Transaksi ${saleId} telah dibatalkan & stok dikembalikan!`, "info");
+
+          } catch (err) {
+            console.error("RPC Void Error:", err);
+            showToast(`Gagal Void: ${err.message || 'Error koneksi database.'}`, "error");
           } finally {
             isDeletingTransaction = false;
           }
@@ -3517,6 +3607,13 @@
     function executeRestore() {
       if (!pendingImportData) return;
 
+      if (cloudAdapter.isConnected && cloudAdapter.provider === "supabase") {
+        showToast("Impor backup JSON dinonaktifkan saat terhubung ke Supabase Cloud. Database cloud (products & inventory) adalah sumber utama data stok & transaksi.", "warning");
+        closeModal('modalImportPreview');
+        pendingImportData = null;
+        return;
+      }
+
       try {
         appState = migrateState(pendingImportData);
         validateAndHealState();
@@ -3525,7 +3622,7 @@
         refreshAllViews();
         closeModal('modalImportPreview');
         pendingImportData = null;
-        showToast("Database berhasil dipulihkan dari file backup!", "success");
+        showToast("Database lokal berhasil dipulihkan dari file backup!", "success");
       } catch (err) {
         showToast("Gagal memulihkan database!", "error");
       }
@@ -3673,20 +3770,28 @@
       // 2. Load Local State
       loadState();
 
-      // 3. Check Active Session
-      const savedSession = localStorage.getItem(AUTH_SESSION_KEY);
-      if (savedSession) {
-        try {
-          currentUser = JSON.parse(savedSession);
+      // 3. Initialize Cloud Repository & Auth Client (Supabase)
+      CloudRepository.init();
+
+      // 4. Restore Authenticated Session
+      if (window.JNAuthClient && window.JNAuthClient.isAuthenticated()) {
+        currentUser = window.JNAuthClient.getCurrentUser();
+        if (currentUser) {
+          if (currentUser.username === "koko") {
+            setLanguage("en");
+          } else {
+            setLanguage("id");
+          }
           updateUserProfileUI();
           document.getElementById("authGate").classList.add("hidden");
-        } catch (e) {
-          localStorage.removeItem(AUTH_SESSION_KEY);
-        }
-      }
 
-      // 4. Initialize Cloud Repository (Supabase)
-      CloudRepository.init();
+          if (CloudRepository && CloudRepository.fetchProductsAndInventory) {
+            CloudRepository.fetchProductsAndInventory();
+          }
+        }
+      } else {
+        document.getElementById("authGate").classList.remove("hidden");
+      }
 
       // 5. Initial Render
       refreshAllViews();
