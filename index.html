@@ -1,10 +1,21 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>JagoNutritionID POS & INVENTORY - Multi-Device Cloud v2.4</title>
-  
+
+  <!-- PWA Metadata & Web App Manifest -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="JagoNutritionID">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="icon" type="image/png" href="favicon.png">
+
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Chart.js CDN -->
@@ -16,7 +27,8 @@
   <!-- Google Fonts: Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet">
 
   <script>
     tailwind.config = {
@@ -48,13 +60,16 @@
       width: 6px;
       height: 6px;
     }
+
     ::-webkit-scrollbar-track {
       background: #0f172a;
     }
+
     ::-webkit-scrollbar-thumb {
       background: #334155;
       border-radius: 9999px;
     }
+
     ::-webkit-scrollbar-thumb:hover {
       background: #475569;
     }
@@ -70,12 +85,23 @@
         background-color: #ffffff !important;
         color: #0f172a !important;
       }
-      .no-print, header, nav, #tabBar, #mobileBottomBar, .quick-actions, .modal-backdrop, #toast, button {
+
+      .no-print,
+      header,
+      nav,
+      #tabBar,
+      #mobileBottomBar,
+      .quick-actions,
+      .modal-backdrop,
+      #toast,
+      button {
         display: none !important;
       }
+
       .print-only {
         display: block !important;
       }
+
       .card-print {
         border: 1px solid #cbd5e1 !important;
         background: #ffffff !important;
@@ -83,22 +109,30 @@
         box-shadow: none !important;
         page-break-inside: avoid;
       }
+
       .text-white {
         color: #0f172a !important;
       }
-      .text-slate-400, .text-slate-300, .text-slate-500 {
+
+      .text-slate-400,
+      .text-slate-300,
+      .text-slate-500 {
         color: #475569 !important;
       }
+
       table {
         width: 100% !important;
         border-collapse: collapse !important;
       }
-      th, td {
+
+      th,
+      td {
         border: 1px solid #cbd5e1 !important;
         color: #0f172a !important;
         padding: 6px 8px !important;
       }
     }
+
     .print-only {
       display: none;
     }
@@ -107,6 +141,7 @@
     .pb-safe-nav {
       padding-bottom: 5.5rem;
     }
+
     @media (min-width: 1024px) {
       .pb-safe-nav {
         padding-bottom: 2.5rem;
@@ -115,34 +150,37 @@
   </style>
 </head>
 
-<body class="bg-slate-900 text-slate-100 min-h-screen font-sans flex flex-col antialiased selection:bg-blue-600 selection:text-white pb-safe-nav">
+<body
+  class="bg-slate-900 text-slate-100 min-h-screen font-sans flex flex-col antialiased selection:bg-blue-600 selection:text-white pb-safe-nav">
 
   <!-- ================= AUTHENTICATION OVERLAY / LOGIN SCREEN ================= -->
   <div id="authGate" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-xl">
-    <div class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
+    <div
+      class="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
       <!-- Glow effect -->
       <div class="absolute -top-24 -left-24 w-48 h-48 bg-blue-600/20 rounded-full blur-3xl pointer-events-none"></div>
-      <div class="absolute -bottom-24 -right-24 w-48 h-48 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute -bottom-24 -right-24 w-48 h-48 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none">
+      </div>
 
       <!-- Brand Header -->
       <div class="flex flex-col items-center text-center mb-6">
-        <div class="w-16 h-16 rounded-2xl overflow-hidden bg-slate-800 border border-slate-700 p-1 mb-3 shadow-lg flex items-center justify-center">
-          <img 
-            src="https://cdn.phototourl.com/member/2026-09-28-7761d5e5-68cd-48df-8a3a-34249cf5d03b.jpg" 
-            alt="JagoNutritionID Logo" 
-            class="w-full h-full object-cover rounded-xl"
-            onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'w-full h-full bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center font-extrabold text-white text-lg\'>JN</div>';"
-          />
+        <div
+          class="w-16 h-16 rounded-2xl overflow-hidden bg-slate-800 border border-slate-700 p-1 mb-3 shadow-lg flex items-center justify-center">
+          <img src="icons/icon-192.png"
+            alt="JagoNutritionID Logo" class="w-full h-full object-cover rounded-xl"
+            onerror="this.onerror=null; this.src='https://cdn.phototourl.com/member/2026-09-28-7761d5e5-68cd-48df-8a3a-34249cf5d03b.jpg';" />
         </div>
         <h2 class="text-xl font-black text-white tracking-tight">JagoNutritionID</h2>
         <p class="text-xs text-slate-400 font-medium mt-0.5">POS & INVENTORY v2.4 (Cloud Multi-Device)</p>
-        
+
         <!-- Language Switcher in Login -->
         <div class="mt-3 inline-flex items-center gap-1 bg-slate-800/80 p-1 rounded-xl border border-slate-700">
-          <button type="button" onclick="setLanguage('id')" id="loginLangId" class="px-2.5 py-1 rounded-lg text-xs font-bold transition text-white bg-blue-600">
+          <button type="button" onclick="setLanguage('id')" id="loginLangId"
+            class="px-2.5 py-1 rounded-lg text-xs font-bold transition text-white bg-blue-600">
             🇮🇩 ID
           </button>
-          <button type="button" onclick="setLanguage('en')" id="loginLangEn" class="px-2.5 py-1 rounded-lg text-xs font-bold transition text-slate-400 hover:text-white">
+          <button type="button" onclick="setLanguage('en')" id="loginLangEn"
+            class="px-2.5 py-1 rounded-lg text-xs font-bold transition text-slate-400 hover:text-white">
             🇬🇧 EN
           </button>
         </div>
@@ -151,38 +189,31 @@
       <!-- Login Form -->
       <form id="loginForm" onsubmit="handleUserLogin(event)" class="space-y-4">
         <div>
-          <label for="loginUsername" class="block text-xs font-bold text-slate-300 mb-1.5" data-i18n="loginUsername">Username</label>
-          <input 
-            type="text" 
-            id="loginUsername" 
-            required 
-            placeholder="Masukkan username" 
+          <label for="loginUsername" class="block text-xs font-bold text-slate-300 mb-1.5"
+            data-i18n="loginUsername">Username</label>
+          <input type="text" id="loginUsername" required placeholder="Masukkan username"
             class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
-            autocomplete="username"
-          />
+            autocomplete="username" />
         </div>
 
         <div>
           <div class="flex items-center justify-between mb-1.5">
-            <label for="loginPassword" class="text-xs font-bold text-slate-300" data-i18n="loginPassword">Password</label>
+            <label for="loginPassword" class="text-xs font-bold text-slate-300"
+              data-i18n="loginPassword">Password</label>
           </div>
-          <input 
-            type="password" 
-            id="loginPassword" 
-            required 
-            placeholder="Masukkan password" 
+          <input type="password" id="loginPassword" required placeholder="Masukkan password"
             class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition"
-            autocomplete="current-password"
-          />
+            autocomplete="current-password" />
         </div>
 
 
-        <button 
-          type="submit" 
-          id="btnLoginSubmit" 
+        <button type="submit" id="btnLoginSubmit"
           class="w-full py-3 bg-blue-600 hover:bg-blue-500 active:scale-[0.98] text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-600/30 transition flex items-center justify-center gap-2">
           <span id="loginBtnText" data-i18n="loginButton">Masuk ke Sistem</span>
-          <svg id="loginSpinner" class="w-4 h-4 text-white animate-spin hidden" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path></svg>
+          <svg id="loginSpinner" class="w-4 h-4 text-white animate-spin hidden" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+          </svg>
         </button>
       </form>
 
@@ -198,30 +229,33 @@
 
   <!-- ================= TOP APP HEADER ================= -->
   <header class="sticky top-0 z-40 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 no-print">
-    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3 flex flex-wrap items-center justify-between gap-2.5">
-      
+    <div
+      class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3 flex flex-wrap items-center justify-between gap-2.5">
+
       <!-- Store Identity & Brand Logo with SVG Fallback -->
       <div class="flex items-center gap-2.5 sm:gap-3">
-        <div class="relative w-10 h-10 sm:w-11 sm:h-11 rounded-xl overflow-hidden bg-slate-800 border border-slate-700 flex items-center justify-center flex-shrink-0 shadow-md">
-          <img 
-            id="storeLogoImg"
-            src="https://cdn.phototourl.com/member/2026-09-28-7761d5e5-68cd-48df-8a3a-34249cf5d03b.jpg" 
-            alt="JagoNutritionID Logo" 
-            class="w-full h-full object-cover"
-            onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'w-full h-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center font-black text-white text-xs\'>JN</div>';"
-          />
+        <div
+          class="relative w-10 h-10 sm:w-11 sm:h-11 rounded-xl overflow-hidden bg-slate-800 border border-slate-700 flex items-center justify-center flex-shrink-0 shadow-md">
+          <img id="storeLogoImg"
+            src="icons/icon-192.png"
+            alt="JagoNutritionID Logo" class="w-full h-full object-cover"
+            onerror="this.onerror=null; this.src='https://cdn.phototourl.com/member/2026-09-28-7761d5e5-68cd-48df-8a3a-34249cf5d03b.jpg';" />
         </div>
         <div>
           <div class="flex items-center gap-1.5 sm:gap-2">
-            <h1 class="text-sm sm:text-base lg:text-lg font-extrabold text-white tracking-tight">JagoNutritionID POS</h1>
-            <span class="text-[9px] sm:text-[10px] uppercase font-bold tracking-wider px-1.5 sm:px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">v2.4 Cloud</span>
+            <h1 class="text-sm sm:text-base lg:text-lg font-extrabold text-white tracking-tight">JagoNutritionID POS
+            </h1>
+            <span
+              class="text-[9px] sm:text-[10px] uppercase font-bold tracking-wider px-1.5 sm:px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30">v2.4
+              Cloud</span>
           </div>
           <!-- Active User and Country Profile -->
           <div class="text-[11px] sm:text-xs text-slate-400 flex items-center gap-1.5 flex-wrap">
             <span id="activeUserFlag">🇮🇩</span>
             <span id="activeUserName" class="text-white font-bold">Adi</span>
             <span class="text-slate-500">&bull;</span>
-            <span id="activeUserRoleBadge" class="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-semibold uppercase">ADMIN</span>
+            <span id="activeUserRoleBadge"
+              class="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-semibold uppercase">ADMIN</span>
             <span class="text-slate-500">&bull;</span>
             <span id="activeUserCountry" class="text-slate-400">Indonesia</span>
           </div>
@@ -230,17 +264,17 @@
 
       <!-- Header Actions: Language Switcher, Cloud Sync Pill, New Sale, Logout -->
       <div class="flex items-center gap-1.5 sm:gap-2 quick-actions">
-        
+
         <!-- Language Switcher in Header -->
         <div class="inline-flex items-center bg-slate-800 border border-slate-700 rounded-xl p-0.5">
-          <button onclick="setLanguage('id')" id="headerLangId" class="px-2 py-1 text-[11px] font-bold rounded-lg transition text-white bg-blue-600">ID</button>
-          <button onclick="setLanguage('en')" id="headerLangEn" class="px-2 py-1 text-[11px] font-bold rounded-lg transition text-slate-400 hover:text-white">EN</button>
+          <button onclick="setLanguage('id')" id="headerLangId"
+            class="px-2 py-1 text-[11px] font-bold rounded-lg transition text-white bg-blue-600">ID</button>
+          <button onclick="setLanguage('en')" id="headerLangEn"
+            class="px-2 py-1 text-[11px] font-bold rounded-lg transition text-slate-400 hover:text-white">EN</button>
         </div>
 
         <!-- Honest Realtime Cloud Sync Pill -->
-        <button 
-          id="btnCloudStatusPill" 
-          onclick="openCloudModal()" 
+        <button id="btnCloudStatusPill" onclick="openCloudModal()"
           class="px-2.5 sm:px-3 py-1.5 rounded-xl border text-[11px] sm:text-xs font-semibold flex items-center gap-1.5 transition bg-amber-950/40 text-amber-300 border-amber-500/30 hover:bg-amber-900/50"
           title="Klik untuk konfigurasi Shared Cloud Database">
           <span id="cloudStatusDot" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
@@ -248,32 +282,36 @@
         </button>
 
         <!-- Print Action Button (Desktop) -->
-        <button 
-          id="btnHeaderPrint" 
-          onclick="triggerPrintReport()" 
+        <button id="btnHeaderPrint" onclick="triggerPrintReport()"
           class="hidden md:flex px-3 py-2 text-xs font-semibold text-slate-300 bg-slate-800 hover:bg-slate-700 hover:text-white rounded-xl border border-slate-700 transition items-center gap-1.5"
-          aria-label="Cetak Laporan Penjualan"
-          data-i18n-title="printTitle">
-          <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+          aria-label="Cetak Laporan Penjualan" data-i18n-title="printTitle">
+          <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z">
+            </path>
+          </svg>
           <span data-i18n="printButton">Cetak</span>
         </button>
 
         <!-- New Sale Button -->
-        <button 
-          id="btnOpenSaleModal" 
-          onclick="openSaleModal()" 
+        <button id="btnOpenSaleModal" onclick="openSaleModal()"
           class="px-3 sm:px-4 py-2 text-xs sm:text-sm font-bold text-white bg-blue-600 hover:bg-blue-500 active:scale-95 rounded-xl shadow-lg shadow-blue-600/30 transition flex items-center gap-1.5">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z">
+            </path>
+          </svg>
           <span data-i18n="newSaleButton">+ Catat Order</span>
         </button>
 
         <!-- Logout Button -->
-        <button 
-          onclick="handleLogout()" 
-          class="p-2 text-slate-400 hover:text-rose-400 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl transition" 
-          title="Keluar / Logout"
-          data-i18n-title="logoutTitle">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+        <button onclick="handleLogout()"
+          class="p-2 text-slate-400 hover:text-rose-400 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl transition"
+          title="Keluar / Logout" data-i18n-title="logoutTitle">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+          </svg>
         </button>
       </div>
 
@@ -281,28 +319,37 @@
   </header>
 
   <main class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 w-full flex-1">
-    
+
     <!-- Tab Controls & Period Filters Bar -->
-    <div id="tabBar" class="flex flex-col lg:flex-row lg:items-center justify-between border-b border-slate-800 pb-3 mb-5 gap-3 no-print">
-      
+    <div id="tabBar"
+      class="flex flex-col lg:flex-row lg:items-center justify-between border-b border-slate-800 pb-3 mb-5 gap-3 no-print">
+
       <!-- Desktop Navigation Tabs -->
-      <nav class="hidden md:flex items-center gap-1.5 bg-slate-800/80 p-1.5 rounded-xl border border-slate-700/60 overflow-x-auto w-full lg:w-auto" aria-label="Tabs Navigation">
-        <button id="tabBtnDashboard" onclick="switchTab('dashboard')" class="tab-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold text-white bg-blue-600 transition shadow-sm whitespace-nowrap">
+      <nav
+        class="hidden md:flex items-center gap-1.5 bg-slate-800/80 p-1.5 rounded-xl border border-slate-700/60 overflow-x-auto w-full lg:w-auto"
+        aria-label="Tabs Navigation">
+        <button id="tabBtnDashboard" onclick="switchTab('dashboard')"
+          class="tab-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold text-white bg-blue-600 transition shadow-sm whitespace-nowrap">
           <span data-i18n="navDashboard">📊 Dashboard</span>
         </button>
-        <button id="tabBtnInventory" onclick="switchTab('inventory')" class="tab-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition whitespace-nowrap">
+        <button id="tabBtnInventory" onclick="switchTab('inventory')"
+          class="tab-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition whitespace-nowrap">
           <span data-i18n="navInventory">📦 Stok Gudang</span> (<span id="tabStockCount">4</span> SKU)
         </button>
-        <button id="tabBtnRestockLog" onclick="switchTab('restockLog')" class="tab-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition whitespace-nowrap">
+        <button id="tabBtnRestockLog" onclick="switchTab('restockLog')"
+          class="tab-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition whitespace-nowrap">
           <span data-i18n="navRestock">📥 Histori Restock</span> (<span id="tabRestockCount">0</span>)
         </button>
-        <button id="tabBtnSales" onclick="switchTab('sales')" class="tab-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition whitespace-nowrap">
+        <button id="tabBtnSales" onclick="switchTab('sales')"
+          class="tab-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition whitespace-nowrap">
           <span data-i18n="navSales">📑 Log Transaksi</span> (<span id="tabSaleCount">0</span>)
         </button>
-        <button id="tabBtnAuditLog" onclick="switchTab('auditLog')" class="tab-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition whitespace-nowrap">
+        <button id="tabBtnAuditLog" onclick="switchTab('auditLog')"
+          class="tab-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition whitespace-nowrap">
           <span data-i18n="navAudit">🛡️ Audit Trail</span> (<span id="tabAuditCount">0</span>)
         </button>
-        <button id="tabBtnManagement" onclick="switchTab('management')" class="tab-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition whitespace-nowrap">
+        <button id="tabBtnManagement" onclick="switchTab('management')"
+          class="tab-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition whitespace-nowrap">
           <span data-i18n="navCloud">⚙️ Cloud & Data</span>
         </button>
       </nav>
@@ -310,8 +357,10 @@
       <!-- Period Filter & Export Controls -->
       <div class="flex flex-wrap items-center justify-between sm:justify-end gap-2 w-full lg:w-auto">
         <div class="flex items-center bg-slate-800 border border-slate-700 rounded-xl px-2.5 py-1.5">
-          <label for="filterPeriodSelect" class="text-slate-400 text-xs mr-2 font-medium" data-i18n="filterPeriodLabel">Periode:</label>
-          <select id="filterPeriodSelect" onchange="onPeriodFilterChange()" class="bg-transparent text-xs text-white font-semibold focus:outline-none cursor-pointer">
+          <label for="filterPeriodSelect" class="text-slate-400 text-xs mr-2 font-medium"
+            data-i18n="filterPeriodLabel">Periode:</label>
+          <select id="filterPeriodSelect" onchange="onPeriodFilterChange()"
+            class="bg-transparent text-xs text-white font-semibold focus:outline-none cursor-pointer">
             <option value="ALL" class="bg-slate-800 text-white" data-i18n="periodAll">Semua Periode</option>
             <option value="TODAY" class="bg-slate-800 text-white" data-i18n="periodToday">Hari Ini</option>
             <option value="LAST_7_DAYS" class="bg-slate-800 text-white" data-i18n="period7Days">7 Hari Terakhir</option>
@@ -322,15 +371,23 @@
         </div>
 
         <!-- Custom Date Range -->
-        <div id="customDateRangeBox" class="hidden flex items-center gap-1.5 bg-slate-800 border border-slate-700 px-2 py-1 rounded-xl text-xs">
-          <input type="date" id="customStartDate" onchange="applyCustomPeriod()" class="bg-slate-900 border border-slate-700 text-white rounded px-1.5 py-0.5 text-xs focus:outline-none" />
+        <div id="customDateRangeBox"
+          class="hidden flex items-center gap-1.5 bg-slate-800 border border-slate-700 px-2 py-1 rounded-xl text-xs">
+          <input type="date" id="customStartDate" onchange="applyCustomPeriod()"
+            class="bg-slate-900 border border-slate-700 text-white rounded px-1.5 py-0.5 text-xs focus:outline-none" />
           <span class="text-slate-500">-</span>
-          <input type="date" id="customEndDate" onchange="applyCustomPeriod()" class="bg-slate-900 border border-slate-700 text-white rounded px-1.5 py-0.5 text-xs focus:outline-none" />
+          <input type="date" id="customEndDate" onchange="applyCustomPeriod()"
+            class="bg-slate-900 border border-slate-700 text-white rounded px-1.5 py-0.5 text-xs focus:outline-none" />
         </div>
 
         <!-- Export CSV Button -->
-        <button onclick="exportToCSV()" title="Ekspor ke CSV" class="px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-emerald-300 hover:text-white bg-emerald-950/40 hover:bg-emerald-800/40 rounded-xl border border-emerald-600/30 flex items-center gap-1.5 transition">
-          <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+        <button onclick="exportToCSV()" title="Ekspor ke CSV"
+          class="px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-emerald-300 hover:text-white bg-emerald-950/40 hover:bg-emerald-800/40 rounded-xl border border-emerald-600/30 flex items-center gap-1.5 transition">
+          <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+            </path>
+          </svg>
           <span>Export CSV</span>
         </button>
       </div>
@@ -343,41 +400,57 @@
         <div>
           <h1 class="text-2xl font-black">JagoNutritionID — CONSOLIDATED REPORT</h1>
           <p class="text-sm text-slate-600">Multi-Warehouse Inventory & Sales (Indonesia & Malaysia)</p>
-          <p class="text-xs text-slate-500 mt-1">Printed at: <span id="printCurrentTimestamp">-</span> | Period: <span id="printPeriodLabel">-</span></p>
+          <p class="text-xs text-slate-500 mt-1">Printed at: <span id="printCurrentTimestamp">-</span> | Period: <span
+              id="printPeriodLabel">-</span></p>
         </div>
       </div>
     </div>
 
     <!-- ================= SECTION: DASHBOARD ================= -->
     <section id="sectionDashboard" class="space-y-4 sm:space-y-6">
-      
+
       <!-- 4 Core KPI Summary Cards -->
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
-        
+
         <!-- Card 1: Net Sales -->
-        <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-3.5 sm:p-5 relative overflow-hidden backdrop-blur-sm card-print">
-          <div class="flex items-center justify-between text-slate-400 text-[10px] sm:text-xs font-semibold uppercase tracking-wider mb-1.5 sm:mb-2">
+        <div
+          class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-3.5 sm:p-5 relative overflow-hidden backdrop-blur-sm card-print">
+          <div
+            class="flex items-center justify-between text-slate-400 text-[10px] sm:text-xs font-semibold uppercase tracking-wider mb-1.5 sm:mb-2">
             <span data-i18n="kpiNetSales">Net Sales (Omset)</span>
             <div class="p-1.5 sm:p-2 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20 no-print">
-              <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+                </path>
+              </svg>
             </div>
           </div>
           <div id="kpiOmset" class="text-lg sm:text-2xl lg:text-3xl font-extrabold text-white tracking-tight">Rp 0</div>
-          <div class="text-[11px] sm:text-xs text-slate-400 mt-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-0.5">
-            <span><span data-i18n="kpiGross">Gross:</span> <span id="kpiGrossSales" class="font-semibold text-slate-300">Rp 0</span></span>
+          <div
+            class="text-[11px] sm:text-xs text-slate-400 mt-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-0.5">
+            <span><span data-i18n="kpiGross">Gross:</span> <span id="kpiGrossSales"
+                class="font-semibold text-slate-300">Rp 0</span></span>
             <span class="text-rose-400 font-semibold" id="kpiTotalDiscount">-Rp 0</span>
           </div>
         </div>
 
         <!-- Card 2: Estimasi Laba Kotor -->
-        <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-3.5 sm:p-5 relative overflow-hidden backdrop-blur-sm card-print">
-          <div class="flex items-center justify-between text-slate-400 text-[10px] sm:text-xs font-semibold uppercase tracking-wider mb-1.5 sm:mb-2">
+        <div
+          class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-3.5 sm:p-5 relative overflow-hidden backdrop-blur-sm card-print">
+          <div
+            class="flex items-center justify-between text-slate-400 text-[10px] sm:text-xs font-semibold uppercase tracking-wider mb-1.5 sm:mb-2">
             <span data-i18n="kpiGrossProfit">Estimasi Laba Kotor</span>
-            <div class="p-1.5 sm:p-2 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 no-print">
-              <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+            <div
+              class="p-1.5 sm:p-2 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 no-print">
+              <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+              </svg>
             </div>
           </div>
-          <div id="kpiProfit" class="text-lg sm:text-2xl lg:text-3xl font-extrabold text-emerald-400 tracking-tight">Rp 0</div>
+          <div id="kpiProfit" class="text-lg sm:text-2xl lg:text-3xl font-extrabold text-emerald-400 tracking-tight">Rp
+            0</div>
           <div class="text-[11px] sm:text-xs text-slate-400 mt-2 flex items-center justify-between">
             <span data-i18n="kpiMargin">Margin:</span>
             <span class="text-emerald-400 font-bold" id="kpiGrossMargin">0.0%</span>
@@ -385,91 +458,126 @@
         </div>
 
         <!-- Card 3: Unit Terjual -->
-        <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-3.5 sm:p-5 relative overflow-hidden backdrop-blur-sm card-print">
-          <div class="flex items-center justify-between text-slate-400 text-[10px] sm:text-xs font-semibold uppercase tracking-wider mb-1.5 sm:mb-2">
+        <div
+          class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-3.5 sm:p-5 relative overflow-hidden backdrop-blur-sm card-print">
+          <div
+            class="flex items-center justify-between text-slate-400 text-[10px] sm:text-xs font-semibold uppercase tracking-wider mb-1.5 sm:mb-2">
             <span data-i18n="kpiUnitsSold">Unit Terjual</span>
             <div class="p-1.5 sm:p-2 rounded-xl bg-violet-500/10 text-violet-400 border border-violet-500/20 no-print">
-              <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+              <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+              </svg>
             </div>
           </div>
-          <div id="kpiUnitsSold" class="text-lg sm:text-2xl lg:text-3xl font-extrabold text-white tracking-tight">0 <span class="text-xs sm:text-sm font-normal text-slate-400">pcs</span></div>
+          <div id="kpiUnitsSold" class="text-lg sm:text-2xl lg:text-3xl font-extrabold text-white tracking-tight">0
+            <span class="text-xs sm:text-sm font-normal text-slate-400">pcs</span></div>
           <p id="kpiBestSeller" class="text-[11px] sm:text-xs text-slate-400 mt-2 truncate">Best: -</p>
         </div>
 
         <!-- Card 4: Sisa Stok Fisik Gudang (Current Inventory) -->
-        <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-3.5 sm:p-5 relative overflow-hidden backdrop-blur-sm card-print">
-          <div class="flex items-center justify-between text-slate-400 text-[10px] sm:text-xs font-semibold uppercase tracking-wider mb-1.5 sm:mb-2">
+        <div
+          class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-3.5 sm:p-5 relative overflow-hidden backdrop-blur-sm card-print">
+          <div
+            class="flex items-center justify-between text-slate-400 text-[10px] sm:text-xs font-semibold uppercase tracking-wider mb-1.5 sm:mb-2">
             <span data-i18n="kpiCurrentStock">Stok Fisik Saat Ini</span>
             <div class="p-1.5 sm:p-2 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20 no-print">
-              <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+              <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+              </svg>
             </div>
           </div>
-          <div id="kpiRemainingStock" class="text-lg sm:text-2xl lg:text-3xl font-extrabold text-white tracking-tight">28 <span class="text-xs sm:text-sm font-normal text-slate-400">pcs</span></div>
-          <p id="kpiAlertCount" class="text-[11px] sm:text-xs text-amber-400 font-semibold mt-2 truncate">Semua stok aman</p>
+          <div id="kpiRemainingStock" class="text-lg sm:text-2xl lg:text-3xl font-extrabold text-white tracking-tight">
+            28 <span class="text-xs sm:text-sm font-normal text-slate-400">pcs</span></div>
+          <p id="kpiAlertCount" class="text-[11px] sm:text-xs text-amber-400 font-semibold mt-2 truncate">Semua stok
+            aman</p>
         </div>
 
       </div>
 
       <!-- Shopee Performance Tracker Card -->
-      <div class="bg-gradient-to-r from-orange-950/30 via-slate-800/60 to-slate-800/60 border border-orange-500/30 rounded-2xl p-3.5 sm:p-5 backdrop-blur-sm card-print">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 border-b border-orange-500/20 pb-2.5 mb-3">
+      <div
+        class="bg-gradient-to-r from-orange-950/30 via-slate-800/60 to-slate-800/60 border border-orange-500/30 rounded-2xl p-3.5 sm:p-5 backdrop-blur-sm card-print">
+        <div
+          class="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 border-b border-orange-500/20 pb-2.5 mb-3">
           <div class="flex items-center gap-2">
             <span class="w-2.5 h-2.5 rounded-full bg-orange-500 animate-pulse"></span>
             <h3 class="text-xs sm:text-sm font-bold text-white flex items-center gap-1.5">
               <span data-i18n="shopeeTrackerTitle">Shopee Discount & Pricing Tracker</span>
-              <span class="text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded-md bg-orange-500/20 text-orange-400 font-semibold" data-i18n="shopeeTrackerSub">Katalog vs Nett</span>
+              <span
+                class="text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded-md bg-orange-500/20 text-orange-400 font-semibold"
+                data-i18n="shopeeTrackerSub">Katalog vs Nett</span>
             </h3>
           </div>
-          <span class="text-[11px] text-slate-400" data-i18n="shopeeTrackerDesc">Pelacakan diskon harga jual aktual (belum termasuk potongan fee platform)</span>
+          <span class="text-[11px] text-slate-400" data-i18n="shopeeTrackerDesc">Pelacakan diskon harga jual aktual
+            (belum termasuk potongan fee platform)</span>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-4">
           <div class="bg-slate-900/60 p-2.5 sm:p-3 rounded-xl border border-slate-700/60">
-            <div class="text-[10px] sm:text-[11px] text-slate-400 uppercase font-semibold" data-i18n="shopeeDiscountGiven">Total Diskon Diberikan</div>
+            <div class="text-[10px] sm:text-[11px] text-slate-400 uppercase font-semibold"
+              data-i18n="shopeeDiscountGiven">Total Diskon Diberikan</div>
             <div id="shopeeKpiTotalDiscount" class="text-base sm:text-xl font-bold text-rose-400 mt-1">Rp 0</div>
-            <div class="text-[9px] sm:text-[10px] text-slate-500 mt-0.5" data-i18n="shopeeDiscountFromCatalog">Potongan dari Harga Katalog Shopee</div>
+            <div class="text-[9px] sm:text-[10px] text-slate-500 mt-0.5" data-i18n="shopeeDiscountFromCatalog">Potongan
+              dari Harga Katalog Shopee</div>
           </div>
 
           <div class="bg-slate-900/60 p-2.5 sm:p-3 rounded-xl border border-slate-700/60">
-            <div class="text-[10px] sm:text-[11px] text-slate-400 uppercase font-semibold" data-i18n="shopeeAvgDiscount">Rata-rata Diskon (Weighted)</div>
+            <div class="text-[10px] sm:text-[11px] text-slate-400 uppercase font-semibold"
+              data-i18n="shopeeAvgDiscount">Rata-rata Diskon (Weighted)</div>
             <div id="shopeeKpiAvgDiscountPct" class="text-base sm:text-xl font-bold text-amber-400 mt-1">0.00%</div>
             <div class="text-[9px] sm:text-[10px] text-slate-500 mt-0.5">(Total Diskon / Gross Sales)</div>
           </div>
 
           <div class="bg-slate-900/60 p-2.5 sm:p-3 rounded-xl border border-slate-700/60">
-            <div class="text-[10px] sm:text-[11px] text-slate-400 uppercase font-semibold" data-i18n="shopeeTotalOrders">Total Order Shopee</div>
-            <div id="shopeeKpiTrxCount" class="text-base sm:text-xl font-bold text-orange-400 mt-1">0 <span class="text-xs font-normal text-slate-400">transaksi</span></div>
-            <div class="text-[9px] sm:text-[10px] text-slate-500 mt-0.5" data-i18n="shopeeOrderVolume">Volume transaksi marketplace Shopee</div>
+            <div class="text-[10px] sm:text-[11px] text-slate-400 uppercase font-semibold"
+              data-i18n="shopeeTotalOrders">Total Order Shopee</div>
+            <div id="shopeeKpiTrxCount" class="text-base sm:text-xl font-bold text-orange-400 mt-1">0 <span
+                class="text-xs font-normal text-slate-400">transaksi</span></div>
+            <div class="text-[9px] sm:text-[10px] text-slate-500 mt-0.5" data-i18n="shopeeOrderVolume">Volume transaksi
+              marketplace Shopee</div>
           </div>
         </div>
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-        
+
         <!-- Sales Volume Chart per Product -->
-        <div class="lg:col-span-2 bg-slate-800/50 border border-slate-700/60 rounded-2xl p-4 sm:p-5 backdrop-blur-sm card-print">
+        <div
+          class="lg:col-span-2 bg-slate-800/50 border border-slate-700/60 rounded-2xl p-4 sm:p-5 backdrop-blur-sm card-print">
           <div class="flex items-center justify-between mb-3">
             <div>
-              <h3 class="text-xs sm:text-base font-bold text-white" data-i18n="chartTitle">Grafik Penjualan Unit per Varian</h3>
-              <p id="chartSubheader" class="text-[11px] sm:text-xs text-slate-400" data-i18n="chartDesc">Unit terjual pada periode terpilih vs sisa stok fisik saat ini</p>
+              <h3 class="text-xs sm:text-base font-bold text-white" data-i18n="chartTitle">Grafik Penjualan Unit per
+                Varian</h3>
+              <p id="chartSubheader" class="text-[11px] sm:text-xs text-slate-400" data-i18n="chartDesc">Unit terjual
+                pada periode terpilih vs sisa stok fisik saat ini</p>
             </div>
             <span class="text-[10px] bg-slate-700/80 px-2 py-0.5 rounded-lg text-slate-300 font-medium">Realtime</span>
           </div>
 
           <div class="h-56 sm:h-64 relative">
             <canvas id="salesChart"></canvas>
-            <div id="chartEmptyState" class="hidden absolute inset-0 flex flex-col items-center justify-center bg-slate-900/60 rounded-xl">
-              <svg class="w-8 h-8 text-slate-500 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-              <p class="text-xs text-slate-400" data-i18n="noSalesPeriod">Belum ada transaksi penjualan pada periode ini.</p>
+            <div id="chartEmptyState"
+              class="hidden absolute inset-0 flex flex-col items-center justify-center bg-slate-900/60 rounded-xl">
+              <svg class="w-8 h-8 text-slate-500 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
+                </path>
+              </svg>
+              <p class="text-xs text-slate-400" data-i18n="noSalesPeriod">Belum ada transaksi penjualan pada periode
+                ini.</p>
             </div>
           </div>
         </div>
 
         <!-- Realtime Stock Monitor Mini Widget -->
-        <div class="bg-slate-800/50 border border-slate-700/60 rounded-2xl p-4 sm:p-5 flex flex-col justify-between backdrop-blur-sm card-print">
+        <div
+          class="bg-slate-800/50 border border-slate-700/60 rounded-2xl p-4 sm:p-5 flex flex-col justify-between backdrop-blur-sm card-print">
           <div>
             <div class="flex items-center justify-between mb-3">
-              <h3 class="text-xs sm:text-base font-bold text-white" data-i18n="stockStatusTitle">Status Fisik Gudang</h3>
+              <h3 class="text-xs sm:text-base font-bold text-white" data-i18n="stockStatusTitle">Status Fisik Gudang
+              </h3>
               <span class="text-[11px] text-blue-400 font-medium" data-i18n="bufferRule">Min Buffer 5 pcs</span>
             </div>
             <div id="stockMiniList" class="space-y-2">
@@ -478,11 +586,15 @@
           </div>
 
           <div class="pt-3 border-t border-slate-700/60 mt-3 no-print flex gap-2">
-            <button onclick="switchTab('inventory')" class="flex-1 py-2 bg-slate-700 hover:bg-slate-600 text-xs font-semibold rounded-xl text-slate-200 hover:text-white transition flex items-center justify-center gap-1.5">
+            <button onclick="switchTab('inventory')"
+              class="flex-1 py-2 bg-slate-700 hover:bg-slate-600 text-xs font-semibold rounded-xl text-slate-200 hover:text-white transition flex items-center justify-center gap-1.5">
               <span data-i18n="btnStockDetail">Detail Stok</span>
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+              </svg>
             </button>
-            <button onclick="switchTab('restockLog')" class="py-2 px-3 bg-emerald-950/40 hover:bg-emerald-900/60 text-emerald-400 text-xs font-semibold rounded-xl border border-emerald-500/30 transition flex items-center justify-center gap-1">
+            <button onclick="switchTab('restockLog')"
+              class="py-2 px-3 bg-emerald-950/40 hover:bg-emerald-900/60 text-emerald-400 text-xs font-semibold rounded-xl border border-emerald-500/30 transition flex items-center justify-center gap-1">
               <span data-i18n="btnRestockLog">Log Restock</span>
             </button>
           </div>
@@ -494,15 +606,18 @@
       <div class="bg-slate-800/50 border border-slate-700/60 rounded-2xl p-4 sm:p-5 backdrop-blur-sm card-print">
         <div class="flex items-center justify-between mb-3">
           <div>
-            <h3 class="text-xs sm:text-base font-bold text-white" data-i18n="productSummaryTitle">Ringkasan Penjualan Produk</h3>
-            <p class="text-[11px] text-slate-400" data-i18n="productSummaryDesc">Kontribusi omset, diskon, dan laba kotor per SKU (mengikuti periode aktif)</p>
+            <h3 class="text-xs sm:text-base font-bold text-white" data-i18n="productSummaryTitle">Ringkasan Penjualan
+              Produk</h3>
+            <p class="text-[11px] text-slate-400" data-i18n="productSummaryDesc">Kontribusi omset, diskon, dan laba
+              kotor per SKU (mengikuti periode aktif)</p>
           </div>
         </div>
 
         <div class="overflow-x-auto rounded-xl border border-slate-700/80">
           <table class="w-full text-left border-collapse text-xs sm:text-sm">
             <thead>
-              <tr class="bg-slate-800/90 text-slate-400 text-[11px] font-semibold uppercase tracking-wider border-b border-slate-700">
+              <tr
+                class="bg-slate-800/90 text-slate-400 text-[11px] font-semibold uppercase tracking-wider border-b border-slate-700">
                 <th class="py-2.5 px-3 sm:px-4" data-i18n="thProduct">Produk & Varian</th>
                 <th class="py-2.5 px-2.5 text-center" data-i18n="thQty">Qty</th>
                 <th class="py-2.5 px-2.5 text-right" data-i18n="thGross">Gross</th>
@@ -524,15 +639,18 @@
       <div class="bg-slate-800/50 border border-slate-700/60 rounded-2xl p-4 sm:p-5 backdrop-blur-sm card-print">
         <div class="flex items-center justify-between mb-3">
           <div>
-            <h3 class="text-xs sm:text-base font-bold text-white" data-i18n="channelSummaryTitle">Ringkasan Channel Penjualan & Diskon</h3>
-            <p class="text-[11px] text-slate-400" data-i18n="channelSummaryDesc">Performa channel penjualan offline vs online termasuk rata-rata diskon Shopee</p>
+            <h3 class="text-xs sm:text-base font-bold text-white" data-i18n="channelSummaryTitle">Ringkasan Channel
+              Penjualan & Diskon</h3>
+            <p class="text-[11px] text-slate-400" data-i18n="channelSummaryDesc">Performa channel penjualan offline vs
+              online termasuk rata-rata diskon Shopee</p>
           </div>
         </div>
 
         <div class="overflow-x-auto rounded-xl border border-slate-700/80">
           <table class="w-full text-left border-collapse text-xs sm:text-sm">
             <thead>
-              <tr class="bg-slate-800/90 text-slate-400 text-[11px] font-semibold uppercase tracking-wider border-b border-slate-700">
+              <tr
+                class="bg-slate-800/90 text-slate-400 text-[11px] font-semibold uppercase tracking-wider border-b border-slate-700">
                 <th class="py-2.5 px-3 sm:px-4" data-i18n="thChannel">Channel</th>
                 <th class="py-2.5 px-2.5 text-center" data-i18n="thTrx">Trx</th>
                 <th class="py-2.5 px-2.5 text-center" data-i18n="thUnit">Unit</th>
@@ -554,13 +672,19 @@
 
     <!-- ================= SECTION: INVENTORY ================= -->
     <section id="sectionInventory" class="hidden space-y-4">
-      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 bg-slate-800/40 p-3.5 sm:p-4 rounded-2xl border border-slate-800 no-print">
+      <div
+        class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 bg-slate-800/40 p-3.5 sm:p-4 rounded-2xl border border-slate-800 no-print">
         <div>
-          <h2 class="text-sm sm:text-lg font-bold text-white" data-i18n="inventorySectionTitle">Katalog Produk & Kontrol Stok Fisik</h2>
-          <p class="text-[11px] sm:text-xs text-slate-400" data-i18n="inventorySectionDesc">Menampilkan Harga Jual Offline, Harga Katalog Shopee, dan stok riil gudang.</p>
+          <h2 class="text-sm sm:text-lg font-bold text-white" data-i18n="inventorySectionTitle">Katalog Produk & Kontrol
+            Stok Fisik</h2>
+          <p class="text-[11px] sm:text-xs text-slate-400" data-i18n="inventorySectionDesc">Menampilkan Harga Jual
+            Offline, Harga Katalog Shopee, dan stok riil gudang.</p>
         </div>
-        <button onclick="openRestockModal()" class="w-full sm:w-auto px-3.5 py-2 text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl shadow-lg shadow-emerald-600/20 transition flex items-center justify-center gap-1.5">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+        <button onclick="openRestockModal()"
+          class="w-full sm:w-auto px-3.5 py-2 text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl shadow-lg shadow-emerald-600/20 transition flex items-center justify-center gap-1.5">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+          </svg>
           <span data-i18n="btnRestockIn">Restock / Barang Masuk</span>
         </button>
       </div>
@@ -571,10 +695,12 @@
       </div>
 
       <!-- Desktop Inventory Table -->
-      <div class="hidden sm:block overflow-x-auto rounded-2xl border border-slate-800 bg-slate-800/40 backdrop-blur-sm card-print">
+      <div
+        class="hidden sm:block overflow-x-auto rounded-2xl border border-slate-800 bg-slate-800/40 backdrop-blur-sm card-print">
         <table class="w-full text-left border-collapse text-xs sm:text-sm">
           <thead>
-            <tr class="bg-slate-800/90 text-slate-400 text-xs font-semibold uppercase tracking-wider border-b border-slate-700">
+            <tr
+              class="bg-slate-800/90 text-slate-400 text-xs font-semibold uppercase tracking-wider border-b border-slate-700">
               <th class="py-3.5 px-4">SKU</th>
               <th class="py-3.5 px-4" data-i18n="thProduct">Nama Produk & Varian</th>
               <th class="py-3.5 px-3 text-center" data-i18n="thSize">Ukuran</th>
@@ -584,7 +710,8 @@
               <th class="py-3.5 px-3 text-center" data-i18n="thInitial">Awal</th>
               <th class="py-3.5 px-3 text-center" data-i18n="thIn">Masuk</th>
               <th class="py-3.5 px-3 text-center" data-i18n="thOut">Keluar</th>
-              <th class="py-3.5 px-3 text-center font-bold text-white bg-slate-800/60" data-i18n="thStock">Sisa Stok</th>
+              <th class="py-3.5 px-3 text-center font-bold text-white bg-slate-800/60" data-i18n="thStock">Sisa Stok
+              </th>
               <th class="py-3.5 px-3 text-center" data-i18n="thStatus">Status</th>
               <th class="py-3.5 px-4 text-center no-print" data-i18n="thAction">Aksi</th>
             </tr>
@@ -598,13 +725,19 @@
 
     <!-- ================= SECTION: RESTOCK LOG ================= -->
     <section id="sectionRestockLog" class="hidden space-y-4">
-      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 bg-slate-800/40 p-3.5 sm:p-4 rounded-2xl border border-slate-800 no-print">
+      <div
+        class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 bg-slate-800/40 p-3.5 sm:p-4 rounded-2xl border border-slate-800 no-print">
         <div>
-          <h2 class="text-sm sm:text-lg font-bold text-white" data-i18n="restockSectionTitle">Histori Restock & Barang Masuk</h2>
-          <p class="text-[11px] sm:text-xs text-slate-400" data-i18n="restockSectionDesc">Audit trail lengkap pencatatan penambahan stok gudang oleh Adi & Koko.</p>
+          <h2 class="text-sm sm:text-lg font-bold text-white" data-i18n="restockSectionTitle">Histori Restock & Barang
+            Masuk</h2>
+          <p class="text-[11px] sm:text-xs text-slate-400" data-i18n="restockSectionDesc">Audit trail lengkap pencatatan
+            penambahan stok gudang oleh Adi & Koko.</p>
         </div>
-        <button onclick="openRestockModal()" class="w-full sm:w-auto px-3.5 py-2 text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl shadow-lg shadow-emerald-600/20 transition flex items-center justify-center gap-1.5">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+        <button onclick="openRestockModal()"
+          class="w-full sm:w-auto px-3.5 py-2 text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl shadow-lg shadow-emerald-600/20 transition flex items-center justify-center gap-1.5">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+          </svg>
           <span data-i18n="btnAddRestock">+ Tambah Restock</span>
         </button>
       </div>
@@ -612,7 +745,8 @@
       <div class="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-800/40 backdrop-blur-sm card-print">
         <table class="w-full text-left border-collapse text-xs sm:text-sm">
           <thead>
-            <tr class="bg-slate-800/90 text-slate-400 text-xs font-semibold uppercase tracking-wider border-b border-slate-700">
+            <tr
+              class="bg-slate-800/90 text-slate-400 text-xs font-semibold uppercase tracking-wider border-b border-slate-700">
               <th class="py-3 px-4">Restock ID</th>
               <th class="py-3 px-3" data-i18n="thDate">Tanggal</th>
               <th class="py-3 px-4" data-i18n="thProduct">Produk / SKU</th>
@@ -631,25 +765,23 @@
 
     <!-- ================= SECTION: SALES LOG ================= -->
     <section id="sectionSales" class="hidden space-y-4">
-      <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-2.5 bg-slate-800/40 p-3.5 sm:p-4 rounded-2xl border border-slate-800 no-print">
+      <div
+        class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-2.5 bg-slate-800/40 p-3.5 sm:p-4 rounded-2xl border border-slate-800 no-print">
         <div>
-          <h2 class="text-sm sm:text-lg font-bold text-white" data-i18n="salesSectionTitle">Log Riwayat Transaksi Penjualan</h2>
-          <p class="text-[11px] sm:text-xs text-slate-400" data-i18n="salesSectionDesc">Rincian Katalog vs Nett Shopee dan snapshot HPP historis transaksi.</p>
+          <h2 class="text-sm sm:text-lg font-bold text-white" data-i18n="salesSectionTitle">Log Riwayat Transaksi
+            Penjualan</h2>
+          <p class="text-[11px] sm:text-xs text-slate-400" data-i18n="salesSectionDesc">Rincian Katalog vs Nett Shopee
+            dan snapshot HPP historis transaksi.</p>
         </div>
-        
+
         <!-- Search and Filters -->
         <div class="flex flex-wrap items-center gap-2 w-full lg:w-auto">
-          <input 
-            type="text" 
-            id="salesSearchInput" 
-            oninput="filterSalesTable()" 
-            placeholder="Cari ID, produk, PIC..." 
+          <input type="text" id="salesSearchInput" oninput="filterSalesTable()" placeholder="Cari ID, produk, PIC..."
             class="bg-slate-900 border border-slate-700 text-xs text-white px-3 py-2 rounded-xl focus:outline-none focus:border-blue-500 w-full sm:w-44"
-            aria-label="Cari transaksi"
-            data-i18n-placeholder="searchPlaceholder"
-          />
+            aria-label="Cari transaksi" data-i18n-placeholder="searchPlaceholder" />
 
-          <select id="salesChannelFilter" onchange="filterSalesTable()" class="bg-slate-900 border border-slate-700 text-xs text-white px-2.5 py-2 rounded-xl focus:outline-none focus:border-blue-500 flex-1 sm:flex-initial">
+          <select id="salesChannelFilter" onchange="filterSalesTable()"
+            class="bg-slate-900 border border-slate-700 text-xs text-white px-2.5 py-2 rounded-xl focus:outline-none focus:border-blue-500 flex-1 sm:flex-initial">
             <option value="" data-i18n="allChannels">Semua Channel</option>
             <option value="Shopee">Shopee</option>
             <option value="Store / Offline">Store / Offline</option>
@@ -658,7 +790,8 @@
             <option value="WhatsApp">WhatsApp</option>
           </select>
 
-          <select id="salesProductFilter" onchange="filterSalesTable()" class="bg-slate-900 border border-slate-700 text-xs text-white px-2.5 py-2 rounded-xl focus:outline-none focus:border-blue-500 flex-1 sm:flex-initial max-w-[140px]">
+          <select id="salesProductFilter" onchange="filterSalesTable()"
+            class="bg-slate-900 border border-slate-700 text-xs text-white px-2.5 py-2 rounded-xl focus:outline-none focus:border-blue-500 flex-1 sm:flex-initial max-w-[140px]">
             <option value="" data-i18n="allProducts">Semua Produk</option>
           </select>
         </div>
@@ -668,7 +801,8 @@
       <div class="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-800/40 backdrop-blur-sm card-print">
         <table class="w-full text-left border-collapse text-xs sm:text-sm">
           <thead>
-            <tr class="bg-slate-800/90 text-slate-400 text-xs font-semibold uppercase tracking-wider border-b border-slate-700">
+            <tr
+              class="bg-slate-800/90 text-slate-400 text-xs font-semibold uppercase tracking-wider border-b border-slate-700">
               <th class="py-3 px-3 sm:px-4">Invoice</th>
               <th class="py-3 px-2.5 sm:px-3" data-i18n="thDate">Tanggal</th>
               <th class="py-3 px-2.5 sm:px-3" data-i18n="thChannel">Channel</th>
@@ -693,15 +827,19 @@
 
     <!-- ================= SECTION: AUDIT TRAIL ================= -->
     <section id="sectionAuditLog" class="hidden space-y-4">
-      <div class="bg-slate-800/40 p-4 rounded-2xl border border-slate-800 no-print flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+      <div
+        class="bg-slate-800/40 p-4 rounded-2xl border border-slate-800 no-print flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
         <div>
           <h2 class="text-base font-bold text-white flex items-center gap-2">
             <span data-i18n="auditSectionTitle">🛡️ Audit Trail & Sinkronisasi Antar-Negara</span>
-            <span class="text-xs px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 font-normal">Adi (ID) & Koko (MY)</span>
+            <span class="text-xs px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 font-normal">Adi (ID) & Koko
+              (MY)</span>
           </h2>
-          <p class="text-xs text-slate-400" data-i18n="auditSectionDesc">Riwayat setiap penambahan, penghapusan, atau restock untuk menjamin akuntabilitas data multi-user.</p>
+          <p class="text-xs text-slate-400" data-i18n="auditSectionDesc">Riwayat setiap penambahan, penghapusan, atau
+            restock untuk menjamin akuntabilitas data multi-user.</p>
         </div>
-        <button onclick="renderAuditTrailTable()" class="px-3 py-1.5 text-xs bg-slate-700 hover:bg-slate-600 rounded-xl text-slate-200" data-i18n="btnRefresh">
+        <button onclick="renderAuditTrailTable()"
+          class="px-3 py-1.5 text-xs bg-slate-700 hover:bg-slate-600 rounded-xl text-slate-200" data-i18n="btnRefresh">
           🔄 Refresh Log
         </button>
       </div>
@@ -709,7 +847,8 @@
       <div class="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-800/40 backdrop-blur-sm card-print">
         <table class="w-full text-left border-collapse text-xs sm:text-sm">
           <thead>
-            <tr class="bg-slate-800/90 text-slate-400 text-xs font-semibold uppercase tracking-wider border-b border-slate-700">
+            <tr
+              class="bg-slate-800/90 text-slate-400 text-xs font-semibold uppercase tracking-wider border-b border-slate-700">
               <th class="py-3 px-4" data-i18n="thTime">Waktu</th>
               <th class="py-3 px-3" data-i18n="thUser">Pengguna</th>
               <th class="py-3 px-3" data-i18n="thAction">Aksi</th>
@@ -726,23 +865,29 @@
 
     <!-- ================= SECTION: CLOUD & DATA ================= -->
     <section id="sectionManagement" class="hidden space-y-6 no-print">
-      
+
       <!-- Cloud Backend Adapter Status Card -->
       <div class="bg-slate-800/60 border border-slate-700/80 rounded-2xl p-5">
         <div class="flex items-center justify-between mb-3 border-b border-slate-700 pb-3 flex-wrap gap-2">
           <div class="flex items-center gap-2.5">
-            <div id="adapterIconBox" class="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold">
+            <div id="adapterIconBox"
+              class="w-9 h-9 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold">
               ☁️
             </div>
             <div>
               <h3 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
                 <span>Shared Cloud Database (Supabase / Postgres)</span>
-                <span id="adapterBadge" class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-mono font-bold">Local Cache Mode</span>
+                <span id="adapterBadge"
+                  class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-mono font-bold">Local
+                  Cache Mode</span>
               </h3>
-              <p class="text-xs text-slate-400" data-i18n="cloudSyncDesc">Sinkronisasi real-time antar perangkat untuk Adi (Indonesia) dan Koko (Malaysia).</p>
+              <p class="text-xs text-slate-400" data-i18n="cloudSyncDesc">Sinkronisasi real-time antar perangkat untuk
+                Adi (Indonesia) dan Koko (Malaysia).</p>
             </div>
           </div>
-          <button onclick="openCloudModal()" class="px-3.5 py-1.5 text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white rounded-xl shadow-md transition" data-i18n="btnConfigureCloud">
+          <button onclick="openCloudModal()"
+            class="px-3.5 py-1.5 text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white rounded-xl shadow-md transition"
+            data-i18n="btnConfigureCloud">
             Konfigurasi Cloud
           </button>
         </div>
@@ -770,11 +915,15 @@
       <!-- Backup, Restore, and Reset Card -->
       <div class="bg-slate-800/40 border border-slate-800 rounded-2xl p-5">
         <div class="flex items-center justify-between mb-2">
-          <h2 class="text-base font-bold text-white" data-i18n="backupSectionTitle">Penyimpanan Cadangan & Portabilitas Data</h2>
-          <span class="text-xs bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full font-mono font-bold">Schema v2.4</span>
+          <h2 class="text-base font-bold text-white" data-i18n="backupSectionTitle">Penyimpanan Cadangan & Portabilitas
+            Data</h2>
+          <span
+            class="text-xs bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full font-mono font-bold">Schema
+            v2.4</span>
         </div>
         <p class="text-xs text-slate-400" data-i18n="backupSectionDesc">
-          Meskipun cloud sync aktif, ekspor cadangan JSON secara berkala tetap disarankan untuk keperluan arsip akuntansi offline.
+          Meskipun cloud sync aktif, ekspor cadangan JSON secara berkala tetap disarankan untuk keperluan arsip
+          akuntansi offline.
         </p>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-5">
@@ -782,12 +931,17 @@
           <div class="bg-slate-800/70 border border-slate-700/80 rounded-xl p-4 flex flex-col justify-between">
             <div>
               <div class="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center mb-2.5">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                </svg>
               </div>
               <h4 class="text-sm font-bold text-white">Export Backup (JSON)</h4>
-              <p class="text-xs text-slate-400 mt-1" data-i18n="backupExportDesc">Unduh seluruh database (produk, stok riil, transaksi Shopee, histori restock, audit logs) ke file JSON.</p>
+              <p class="text-xs text-slate-400 mt-1" data-i18n="backupExportDesc">Unduh seluruh database (produk, stok
+                riil, transaksi Shopee, histori restock, audit logs) ke file JSON.</p>
             </div>
-            <button onclick="exportBackupJSON()" class="mt-4 w-full py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-md shadow-blue-600/20">
+            <button onclick="exportBackupJSON()"
+              class="mt-4 w-full py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-md shadow-blue-600/20">
               <span data-i18n="btnDownloadBackup">Unduh Backup JSON</span>
             </button>
           </div>
@@ -795,30 +949,44 @@
           <!-- Restore Card -->
           <div class="bg-slate-800/70 border border-slate-700/80 rounded-xl p-4 flex flex-col justify-between">
             <div>
-              <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center mb-2.5">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+              <div
+                class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center mb-2.5">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                </svg>
               </div>
               <h4 class="text-sm font-bold text-white">Import Restore (JSON)</h4>
-              <p class="text-xs text-slate-400 mt-1" data-i18n="backupImportDesc">Validasi ketat 2-tahap (validasi skema dahulu, konfirmasi preview, baru komit data).</p>
+              <p class="text-xs text-slate-400 mt-1" data-i18n="backupImportDesc">Validasi ketat 2-tahap (validasi skema
+                dahulu, konfirmasi preview, baru komit data).</p>
             </div>
             <div>
-              <input type="file" id="importJsonFileInput" accept=".json" class="hidden" onchange="handleImportFileSelected(event)" />
-              <button onclick="document.getElementById('importJsonFileInput').click()" class="mt-4 w-full py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 hover:text-white rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5">
+              <input type="file" id="importJsonFileInput" accept=".json" class="hidden"
+                onchange="handleImportFileSelected(event)" />
+              <button onclick="document.getElementById('importJsonFileInput').click()"
+                class="mt-4 w-full py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 hover:text-white rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5">
                 <span data-i18n="btnSelectJson">Pilih File JSON</span>
               </button>
             </div>
           </div>
 
           <!-- Reset Card (Admin Only) -->
-          <div id="resetDatabaseCard" class="bg-slate-800/70 border border-slate-700/80 rounded-xl p-4 flex flex-col justify-between">
+          <div id="resetDatabaseCard"
+            class="bg-slate-800/70 border border-slate-700/80 rounded-xl p-4 flex flex-col justify-between">
             <div>
               <div class="w-8 h-8 rounded-lg bg-rose-500/20 text-rose-400 flex items-center justify-center mb-2.5">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                  </path>
+                </svg>
               </div>
               <h4 class="text-sm font-bold text-white">Reset Database (Admin)</h4>
-              <p class="text-xs text-slate-400 mt-1" data-i18n="resetDatabaseDesc">Kembalikan stok fisik ke master riil (12, 5, 5, 6) serta kosongkan riwayat penjualan.</p>
+              <p class="text-xs text-slate-400 mt-1" data-i18n="resetDatabaseDesc">Kembalikan stok fisik ke master riil
+                (12, 5, 5, 6) serta kosongkan riwayat penjualan.</p>
             </div>
-            <button onclick="openResetDataConfirmation()" id="btnResetDatabase" class="mt-4 w-full py-2 bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-500/30 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5">
+            <button onclick="openResetDataConfirmation()" id="btnResetDatabase"
+              class="mt-4 w-full py-2 bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-500/30 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5">
               <span data-i18n="btnResetDefault">Reset ke Master Default</span>
             </button>
           </div>
@@ -830,49 +998,66 @@
   </main>
 
   <!-- ================= MOBILE BOTTOM NAVIGATION ================= -->
-  <nav id="mobileBottomBar" class="fixed bottom-0 inset-x-0 bg-slate-900/95 backdrop-blur-lg border-t border-slate-800 md:hidden z-40 px-2 py-1 flex items-center justify-around no-print" aria-label="Mobile Navigation">
-    <button onclick="switchTab('dashboard')" id="mNavDashboard" class="flex flex-col items-center justify-center py-1.5 px-2 text-blue-500 min-w-[54px]">
+  <nav id="mobileBottomBar"
+    class="fixed bottom-0 inset-x-0 bg-slate-900/95 backdrop-blur-lg border-t border-slate-800 md:hidden z-40 px-2 py-1 flex items-center justify-around no-print"
+    aria-label="Mobile Navigation">
+    <button onclick="switchTab('dashboard')" id="mNavDashboard"
+      class="flex flex-col items-center justify-center py-1.5 px-2 text-blue-500 min-w-[54px]">
       <span class="text-lg">📊</span>
       <span class="text-[10px] font-bold" data-i18n="mNavSummary">Ringkasan</span>
     </button>
-    <button onclick="switchTab('inventory')" id="mNavInventory" class="flex flex-col items-center justify-center py-1.5 px-2 text-slate-400 hover:text-white min-w-[54px]">
+    <button onclick="switchTab('inventory')" id="mNavInventory"
+      class="flex flex-col items-center justify-center py-1.5 px-2 text-slate-400 hover:text-white min-w-[54px]">
       <span class="text-lg">📦</span>
       <span class="text-[10px] font-semibold" data-i18n="mNavStock">Stok</span>
     </button>
-    <button onclick="openSaleModal()" class="flex flex-col items-center justify-center -mt-4 bg-blue-600 hover:bg-blue-500 text-white p-2.5 rounded-full shadow-lg shadow-blue-600/40 border-2 border-slate-900 min-w-[48px] min-h-[48px]">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
+    <button onclick="openSaleModal()"
+      class="flex flex-col items-center justify-center -mt-4 bg-blue-600 hover:bg-blue-500 text-white p-2.5 rounded-full shadow-lg shadow-blue-600/40 border-2 border-slate-900 min-w-[48px] min-h-[48px]">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path>
+      </svg>
       <span class="sr-only">Order Baru</span>
     </button>
-    <button onclick="switchTab('sales')" id="mNavSales" class="flex flex-col items-center justify-center py-1.5 px-2 text-slate-400 hover:text-white min-w-[54px]">
+    <button onclick="switchTab('sales')" id="mNavSales"
+      class="flex flex-col items-center justify-center py-1.5 px-2 text-slate-400 hover:text-white min-w-[54px]">
       <span class="text-lg">📑</span>
       <span class="text-[10px] font-semibold" data-i18n="mNavSales">Transaksi</span>
     </button>
-    <button onclick="switchTab('management')" id="mNavManagement" class="flex flex-col items-center justify-center py-1.5 px-2 text-slate-400 hover:text-white min-w-[54px]">
+    <button onclick="switchTab('management')" id="mNavManagement"
+      class="flex flex-col items-center justify-center py-1.5 px-2 text-slate-400 hover:text-white min-w-[54px]">
       <span class="text-lg">⚙️</span>
       <span class="text-[10px] font-semibold" data-i18n="mNavCloud">Cloud</span>
     </button>
   </nav>
 
   <!-- ================= 1. MODAL: SALE INPUT ================= -->
-  <div id="modalSale" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-3 sm:p-4 overflow-y-auto no-print" role="dialog" aria-modal="true" aria-labelledby="modalSaleTitle">
-    <div class="bg-slate-800 border border-slate-700 w-full max-w-lg rounded-2xl shadow-2xl p-4 sm:p-6 relative max-h-[92vh] overflow-y-auto">
+  <div id="modalSale"
+    class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-3 sm:p-4 overflow-y-auto no-print"
+    role="dialog" aria-modal="true" aria-labelledby="modalSaleTitle">
+    <div
+      class="bg-slate-800 border border-slate-700 w-full max-w-lg rounded-2xl shadow-2xl p-4 sm:p-6 relative max-h-[92vh] overflow-y-auto">
       <div class="flex items-center justify-between pb-3 border-b border-slate-700 mb-4">
         <h3 id="modalSaleTitle" class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
           <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
           <span data-i18n="modalSaleTitle">Input Transaksi Penjualan Baru</span>
         </h3>
-        <button onclick="closeModal('modalSale')" class="text-slate-400 hover:text-white p-1 rounded-lg" aria-label="Tutup Modal">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        <button onclick="closeModal('modalSale')" class="text-slate-400 hover:text-white p-1 rounded-lg"
+          aria-label="Tutup Modal">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
         </button>
       </div>
 
       <form id="formNewSale" onsubmit="handleSaleSubmit(event)" class="space-y-3.5">
-        
+
         <!-- Product & Channel Selection -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label for="saleChannel" class="block text-xs font-semibold text-slate-300 mb-1" data-i18n="formChannel">Channel Penjualan *</label>
-            <select id="saleChannel" onchange="onSaleChannelChanged()" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-blue-500">
+            <label for="saleChannel" class="block text-xs font-semibold text-slate-300 mb-1"
+              data-i18n="formChannel">Channel Penjualan *</label>
+            <select id="saleChannel" onchange="onSaleChannelChanged()" required
+              class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-blue-500">
               <option value="Shopee">Shopee (Katalog & Diskon)</option>
               <option value="Store / Offline">Store / Offline</option>
               <option value="Tokopedia">Tokopedia</option>
@@ -882,8 +1067,10 @@
           </div>
 
           <div>
-            <label for="saleProductSelect" class="block text-xs font-semibold text-slate-300 mb-1" data-i18n="formProduct">Pilih Produk & Varian *</label>
-            <select id="saleProductSelect" onchange="updateSalePriceHelper()" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-blue-500">
+            <label for="saleProductSelect" class="block text-xs font-semibold text-slate-300 mb-1"
+              data-i18n="formProduct">Pilih Produk & Varian *</label>
+            <select id="saleProductSelect" onchange="updateSalePriceHelper()" required
+              class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-blue-500">
               <!-- Dynamic Options -->
             </select>
           </div>
@@ -894,12 +1081,16 @@
         <!-- Qty and Payment -->
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label for="saleQty" class="block text-xs font-semibold text-slate-300 mb-1" data-i18n="formQty">Jumlah (Qty Integer) *</label>
-            <input type="number" id="saleQty" min="1" step="1" value="1" required oninput="calculateSaleTotalPreview()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-blue-500" />
+            <label for="saleQty" class="block text-xs font-semibold text-slate-300 mb-1" data-i18n="formQty">Jumlah (Qty
+              Integer) *</label>
+            <input type="number" id="saleQty" min="1" step="1" value="1" required oninput="calculateSaleTotalPreview()"
+              class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-blue-500" />
           </div>
           <div>
-            <label for="salePayment" class="block text-xs font-semibold text-slate-300 mb-1" data-i18n="formPayment">Metode Pembayaran *</label>
-            <select id="salePayment" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-blue-500">
+            <label for="salePayment" class="block text-xs font-semibold text-slate-300 mb-1"
+              data-i18n="formPayment">Metode Pembayaran *</label>
+            <select id="salePayment" required
+              class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-blue-500">
               <option value="SpayLater">SpayLater</option>
               <option value="ShopeePay">ShopeePay</option>
               <option value="Transfer Bank">Transfer Bank</option>
@@ -912,19 +1103,26 @@
 
         <!-- SPECIAL SHOPEE PRICING BOX -->
         <div id="shopeePricingBox" class="bg-orange-950/20 border border-orange-500/30 p-3 rounded-xl space-y-2.5">
-          <div class="flex items-center justify-between text-xs text-orange-400 font-bold border-b border-orange-500/20 pb-1">
+          <div
+            class="flex items-center justify-between text-xs text-orange-400 font-bold border-b border-orange-500/20 pb-1">
             <span data-i18n="shopeePricingScheme">🏷️ Skema Harga Khusus Shopee</span>
             <span class="text-[10px] text-slate-400 font-normal">Auto-Calculate Discount</span>
           </div>
 
           <div class="grid grid-cols-2 gap-2.5">
             <div>
-              <label class="block text-[11px] font-semibold text-slate-400 mb-0.5" data-i18n="shopeeCatalogPriceLabel">Harga Katalog Shopee</label>
-              <input type="text" id="shopeeCatalogPriceDisplay" readonly class="w-full bg-slate-900/80 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-mono font-bold text-orange-300 cursor-not-allowed" value="Rp 650.000" />
+              <label class="block text-[11px] font-semibold text-slate-400 mb-0.5"
+                data-i18n="shopeeCatalogPriceLabel">Harga Katalog Shopee</label>
+              <input type="text" id="shopeeCatalogPriceDisplay" readonly
+                class="w-full bg-slate-900/80 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-mono font-bold text-orange-300 cursor-not-allowed"
+                value="Rp 650.000" />
             </div>
             <div>
-              <label for="shopeeNetPriceInput" class="block text-[11px] font-semibold text-white mb-0.5" data-i18n="shopeeNetPriceLabel">Harga Nett Aktual/pcs *</label>
-              <input type="number" id="shopeeNetPriceInput" min="1" step="500" oninput="calculateSaleTotalPreview()" required class="w-full bg-slate-900 border border-orange-500/50 rounded-lg px-2.5 py-1.5 text-xs font-bold text-white focus:outline-none focus:border-orange-400" />
+              <label for="shopeeNetPriceInput" class="block text-[11px] font-semibold text-white mb-0.5"
+                data-i18n="shopeeNetPriceLabel">Harga Nett Aktual/pcs *</label>
+              <input type="number" id="shopeeNetPriceInput" min="1" step="500" oninput="calculateSaleTotalPreview()"
+                required
+                class="w-full bg-slate-900 border border-orange-500/50 rounded-lg px-2.5 py-1.5 text-xs font-bold text-white focus:outline-none focus:border-orange-400" />
             </div>
           </div>
 
@@ -942,13 +1140,17 @@
 
         <!-- NON-SHOPEE STANDARD DISCOUNT BOX -->
         <div id="nonShopeePricingBox" class="hidden">
-          <label for="saleDiscount" class="block text-xs font-semibold text-slate-300 mb-1" data-i18n="manualDiscountLabel">Diskon / Potongan Manual (Rp)</label>
-          <input type="number" id="saleDiscount" min="0" step="500" value="0" oninput="calculateSaleTotalPreview()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-blue-500" />
+          <label for="saleDiscount" class="block text-xs font-semibold text-slate-300 mb-1"
+            data-i18n="manualDiscountLabel">Diskon / Potongan Manual (Rp)</label>
+          <input type="number" id="saleDiscount" min="0" step="500" value="0" oninput="calculateSaleTotalPreview()"
+            class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-blue-500" />
         </div>
 
         <div>
-          <label for="saleDate" class="block text-xs font-semibold text-slate-300 mb-1" data-i18n="formDate">Tanggal Transaksi (Waktu Lokal) *</label>
-          <input type="date" id="saleDate" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-blue-500" />
+          <label for="saleDate" class="block text-xs font-semibold text-slate-300 mb-1" data-i18n="formDate">Tanggal
+            Transaksi (Waktu Lokal) *</label>
+          <input type="date" id="saleDate" required
+            class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-blue-500" />
         </div>
 
         <!-- Total Calculation Preview Box -->
@@ -961,76 +1163,104 @@
         </div>
 
         <div class="flex items-center justify-end gap-2 pt-1">
-          <button type="button" onclick="closeModal('modalSale')" class="px-4 py-2 text-xs font-semibold text-slate-300 hover:text-white bg-slate-700/60 rounded-xl" data-i18n="btnCancel">Batal</button>
-          <button type="submit" id="btnSubmitSale" class="px-5 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 rounded-xl shadow-lg shadow-blue-600/30" data-i18n="btnSaveOrder">Simpan Order</button>
+          <button type="button" onclick="closeModal('modalSale')"
+            class="px-4 py-2 text-xs font-semibold text-slate-300 hover:text-white bg-slate-700/60 rounded-xl"
+            data-i18n="btnCancel">Batal</button>
+          <button type="submit" id="btnSubmitSale"
+            class="px-5 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 rounded-xl shadow-lg shadow-blue-600/30"
+            data-i18n="btnSaveOrder">Simpan Order</button>
         </div>
       </form>
     </div>
   </div>
 
   <!-- ================= 2. MODAL: RESTOCK ================= -->
-  <div id="modalRestock" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-3 sm:p-4 overflow-y-auto no-print" role="dialog" aria-modal="true" aria-labelledby="modalRestockTitle">
-    <div class="bg-slate-800 border border-slate-700 w-full max-w-md rounded-2xl shadow-2xl p-4 sm:p-6 relative max-h-[92vh] overflow-y-auto">
+  <div id="modalRestock"
+    class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-3 sm:p-4 overflow-y-auto no-print"
+    role="dialog" aria-modal="true" aria-labelledby="modalRestockTitle">
+    <div
+      class="bg-slate-800 border border-slate-700 w-full max-w-md rounded-2xl shadow-2xl p-4 sm:p-6 relative max-h-[92vh] overflow-y-auto">
       <div class="flex items-center justify-between pb-3 border-b border-slate-700 mb-4">
         <h3 id="modalRestockTitle" class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
           <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
           <span data-i18n="modalRestockTitle">Restock / Tambah Barang Masuk</span>
         </h3>
-        <button onclick="closeModal('modalRestock')" class="text-slate-400 hover:text-white p-1 rounded-lg" aria-label="Tutup Modal">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        <button onclick="closeModal('modalRestock')" class="text-slate-400 hover:text-white p-1 rounded-lg"
+          aria-label="Tutup Modal">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
         </button>
       </div>
 
       <form id="formRestock" onsubmit="handleRestockSubmit(event)" class="space-y-3.5">
         <div>
-          <label for="restockProductSelect" class="block text-xs font-semibold text-slate-300 mb-1" data-i18n="formProduct">Pilih Produk *</label>
-          <select id="restockProductSelect" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-blue-500">
+          <label for="restockProductSelect" class="block text-xs font-semibold text-slate-300 mb-1"
+            data-i18n="formProduct">Pilih Produk *</label>
+          <select id="restockProductSelect" required
+            class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-blue-500">
             <!-- Dynamic Options -->
           </select>
         </div>
 
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label for="restockQty" class="block text-xs font-semibold text-slate-300 mb-1" data-i18n="formQty">Jumlah Unit (Integer) *</label>
-            <input type="number" id="restockQty" min="1" step="1" value="10" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-blue-500" />
+            <label for="restockQty" class="block text-xs font-semibold text-slate-300 mb-1" data-i18n="formQty">Jumlah
+              Unit (Integer) *</label>
+            <input type="number" id="restockQty" min="1" step="1" value="10" required
+              class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-blue-500" />
           </div>
           <div>
-            <label for="restockDate" class="block text-xs font-semibold text-slate-300 mb-1" data-i18n="formDate">Tanggal Masuk *</label>
-            <input type="date" id="restockDate" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-blue-500" />
+            <label for="restockDate" class="block text-xs font-semibold text-slate-300 mb-1"
+              data-i18n="formDate">Tanggal Masuk *</label>
+            <input type="date" id="restockDate" required
+              class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-blue-500" />
           </div>
         </div>
 
         <div>
-          <label for="restockNote" class="block text-xs font-semibold text-slate-300 mb-1" data-i18n="restockBatchNote">Catatan Batch / Supplier (Opsional)</label>
-          <input type="text" id="restockNote" placeholder="Contoh: Batch Q4-2026 - Supplier Jakarta" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-blue-500" />
+          <label for="restockNote" class="block text-xs font-semibold text-slate-300 mb-1"
+            data-i18n="restockBatchNote">Catatan Batch / Supplier (Opsional)</label>
+          <input type="text" id="restockNote" placeholder="Contoh: Batch Q4-2026 - Supplier Jakarta"
+            class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-blue-500" />
         </div>
 
         <div class="flex items-center justify-end gap-2 pt-1">
-          <button type="button" onclick="closeModal('modalRestock')" class="px-4 py-2 text-xs font-semibold text-slate-300 hover:text-white bg-slate-700/60 rounded-xl" data-i18n="btnCancel">Batal</button>
-          <button type="submit" id="btnSubmitRestock" class="px-5 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 rounded-xl shadow-lg shadow-emerald-600/30" data-i18n="btnAddToWarehouse">Tambah ke Gudang</button>
+          <button type="button" onclick="closeModal('modalRestock')"
+            class="px-4 py-2 text-xs font-semibold text-slate-300 hover:text-white bg-slate-700/60 rounded-xl"
+            data-i18n="btnCancel">Batal</button>
+          <button type="submit" id="btnSubmitRestock"
+            class="px-5 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 rounded-xl shadow-lg shadow-emerald-600/30"
+            data-i18n="btnAddToWarehouse">Tambah ke Gudang</button>
         </div>
       </form>
     </div>
   </div>
 
   <!-- ================= 3. MODAL: CLOUD CONFIG (SUPABASE) ================= -->
-  <div id="modalCloud" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-3 sm:p-4 overflow-y-auto no-print" role="dialog" aria-modal="true">
-    <div class="bg-slate-800 border border-slate-700 w-full max-w-lg rounded-2xl shadow-2xl p-4 sm:p-6 relative max-h-[92vh] overflow-y-auto">
+  <div id="modalCloud"
+    class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-3 sm:p-4 overflow-y-auto no-print"
+    role="dialog" aria-modal="true">
+    <div
+      class="bg-slate-800 border border-slate-700 w-full max-w-lg rounded-2xl shadow-2xl p-4 sm:p-6 relative max-h-[92vh] overflow-y-auto">
       <div class="flex items-center justify-between pb-3 border-b border-slate-700 mb-3">
         <h3 class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
           <span>☁️ Supabase Cloud & Multi-User Setup</span>
         </h3>
         <button onclick="closeModal('modalCloud')" class="text-slate-400 hover:text-white p-1 rounded-lg">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
         </button>
       </div>
 
       <div class="space-y-4 text-xs">
-        
+
         <!-- Honest Architecture Notice -->
         <div class="bg-blue-950/40 border border-blue-500/30 p-3 rounded-xl text-blue-300 leading-relaxed text-[11px]">
           <span class="font-bold block mb-1">ℹ️ Shared Cloud Architecture (Zero Fake Sync):</span>
-          Aplikasi menggunakan <strong>Supabase (PostgreSQL + Realtime WebSocket)</strong> agar data transaksi Adi di Indonesia langsung tampil di layar Koko di Malaysia. Tidak menggunakan fake sync atau polling palsu.
+          Aplikasi menggunakan <strong>Supabase (PostgreSQL + Realtime WebSocket)</strong> agar data transaksi Adi di
+          Indonesia langsung tampil di layar Koko di Malaysia. Tidak menggunakan fake sync atau polling palsu.
         </div>
 
         <!-- Supabase Configuration Inputs -->
@@ -1039,22 +1269,15 @@
             <label for="supabaseUrlInput" class="block font-semibold text-slate-300 mb-1">
               Supabase Project URL:
             </label>
-            <input 
-              type="url" 
-              id="supabaseUrlInput" 
-              placeholder="https://xyzcompany.supabase.co" 
-              class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 font-mono text-[11px] text-white focus:outline-none focus:border-blue-500" 
-            />
+            <input type="url" id="supabaseUrlInput" placeholder="https://xyzcompany.supabase.co"
+              class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 font-mono text-[11px] text-white focus:outline-none focus:border-blue-500" />
           </div>
 
           <div>
             <label for="supabaseAnonKeyInput" class="block font-semibold text-slate-300 mb-1">
               Supabase Public/Anon Key (Browser Client Safe):
             </label>
-            <textarea 
-              id="supabaseAnonKeyInput" 
-              rows="3" 
-              placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." 
+            <textarea id="supabaseAnonKeyInput" rows="3" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
               class="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 font-mono text-[11px] text-slate-200 focus:outline-none focus:border-blue-500"></textarea>
             <p class="text-[10px] text-slate-500 mt-1">
               *Hanya gunakan Anon/Public Key. Jangan pernah memasukkan service_role key ke dalam browser frontend.
@@ -1063,10 +1286,14 @@
         </div>
 
         <div class="flex items-center justify-between pt-2">
-          <button type="button" onclick="disconnectCloud()" class="px-3 py-2 text-xs font-semibold text-rose-400 hover:text-white bg-rose-950/30 border border-rose-500/30 rounded-xl" data-i18n="btnDisconnectCloud">
+          <button type="button" onclick="disconnectCloud()"
+            class="px-3 py-2 text-xs font-semibold text-rose-400 hover:text-white bg-rose-950/30 border border-rose-500/30 rounded-xl"
+            data-i18n="btnDisconnectCloud">
             Lepas Cloud (Gunakan Cache Lokal)
           </button>
-          <button type="button" onclick="saveCloudConfig()" class="px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 rounded-xl shadow-lg shadow-blue-600/30" data-i18n="btnConnectCloud">
+          <button type="button" onclick="saveCloudConfig()"
+            class="px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 rounded-xl shadow-lg shadow-blue-600/30"
+            data-i18n="btnConnectCloud">
             Simpan & Hubungkan Supabase
           </button>
         </div>
@@ -1076,22 +1303,35 @@
   </div>
 
   <!-- ================= 4. MODAL: CONFIRMATION ================= -->
-  <div id="modalConfirm" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4 no-print" role="dialog" aria-modal="true">
+  <div id="modalConfirm" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4 no-print"
+    role="dialog" aria-modal="true">
     <div class="bg-slate-800 border border-slate-700 w-full max-w-sm rounded-2xl shadow-2xl p-5 text-center">
-      <div id="confirmIconBox" class="w-12 h-12 rounded-full bg-rose-500/20 text-rose-400 mx-auto flex items-center justify-center mb-3">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+      <div id="confirmIconBox"
+        class="w-12 h-12 rounded-full bg-rose-500/20 text-rose-400 mx-auto flex items-center justify-center mb-3">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+          </path>
+        </svg>
       </div>
       <h4 id="confirmTitle" class="text-sm font-bold text-white mb-1" data-i18n="confirmTitle">Konfirmasi Aksi</h4>
-      <p id="confirmMessage" class="text-xs text-slate-400 mb-5 leading-relaxed" data-i18n="confirmMessage">Apakah Anda yakin ingin melakukan tindakan ini?</p>
+      <p id="confirmMessage" class="text-xs text-slate-400 mb-5 leading-relaxed" data-i18n="confirmMessage">Apakah Anda
+        yakin ingin melakukan tindakan ini?</p>
       <div class="flex items-center justify-center gap-3">
-        <button id="confirmCancelBtn" class="px-4 py-2 text-xs font-medium text-slate-300 bg-slate-700 rounded-xl hover:bg-slate-600 transition" data-i18n="btnCancel">Batal</button>
-        <button id="confirmOkBtn" class="px-4 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-500 rounded-xl shadow-lg shadow-rose-600/30 transition" data-i18n="btnContinue">Lanjutkan</button>
+        <button id="confirmCancelBtn"
+          class="px-4 py-2 text-xs font-medium text-slate-300 bg-slate-700 rounded-xl hover:bg-slate-600 transition"
+          data-i18n="btnCancel">Batal</button>
+        <button id="confirmOkBtn"
+          class="px-4 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-500 rounded-xl shadow-lg shadow-rose-600/30 transition"
+          data-i18n="btnContinue">Lanjutkan</button>
       </div>
     </div>
   </div>
 
   <!-- ================= 5. MODAL: IMPORT PREVIEW ================= -->
-  <div id="modalImportPreview" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4 no-print" role="dialog" aria-modal="true">
+  <div id="modalImportPreview"
+    class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4 no-print" role="dialog"
+    aria-modal="true">
     <div class="bg-slate-800 border border-slate-700 w-full max-w-md rounded-2xl shadow-2xl p-5">
       <h3 class="text-base font-bold text-white mb-2 flex items-center gap-2">
         <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
@@ -1125,14 +1365,19 @@
       </div>
 
       <div class="flex items-center justify-end gap-2.5">
-        <button onclick="closeModal('modalImportPreview')" class="px-4 py-2 text-xs font-medium text-slate-300 bg-slate-700 rounded-xl hover:bg-slate-600" data-i18n="btnCancel">Batal</button>
-        <button id="btnExecuteImport" class="px-4 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 rounded-xl shadow-lg shadow-emerald-600/30" data-i18n="btnRestoreNow">Ya, Pulihkan Sekarang</button>
+        <button onclick="closeModal('modalImportPreview')"
+          class="px-4 py-2 text-xs font-medium text-slate-300 bg-slate-700 rounded-xl hover:bg-slate-600"
+          data-i18n="btnCancel">Batal</button>
+        <button id="btnExecuteImport"
+          class="px-4 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 rounded-xl shadow-lg shadow-emerald-600/30"
+          data-i18n="btnRestoreNow">Ya, Pulihkan Sekarang</button>
       </div>
     </div>
   </div>
 
   <!-- Notification Toast Container -->
-  <div id="toast" class="fixed bottom-20 md:bottom-5 right-5 z-50 transform translate-y-24 opacity-0 transition-all duration-300 flex items-center gap-2 px-4 py-3 rounded-xl shadow-2xl text-xs font-semibold pointer-events-none no-print">
+  <div id="toast"
+    class="fixed bottom-20 md:bottom-5 right-5 z-50 transform translate-y-24 opacity-0 transition-all duration-300 flex items-center gap-2 px-4 py-3 rounded-xl shadow-2xl text-xs font-semibold pointer-events-none no-print">
     <span id="toastIcon"></span>
     <span id="toastMessage">Notification</span>
   </div>
@@ -1548,7 +1793,7 @@
       if (lang !== "id" && lang !== "en") return;
       currentLang = lang;
       localStorage.setItem(LANG_KEY, lang);
-      
+
       // Update toggle buttons in header and login
       const headerId = document.getElementById("headerLangId");
       const headerEn = document.getElementById("headerLangEn");
@@ -1705,7 +1950,7 @@
         appState.auditLogs = [];
       }
       appState.auditLogs.unshift(logEntry);
-      
+
       if (appState.auditLogs.length > 400) {
         appState.auditLogs = appState.auditLogs.slice(0, 400);
       }
@@ -2104,7 +2349,7 @@
         const isShopee = (s.channel === "Shopee");
         const shopeeCatalogPrice = isShopee ? (s.shopeeCatalogPrice !== undefined ? s.shopeeCatalogPrice : (product ? product.shopeeHargaKatalog : null)) : null;
         const shopeeNetPrice = isShopee ? (s.shopeeNetPrice !== undefined ? s.shopeeNetPrice : (shopeeCatalogPrice ? shopeeCatalogPrice - (discount / qty) : null)) : null;
-        
+
         let discountPercent = s.discountPercent !== undefined ? toSafeNumber(s.discountPercent, 0) : 0;
         if (isShopee && shopeeCatalogPrice && !s.discountPercent && shopeeCatalogPrice > 0) {
           discountPercent = parseFloat((((shopeeCatalogPrice - (shopeeNetPrice || shopeeCatalogPrice)) / shopeeCatalogPrice) * 100).toFixed(2));
@@ -2446,11 +2691,11 @@
       document.getElementById('kpiOmset').textContent = formatIDR(totalNetSales);
       document.getElementById('kpiGrossSales').textContent = formatIDR(totalGrossSales);
       document.getElementById('kpiTotalDiscount').textContent = totalDiscount > 0 ? `-${formatIDR(totalDiscount)}` : `Rp 0`;
-      
+
       const profitEl = document.getElementById('kpiProfit');
       profitEl.textContent = formatIDR(totalGrossProfit);
-      profitEl.className = totalGrossProfit < 0 
-        ? "text-lg sm:text-2xl lg:text-3xl font-extrabold text-rose-400 tracking-tight" 
+      profitEl.className = totalGrossProfit < 0
+        ? "text-lg sm:text-2xl lg:text-3xl font-extrabold text-rose-400 tracking-tight"
         : "text-lg sm:text-2xl lg:text-3xl font-extrabold text-emerald-400 tracking-tight";
 
       document.getElementById('kpiGrossMargin').textContent = `${grossMarginPct}%`;
@@ -3023,7 +3268,7 @@
       if (product) {
         const sisa = getProductStock(product);
         const helper = document.getElementById('saleStockHelper');
-        
+
         if (channel === 'Shopee') {
           helper.textContent = `Sisa stok: ${sisa} pcs | Harga Katalog Shopee: ${formatIDR(product.shopeeHargaKatalog)}`;
           document.getElementById('shopeeCatalogPriceDisplay').value = formatIDR(product.shopeeHargaKatalog);
@@ -3055,7 +3300,7 @@
         const grossTotal = catalogPrice * qty;
         const netTotal = netPrice * qty;
         const discountTotal = Math.max(0, grossTotal - netTotal);
-        
+
         let discountPct = 0;
         if (catalogPrice > 0 && netPrice <= catalogPrice) {
           discountPct = (((catalogPrice - netPrice) / catalogPrice) * 100);
@@ -3134,7 +3379,7 @@
       if (channel === 'Shopee') {
         shopeeCatalogPrice = product.shopeeHargaKatalog;
         const rawNett = document.getElementById('shopeeNetPriceInput').value;
-        
+
         if (rawNett === '' || isNaN(Number(rawNett)) || Number(rawNett) <= 0) {
           showToast("Harga Nett Shopee harus berupa angka positif lebih dari 0!", "error");
           return;
@@ -3373,7 +3618,7 @@
           const cfg = JSON.parse(savedConfig);
           document.getElementById('supabaseUrlInput').value = cfg.url || "";
           document.getElementById('supabaseAnonKeyInput').value = cfg.anonKey || "";
-        } catch(e) {}
+        } catch (e) { }
       }
       document.getElementById('modalCloud').classList.remove('hidden');
     }
@@ -3462,11 +3707,11 @@
       };
 
       let csvContent = "\uFEFF";
-      
+
       const headers = [
-        "Invoice", "Date", "Channel", "SKU", "Product Name", 
-        "Qty", "Unit Price", "Shopee Catalog", "Shopee Nett", 
-        "Discount", "Discount %", "Net Total", "Snapshot HPP", "Profit", 
+        "Invoice", "Date", "Channel", "SKU", "Product Name",
+        "Qty", "Unit Price", "Shopee Catalog", "Shopee Nett",
+        "Discount", "Discount %", "Net Total", "Snapshot HPP", "Profit",
         "Payment Method", "Created By", "Recorded At"
       ];
       csvContent += headers.map(escapeCSV).join(",") + "\r\n";
@@ -3549,7 +3794,7 @@
       if (!file) return;
 
       const reader = new FileReader();
-      reader.onload = function(e) {
+      reader.onload = function (e) {
         try {
           const content = JSON.parse(e.target.result);
 
@@ -3714,12 +3959,12 @@
 
     function switchTab(tab) {
       const tabs = ['Dashboard', 'Inventory', 'RestockLog', 'Sales', 'AuditLog', 'Management'];
-      
+
       tabs.forEach(tKey => {
         const sec = document.getElementById(`section${tKey}`);
         const btn = document.getElementById(`tabBtn${tKey}`);
         const mBtn = document.getElementById(`mNav${tKey}`);
-        
+
         if (sec) {
           if (tKey.toLowerCase() === tab.toLowerCase()) {
             sec.classList.remove('hidden');
@@ -3807,6 +4052,22 @@
         }
       });
     });
+
+    // PWA Service Worker Registration
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        const swPath = 'sw.js';
+        const swScope = window.location.pathname.startsWith('/pos_inventory') ? '/pos_inventory/' : './';
+        navigator.serviceWorker.register(swPath, { scope: swScope })
+          .then((reg) => {
+            console.log('PWA ServiceWorker registered with scope:', reg.scope);
+          })
+          .catch((err) => {
+            console.error('PWA ServiceWorker registration failed:', err);
+          });
+      });
+    }
   </script>
 </body>
+
 </html>
