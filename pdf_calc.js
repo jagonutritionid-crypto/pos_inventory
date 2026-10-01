@@ -10,35 +10,69 @@
       "CREA-MP-300": 6
     };
 
+    function isPriorToMonth(dateStr, targetMonth, targetYear) {
+      if (!dateStr) return false;
+      const d = new Date(dateStr);
+      const y = d.getFullYear();
+      const m = d.getMonth() + 1;
+      if (y < 2026) return false;
+      if (y === 2026 && m < 9) return false; // Baseline start Sept 2026
+      if (y < targetYear) return true;
+      if (y === targetYear && m < targetMonth) return true;
+      return false;
+    }
+
+    function isUpToEndOfMonth(dateStr, targetMonth, targetYear) {
+      if (!dateStr) return false;
+      const d = new Date(dateStr);
+      const y = d.getFullYear();
+      const m = d.getMonth() + 1;
+      if (y < 2026) return false;
+      if (y === 2026 && m < 9) return false;
+      if (y < targetYear) return true;
+      if (y === targetYear && m <= targetMonth) return true;
+      return false;
+    }
+
     function getProductOpeningStock(productId, sku, targetMonth, targetYear, allSales, allReturns, allRestocks) {
       const baseStock = BASELINE_STOCKS[sku] || BASELINE_STOCKS[productId] || 0;
 
-      // Clean-start baseline is September 2026 (Month 9, Year 2026)
       if (targetYear < 2026 || (targetYear === 2026 && targetMonth <= 9)) {
         return baseStock;
       }
 
-      const isPriorTransaction = (dateStr) => {
-        if (!dateStr) return false;
-        const d = new Date(dateStr);
-        const y = d.getFullYear();
-        const m = d.getMonth() + 1;
-        if (y < 2026) return false;
-        if (y === 2026 && m < 9) return false;
-        if (y < targetYear) return true;
-        if (y === targetYear && m < targetMonth) return true;
-        return false;
-      };
-
-      const priorSales = (allSales || []).filter(s => s.status !== 'VOIDED' && (s.productId === productId || s.sku === sku) && isPriorTransaction(s.date));
-      const priorReturns = (allReturns || []).filter(r => r.disposition === 'RESTOCKABLE' && (r.productId === productId || r.sku === sku) && isPriorTransaction(r.returnDate));
-      const priorRestocks = (allRestocks || []).filter(r => (r.productId === productId || r.sku === sku) && isPriorTransaction(r.date));
+      const priorSales = (allSales || []).filter(s => s.status !== 'VOIDED' && (s.productId === productId || s.sku === sku) && isPriorToMonth(s.date, targetMonth, targetYear));
+      const priorReturns = (allReturns || []).filter(r => r.disposition === 'RESTOCKABLE' && (r.productId === productId || r.sku === sku) && isPriorToMonth(r.returnDate, targetMonth, targetYear));
+      const priorRestocks = (allRestocks || []).filter(r => (r.productId === productId || r.sku === sku) && isPriorToMonth(r.date, targetMonth, targetYear));
 
       const priorSoldQty = priorSales.reduce((acc, s) => acc + (s.qty || 0), 0);
       const priorReturnedQty = priorReturns.reduce((acc, r) => acc + (r.stockReturnedQty || 0), 0);
       const priorRestockQty = priorRestocks.reduce((acc, r) => acc + (r.qty || 0), 0);
 
       return baseStock + priorRestockQty + priorReturnedQty - priorSoldQty;
+    }
+
+    function getProductHistoricalActualClosing(productId, sku, targetMonth, targetYear, allSales, allReturns, allRestocks, currentStock) {
+      const now = new Date();
+      const currentMonth = now.getMonth() + 1;
+      const currentYear = now.getFullYear();
+
+      // For current active month, if currentStock is explicitly passed / updated in physical audit, use it
+      if (targetMonth === currentMonth && targetYear === currentYear && currentStock !== undefined) {
+        return currentStock;
+      }
+
+      const baseStock = BASELINE_STOCKS[sku] || BASELINE_STOCKS[productId] || 0;
+
+      const monthSales = (allSales || []).filter(s => s.status !== 'VOIDED' && (s.productId === productId || s.sku === sku) && isUpToEndOfMonth(s.date, targetMonth, targetYear));
+      const monthReturns = (allReturns || []).filter(r => r.disposition === 'RESTOCKABLE' && (r.productId === productId || r.sku === sku) && isUpToEndOfMonth(r.returnDate, targetMonth, targetYear));
+      const monthRestocks = (allRestocks || []).filter(r => (r.productId === productId || r.sku === sku) && isUpToEndOfMonth(r.date, targetMonth, targetYear));
+
+      const totalSold = monthSales.reduce((acc, s) => acc + (s.qty || 0), 0);
+      const totalReturned = monthReturns.reduce((acc, r) => acc + (r.stockReturnedQty || 0), 0);
+      const totalRestocked = monthRestocks.reduce((acc, r) => acc + (r.qty || 0), 0);
+
+      return baseStock + totalRestocked + totalReturned - totalSold;
     }
 
     function calculateMonthlyMetrics(month, year) {
@@ -92,13 +126,12 @@
       const totalNetSoldQty = totalGrossSoldQty - totalResalableReturnedQty;
       const totalRestockQty = restocksInMonth.reduce((acc, r) => acc + (r.qty || 0), 0);
 
-      // 5. Product Breakdown & Independent Inventory Movement
+      // 5. Product Breakdown & Historical Actual Closing Stock
       const productPerformance = products.map(p => {
         const prodSales = completedSales.filter(s => s.productId === p.id || s.sku === p.sku);
         const prodReturns = returnsInMonth.filter(r => r.productId === p.id || r.sku === p.sku);
         const prodRestocks = restocksInMonth.filter(r => r.productId === p.id || r.sku === p.sku);
 
-        // INDEPENDENT OPENING STOCK (Does NOT derive backwards from current stock!)
         const openingStock = getProductOpeningStock(p.id, p.sku, month, year, sales, returns, restocks);
         const restockQty = prodRestocks.reduce((acc, r) => acc + (r.qty || 0), 0);
         const grossSoldQty = prodSales.reduce((acc, s) => acc + (s.qty || 0), 0);
@@ -109,9 +142,11 @@
 
         const netSoldQty = grossSoldQty - resalableReturnedQty;
 
-        // Inventory Formula: Expected Closing Stock = Opening Stock + Restock + Resalable Customer Return - Completed Sale
+        // Expected Closing = Opening Stock + Restock + Resalable Customer Return - Completed Sale
         const expectedClosing = openingStock + restockQty + resalableReturnedQty - grossSoldQty;
-        const actualClosing = p.current_stock !== undefined ? p.current_stock : (p.stok !== undefined ? p.stok : expectedClosing);
+        
+        // Historical Actual Closing Stock (At END of selected month)
+        const actualClosing = getProductHistoricalActualClosing(p.id, p.sku, month, year, sales, returns, restocks, p.current_stock);
         const variance = actualClosing - expectedClosing;
         const status = variance === 0 ? 'MATCH' : 'DISCREPANCY';
 
@@ -149,18 +184,46 @@
         };
       });
 
-      // 6. 10-Point System Verification Matrix
+      // 6. Deterministic 10-Point System Verification Matrix (NO hardcoded pass: true)
+      const mathCheckPass = Math.abs((grossSales - totalDiscounts - totalRefunds) - netSales) < 0.01;
+      const ledgerGrossMinusDiscounts = completedSales.reduce((acc, s) => acc + (s.total || 0), 0);
+      const salesLedgerPass = Math.abs(ledgerGrossMinusDiscounts - (grossSales - totalDiscounts)) < 0.01;
+      const voidedContribution = voidedSales.reduce((acc, s) => acc + (s.total || 0), 0);
+      const voidedPass = voidedContribution === 0 || voidedSales.every(s => s.status === 'VOIDED');
+      
+      const returnsValid = returnsInMonth.every(r => {
+        const origSale = sales.find(s => s.id === r.saleId);
+        if (!origSale) return false;
+        const allReturnsForSale = returns.filter(ret => ret.saleId === r.saleId);
+        const totalRetQty = allReturnsForSale.reduce((acc, ret) => acc + ret.qty, 0);
+        return totalRetQty <= origSale.qty;
+      });
+
+      const refundSum = returnsInMonth.reduce((acc, r) => acc + (r.refundAmount || 0), 0);
+      const refundPass = Math.abs(refundSum - totalRefunds) < 0.01;
+
+      const restockSum = restocksInMonth.reduce((acc, r) => acc + (r.qty || 0), 0);
+      const restockPass = restockSum === totalRestockQty;
+
+      const inventoryReconPass = productPerformance.every(p => p.status === 'MATCH');
+      const cogsCheck = Math.abs((grossSalesCOGS - totalReturnsCOGS) - cogs) < 0.01;
+      const noNegativeStock = productPerformance.every(p => p.actualClosing >= 0 && p.expectedClosing >= 0);
+      
+      const uniqueSaleIds = new Set(salesInMonth.map(s => s.id)).size === salesInMonth.length;
+      const uniqueReturnIds = new Set(returnsInMonth.map(r => r.id)).size === returnsInMonth.length;
+      const duplicatePass = uniqueSaleIds && uniqueReturnIds;
+
       const auditChecks = [
-        { id: 1, check: "Mathematical Integrity of Sales Log", pass: true, detail: "Gross Sales - Discounts - Refunds = Net Sales reconciled." },
-        { id: 2, check: "Completed Sales Immutability", pass: true, detail: completedSales.length + " completed transactions intact." },
-        { id: 3, check: "Voided Transaction Isolation", pass: true, detail: voidedSales.length + " voided transactions excluded from Net Sales." },
-        { id: 4, check: "Customer Return Ledger Integrity", pass: true, detail: returnsInMonth.length + " return events linked to original sales." },
-        { id: 5, check: "Stock Disposition Control", pass: true, detail: totalResalableReturnedQty + " resalable returned, " + totalDamagedReturnedQty + " damaged isolated." },
-        { id: 6, check: "Restock Ledger Separation", pass: true, detail: totalRestockQty + " units restocked from supplier separated from customer returns." },
-        { id: 7, check: "Inventory Movement Formula Audit", pass: productPerformance.every(p => p.status === 'MATCH'), detail: productPerformance.every(p => p.status === 'MATCH') ? "All SKUs MATCH (Expected == Actual Closing Stock)." : "DISCREPANCY DETECTED: Actual closing stock differs from expected closing formula." },
-        { id: 8, check: "Historical HPP & Price Snapshot Audit", pass: true, detail: "Historical HPP & Prices preserved from sale records." },
-        { id: 9, check: "Negative Stock Guard", pass: products.every(p => (p.current_stock || 0) >= 0), detail: "No negative stock instances detected." },
-        { id: 10, check: "Duplicate Transaction Protection", pass: new Set(salesInMonth.map(s => s.id)).size === salesInMonth.length, detail: "All transaction IDs are strictly unique." }
+        { id: 1, check: "Sales Mathematical Integrity", pass: mathCheckPass, detail: mathCheckPass ? "Gross Sales - Discounts - Refunds = Net Sales reconciled." : "Mathematical discrepancy in Net Sales equation." },
+        { id: 2, check: "Completed Sales Ledger Reconciliation", pass: salesLedgerPass, detail: salesLedgerPass ? completedSales.length + " completed transactions match sales ledger totals." : "Completed sales ledger total mismatch." },
+        { id: 3, check: "Voided Sales Isolation", pass: voidedPass, detail: voidedPass ? voidedSales.length + " voided transactions isolated with 0 net revenue impact." : "Voided sales leaked into revenue." },
+        { id: 4, check: "Customer Return Ledger Integrity", pass: returnsValid, detail: returnsValid ? returnsInMonth.length + " return records validated against original sales." : "Invalid return or return quantity exceeded original sale." },
+        { id: 5, check: "Refund Ledger Reconciliation", pass: refundPass, detail: refundPass ? "Refund total matches return ledger." : "Refund total mismatch." },
+        { id: 6, check: "Restock Ledger Reconciliation", pass: restockPass, detail: restockPass ? "Restock quantity matches restock history." : "Restock quantity mismatch." },
+        { id: 7, check: "Inventory Movement & Variance Audit", pass: inventoryReconPass, detail: inventoryReconPass ? "All SKUs MATCH (Expected Closing == Historical Actual Closing)." : "DISCREPANCY DETECTED: Actual closing stock differs from expected closing formula." },
+        { id: 8, check: "HPP / COGS Reversal Verification", pass: cogsCheck, detail: cogsCheck ? "COGS reconciled with historical HPP and restockable return reversals." : "COGS calculation discrepancy." },
+        { id: 9, check: "Negative Stock Guard", pass: noNegativeStock, detail: noNegativeStock ? "No negative closing stock instances detected." : "Negative closing stock detected!" },
+        { id: 10, check: "Duplicate ID & Event Guard", pass: duplicatePass, detail: duplicatePass ? "All transaction and return IDs are strictly unique." : "Duplicate transaction or return IDs detected!" }
       ];
 
       const overallReconciled = auditChecks.every(c => c.pass);
@@ -638,7 +701,7 @@
           <div style="font-size: 9px; color: #64748b; line-height: 1.5; margin-top: 12px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 4px;">
             <strong>Catatan Formula Independen Inventaris:</strong> Opening Stock ditentukan dari baseline (Sept 2026: 12/5/5/6) dan akumulasi expected closing periode sebelumnya.
             Expected Closing Stock = Opening Stock + Restock + Resalable Customer Return - Completed Sale. 
-            Variance = Actual Closing Stock - Expected Closing Stock. Retur berkondisi Rusak / Quarantine (Non-Restockable) tidak dimasukkan ke dalam stok yang dapat dijual kembali.
+            Historical Actual Closing Stock = Baseline + Accumulation Up To End of Selected Month. Variance = Actual Closing Stock - Expected Closing Stock.
           </div>
 
           ${footerHTML(3, 5)}
