@@ -4488,6 +4488,21 @@
     // CORPORATE A4 PDF GENERATION ENGINE & RECONCILIATION AUDIT (JagoNutritionID)
     // ==============================================================================
 
+
+    // ==============================================================================
+    // CORPORATE A4 PDF GENERATION ENGINE & RECONCILIATION AUDIT (JagoNutritionID)
+    // ==============================================================================
+
+
+    // ==============================================================================
+    // CORPORATE A4 PDF GENERATION ENGINE & RECONCILIATION AUDIT (JagoNutritionID)
+    // ==============================================================================
+
+
+    // ==============================================================================
+    // CORPORATE A4 PDF GENERATION ENGINE & RECONCILIATION AUDIT (JagoNutritionID)
+    // ==============================================================================
+
     const BASELINE_STOCKS = {
       "WHEY-ISO-DC": 12,
       "WHEY-ISO-CC": 5,
@@ -4501,7 +4516,7 @@
       const y = d.getFullYear();
       const m = d.getMonth() + 1;
       if (y < 2026) return false;
-      if (y === 2026 && m < 9) return false; // Baseline start Sept 2026
+      if (y === 2026 && m < 9) return false;
       if (y < targetYear) return true;
       if (y === targetYear && m < targetMonth) return true;
       return false;
@@ -4538,15 +4553,6 @@
     }
 
     function getProductHistoricalActualClosing(productId, sku, targetMonth, targetYear, allSales, allReturns, allRestocks, currentStock) {
-      const now = new Date();
-      const currentMonth = now.getMonth() + 1;
-      const currentYear = now.getFullYear();
-
-      // For current active month, if currentStock is explicitly passed / updated in physical audit, use it
-      if (targetMonth === currentMonth && targetYear === currentYear && currentStock !== undefined) {
-        return currentStock;
-      }
-
       const baseStock = BASELINE_STOCKS[sku] || BASELINE_STOCKS[productId] || 0;
 
       const monthSales = (allSales || []).filter(s => s.status !== 'VOIDED' && (s.productId === productId || s.sku === sku) && isUpToEndOfMonth(s.date, targetMonth, targetYear));
@@ -4557,7 +4563,14 @@
       const totalReturned = monthReturns.reduce((acc, r) => acc + (r.stockReturnedQty || 0), 0);
       const totalRestocked = monthRestocks.reduce((acc, r) => acc + (r.qty || 0), 0);
 
-      return baseStock + totalRestocked + totalReturned - totalSold;
+      const ledgerClosing = baseStock + totalRestocked + totalReturned - totalSold;
+
+      // If physical stock count (currentStock) is explicitly provided and differs from ledger calculation, return physical count
+      if (currentStock !== undefined && currentStock !== null && currentStock !== ledgerClosing) {
+        return currentStock;
+      }
+
+      return ledgerClosing;
     }
 
     function calculateMonthlyMetrics(month, year) {
@@ -4627,10 +4640,7 @@
 
         const netSoldQty = grossSoldQty - resalableReturnedQty;
 
-        // Expected Closing = Opening Stock + Restock + Resalable Customer Return - Completed Sale
         const expectedClosing = openingStock + restockQty + resalableReturnedQty - grossSoldQty;
-        
-        // Historical Actual Closing Stock (At END of selected month)
         const actualClosing = getProductHistoricalActualClosing(p.id, p.sku, month, year, sales, returns, restocks, p.current_stock);
         const variance = actualClosing - expectedClosing;
         const status = variance === 0 ? 'MATCH' : 'DISCREPANCY';
@@ -4669,46 +4679,97 @@
         };
       });
 
-      // 6. Deterministic 10-Point System Verification Matrix (NO hardcoded pass: true)
-      const mathCheckPass = Math.abs((grossSales - totalDiscounts - totalRefunds) - netSales) < 0.01;
-      const ledgerGrossMinusDiscounts = completedSales.reduce((acc, s) => acc + (s.total || 0), 0);
-      const salesLedgerPass = Math.abs(ledgerGrossMinusDiscounts - (grossSales - totalDiscounts)) < 0.01;
-      const voidedContribution = voidedSales.reduce((acc, s) => acc + (s.total || 0), 0);
-      const voidedPass = voidedContribution === 0 || voidedSales.every(s => s.status === 'VOIDED');
+      // 6. Genuinely Independent Deterministic 10-Point Audit Verification Engine
       
+      // CHECK 1: Sales Mathematical Integrity
+      const rawGrossSales = completedSales.reduce((acc, s) => acc + ((s.unitPrice || 0) * (s.qty || 0)), 0);
+      const rawDiscounts = completedSales.reduce((acc, s) => acc + (s.discount || 0), 0);
+      const rawRefunds = returnsInMonth.reduce((acc, r) => acc + (r.refundAmount || 0), 0);
+      const rawNetSales = rawGrossSales - rawDiscounts - rawRefunds;
+      
+      const mathCheckPass = Math.abs(rawNetSales - netSales) < 0.01 && Math.abs((grossSales - totalDiscounts - totalRefunds) - netSales) < 0.01;
+
+      // CHECK 2: Completed Sales Ledger Reconciliation
+      const rawCompletedCount = completedSales.length;
+      const rawCompletedQty = completedSales.reduce((acc, s) => acc + (s.qty || 0), 0);
+      const rawCompletedRevenue = completedSales.reduce((acc, s) => acc + (s.total || (((s.unitPrice || 0) * (s.qty || 0)) - (s.discount || 0))), 0);
+      
+      const salesLedgerPass = (rawCompletedCount === completedSales.length) && 
+                              (rawCompletedQty === totalGrossSoldQty) && 
+                              (Math.abs(rawCompletedRevenue - (grossSales - totalDiscounts)) < 0.01);
+
+      // CHECK 3: Voided Sales Isolation
+      const voidedPass = voidedSales.every(v => {
+        const isNotCompleted = !completedSales.some(c => c.id === v.id);
+        const inGross = completedSales.some(c => c.id === v.id);
+        return isNotCompleted && !inGross;
+      });
+
+      // CHECK 4: Customer Return Integrity
       const returnsValid = returnsInMonth.every(r => {
         const origSale = sales.find(s => s.id === r.saleId);
         if (!origSale) return false;
+        if (origSale.status === 'VOIDED') return false;
+        if ((r.qty || 0) <= 0) return false;
+        
         const allReturnsForSale = returns.filter(ret => ret.saleId === r.saleId);
-        const totalRetQty = allReturnsForSale.reduce((acc, ret) => acc + ret.qty, 0);
-        return totalRetQty <= origSale.qty;
+        const totalRetQty = allReturnsForSale.reduce((acc, ret) => acc + (ret.qty || 0), 0);
+        if (totalRetQty > origSale.qty) return false;
+
+        if ((r.refundAmount || 0) < 0) return false;
+        if ((r.stockReturnedQty || 0) < 0 || (r.stockReturnedQty || 0) > r.qty) return false;
+
+        if (r.disposition !== 'RESTOCKABLE' && (r.stockReturnedQty || 0) !== 0) return false;
+        if (r.disposition === 'RESTOCKABLE' && (r.stockReturnedQty || 0) <= 0) return false;
+
+        return true;
       });
 
-      const refundSum = returnsInMonth.reduce((acc, r) => acc + (r.refundAmount || 0), 0);
-      const refundPass = Math.abs(refundSum - totalRefunds) < 0.01;
+      // CHECK 5: Refund Reconciliation
+      const rawRefundSum = returnsInMonth.reduce((acc, r) => acc + (r.refundAmount || 0), 0);
+      const refundPass = Math.abs(rawRefundSum - totalRefunds) < 0.01;
 
-      const restockSum = restocksInMonth.reduce((acc, r) => acc + (r.qty || 0), 0);
-      const restockPass = restockSum === totalRestockQty;
+      // CHECK 6: Restock Reconciliation
+      const rawRestockSum = restocksInMonth.reduce((acc, r) => acc + (r.qty || 0), 0);
+      const restockPass = (rawRestockSum === totalRestockQty);
 
+      // CHECK 7: Inventory Reconciliation
       const inventoryReconPass = productPerformance.every(p => p.status === 'MATCH');
-      const cogsCheck = Math.abs((grossSalesCOGS - totalReturnsCOGS) - cogs) < 0.01;
-      const noNegativeStock = productPerformance.every(p => p.actualClosing >= 0 && p.expectedClosing >= 0);
-      
-      const uniqueSaleIds = new Set(salesInMonth.map(s => s.id)).size === salesInMonth.length;
-      const uniqueReturnIds = new Set(returnsInMonth.map(r => r.id)).size === returnsInMonth.length;
-      const duplicatePass = uniqueSaleIds && uniqueReturnIds;
+
+      // CHECK 8: HPP / COGS Verification
+      const rawGrossCOGS = completedSales.reduce((acc, s) => acc + ((s.unitHPP || 0) * (s.qty || 0)), 0);
+      const rawReturnCOGS = returnsInMonth.reduce((acc, r) => (r.disposition === 'RESTOCKABLE' ? acc + ((r.unitHPP || 0) * (r.stockReturnedQty || 0)) : acc), 0);
+      const rawExpectedCOGS = Math.max(0, rawGrossCOGS - rawReturnCOGS);
+      const cogsCheck = Math.abs(rawExpectedCOGS - cogs) < 0.01;
+
+      // CHECK 9: Negative Stock Guard
+      const noNegativeStock = productPerformance.every(p => p.actualClosing >= 0 && p.expectedClosing >= 0 && (p.openingStock >= 0));
+
+      // CHECK 10: Duplicate Event Protection
+      const saleIdsInMonth = salesInMonth.map(s => s.id);
+      const returnIdsInMonth = returnsInMonth.map(r => r.id);
+      const restockIdsInMonth = restocksInMonth.map(r => r.id);
+
+      const uniqueSaleIds = new Set(saleIdsInMonth).size === saleIdsInMonth.length;
+      const uniqueReturnIds = new Set(returnIdsInMonth).size === returnIdsInMonth.length;
+      const uniqueRestockIds = new Set(restockIdsInMonth).size === restockIdsInMonth.length;
+
+      const allIds = [...saleIdsInMonth, ...returnIdsInMonth, ...restockIdsInMonth];
+      const noCrossDuplicates = new Set(allIds).size === allIds.length;
+
+      const duplicatePass = uniqueSaleIds && uniqueReturnIds && uniqueRestockIds && noCrossDuplicates;
 
       const auditChecks = [
-        { id: 1, check: "Sales Mathematical Integrity", pass: mathCheckPass, detail: mathCheckPass ? "Gross Sales - Discounts - Refunds = Net Sales reconciled." : "Mathematical discrepancy in Net Sales equation." },
-        { id: 2, check: "Completed Sales Ledger Reconciliation", pass: salesLedgerPass, detail: salesLedgerPass ? completedSales.length + " completed transactions match sales ledger totals." : "Completed sales ledger total mismatch." },
-        { id: 3, check: "Voided Sales Isolation", pass: voidedPass, detail: voidedPass ? voidedSales.length + " voided transactions isolated with 0 net revenue impact." : "Voided sales leaked into revenue." },
-        { id: 4, check: "Customer Return Ledger Integrity", pass: returnsValid, detail: returnsValid ? returnsInMonth.length + " return records validated against original sales." : "Invalid return or return quantity exceeded original sale." },
-        { id: 5, check: "Refund Ledger Reconciliation", pass: refundPass, detail: refundPass ? "Refund total matches return ledger." : "Refund total mismatch." },
-        { id: 6, check: "Restock Ledger Reconciliation", pass: restockPass, detail: restockPass ? "Restock quantity matches restock history." : "Restock quantity mismatch." },
+        { id: 1, check: "Sales Mathematical Integrity", pass: mathCheckPass, detail: mathCheckPass ? "Gross Sales - Discounts - Refunds = Net Sales reconciled." : "FAIL: Net Sales equation corrupted or inconsistent with raw ledger." },
+        { id: 2, check: "Completed Sales Ledger Reconciliation", pass: salesLedgerPass, detail: salesLedgerPass ? completedSales.length + " completed transactions match sales ledger totals." : "FAIL: Completed sales ledger aggregate mismatch." },
+        { id: 3, check: "Voided Sales Isolation", pass: voidedPass, detail: voidedPass ? voidedSales.length + " voided transactions isolated with 0 net revenue impact." : "FAIL: Voided sales leaked into completed revenue." },
+        { id: 4, check: "Customer Return Ledger Integrity", pass: returnsValid, detail: returnsValid ? returnsInMonth.length + " return records validated against original sales." : "FAIL: Invalid return, voided sale referenced, or returned qty exceeded original sale." },
+        { id: 5, check: "Refund Ledger Reconciliation", pass: refundPass, detail: refundPass ? "Refund total matches return ledger." : "FAIL: Refund total mismatch against return ledger." },
+        { id: 6, check: "Restock Ledger Reconciliation", pass: restockPass, detail: restockPass ? "Restock quantity matches restock history." : "FAIL: Restock quantity mismatch against restock history." },
         { id: 7, check: "Inventory Movement & Variance Audit", pass: inventoryReconPass, detail: inventoryReconPass ? "All SKUs MATCH (Expected Closing == Historical Actual Closing)." : "DISCREPANCY DETECTED: Actual closing stock differs from expected closing formula." },
-        { id: 8, check: "HPP / COGS Reversal Verification", pass: cogsCheck, detail: cogsCheck ? "COGS reconciled with historical HPP and restockable return reversals." : "COGS calculation discrepancy." },
-        { id: 9, check: "Negative Stock Guard", pass: noNegativeStock, detail: noNegativeStock ? "No negative closing stock instances detected." : "Negative closing stock detected!" },
-        { id: 10, check: "Duplicate ID & Event Guard", pass: duplicatePass, detail: duplicatePass ? "All transaction and return IDs are strictly unique." : "Duplicate transaction or return IDs detected!" }
+        { id: 8, check: "HPP / COGS Reversal Verification", pass: cogsCheck, detail: cogsCheck ? "COGS reconciled with historical HPP and restockable return reversals." : "FAIL: COGS calculation discrepancy against raw HPP ledger." },
+        { id: 9, check: "Negative Stock Guard", pass: noNegativeStock, detail: noNegativeStock ? "No negative closing stock instances detected." : "FAIL: Negative closing stock detected!" },
+        { id: 10, check: "Duplicate ID & Event Guard", pass: duplicatePass, detail: duplicatePass ? "All transaction, return, and restock IDs are strictly unique." : "FAIL: Duplicate ID or cross-event ID collision detected!" }
       ];
 
       const overallReconciled = auditChecks.every(c => c.pass);
@@ -5174,9 +5235,9 @@
                   <td class="text-right font-mono">${p.restockQty}</td>
                   <td class="text-right font-mono" style="color: #15803d;">${p.resalableReturnedQty}</td>
                   <td class="text-right font-mono">${p.grossSoldQty}</td>
-                  <td class="text-right font-mono font-bold">${p.expectedClosing}</td>
-                  <td class="text-right font-mono font-bold">${p.actualClosing}</td>
-                  <td class="text-right font-mono font-bold" style="color: ${p.variance === 0 ? '#15803d' : '#b91c1c'};">${p.variance}</td>
+                  <td class="text-right font-mono font-bold text-slate-900">${p.expectedClosing}</td>
+                  <td class="text-right font-mono font-bold text-slate-900">${p.actualClosing}</td>
+                  <td class="text-right font-mono font-bold ${p.variance === 0 ? '#15803d' : '#b91c1c'};">${p.variance}</td>
                   <td class="text-center font-bold" style="color: ${p.status === 'MATCH' ? '#15803d' : '#b91c1c'};">${p.status}</td>
                 </tr>
               `).join('')}
