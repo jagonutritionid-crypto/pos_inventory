@@ -52,7 +52,25 @@
       return baseStock + priorRestockQty + priorReturnedQty - priorSoldQty;
     }
 
-    function getProductHistoricalActualClosing(productId, sku, targetMonth, targetYear, allSales, allReturns, allRestocks, currentStock) {
+    function getProductHistoricalActualClosing(productId, sku, targetMonth, targetYear, allSales, allReturns, allRestocks, currentStock, physicalCounts) {
+      // 1. Check if an EXPLICIT physical stock count record exists for this specific product, month, and year
+      const pCounts = Array.isArray(physicalCounts) ? physicalCounts : (typeof appState !== 'undefined' && Array.isArray(appState.physicalCounts) ? appState.physicalCounts : []);
+      const explicitPhysicalEntry = pCounts.find(pc => 
+        (pc.productId === productId || pc.sku === sku) && 
+        pc.month === targetMonth && 
+        pc.year === targetYear && 
+        pc.count !== undefined && 
+        pc.count !== null
+      );
+
+      if (explicitPhysicalEntry) {
+        return {
+          actualClosing: explicitPhysicalEntry.count,
+          basis: "PHYSICAL STOCK COUNT"
+        };
+      }
+
+      // 2. Calculate historical ledger closing stock at end of selected month
       const baseStock = BASELINE_STOCKS[sku] || BASELINE_STOCKS[productId] || 0;
 
       const monthSales = (allSales || []).filter(s => s.status !== 'VOIDED' && (s.productId === productId || s.sku === sku) && isUpToEndOfMonth(s.date, targetMonth, targetYear));
@@ -65,12 +83,12 @@
 
       const ledgerClosing = baseStock + totalRestocked + totalReturned - totalSold;
 
-      // If physical stock count (currentStock) is explicitly provided and differs from ledger calculation, return physical count
-      if (currentStock !== undefined && currentStock !== null && currentStock !== ledgerClosing) {
-        return currentStock;
-      }
-
-      return ledgerClosing;
+      // CRITICAL RULE: Historical reports NEVER read current live stock as historical physical stock!
+      // Always return ledgerClosing with basis "LEDGER CLOSING" unless an explicit physical count was recorded.
+      return {
+        actualClosing: ledgerClosing,
+        basis: "LEDGER CLOSING"
+      };
     }
 
     function calculateMonthlyMetrics(month, year) {
@@ -78,6 +96,7 @@
       const returns = Array.isArray(appState.returns) ? appState.returns : [];
       const restocks = Array.isArray(appState.restocks) ? appState.restocks : [];
       const products = Array.isArray(appState.products) ? appState.products : [];
+      const physicalCounts = Array.isArray(appState.physicalCounts) ? appState.physicalCounts : [];
 
       // Filter transactions by target month & year
       const salesInMonth = sales.filter(s => {
@@ -141,7 +160,12 @@
         const netSoldQty = grossSoldQty - resalableReturnedQty;
 
         const expectedClosing = openingStock + restockQty + resalableReturnedQty - grossSoldQty;
-        const actualClosing = getProductHistoricalActualClosing(p.id, p.sku, month, year, sales, returns, restocks, p.current_stock);
+        
+        // Historical Actual Closing Stock Calculation (With Basis)
+        const actualClosingObj = getProductHistoricalActualClosing(p.id, p.sku, month, year, sales, returns, restocks, p.current_stock, physicalCounts);
+        const actualClosing = actualClosingObj.actualClosing;
+        const actualClosingBasis = actualClosingObj.basis;
+
         const variance = actualClosing - expectedClosing;
         const status = variance === 0 ? 'MATCH' : 'DISCREPANCY';
 
@@ -168,6 +192,7 @@
           netSoldQty,
           expectedClosing,
           actualClosing,
+          actualClosingBasis,
           variance,
           status,
           grossSales: pGrossSales,
@@ -198,12 +223,17 @@
                               (rawCompletedQty === totalGrossSoldQty) && 
                               (Math.abs(rawCompletedRevenue - (grossSales - totalDiscounts)) < 0.01);
 
-      // CHECK 3: Voided Sales Isolation
-      const voidedPass = voidedSales.every(v => {
-        const isNotCompleted = !completedSales.some(c => c.id === v.id);
-        const inGross = completedSales.some(c => c.id === v.id);
-        return isNotCompleted && !inGross;
-      });
+      // CHECK 3: Voided Sales Isolation & Financial Impact Audit
+      const voidedRevenueImpact = voidedSales.reduce((acc, v) => acc + (completedSales.some(c => c.id === v.id) ? (v.total || ((v.unitPrice||0)*(v.qty||0))) : 0), 0);
+      const voidedDiscountImpact = voidedSales.reduce((acc, v) => acc + (completedSales.some(c => c.id === v.id) ? (v.discount || 0) : 0), 0);
+      const voidedCOGSImpact = voidedSales.reduce((acc, v) => acc + (completedSales.some(c => c.id === v.id) ? ((v.unitHPP || 0) * (v.qty || 0)) : 0), 0);
+      const voidedStockOutQty = voidedSales.reduce((acc, v) => acc + (completedSales.some(c => c.id === v.id) ? (v.qty || 0) : 0), 0);
+
+      const voidedPass = (voidedRevenueImpact === 0) && 
+                         (voidedDiscountImpact === 0) && 
+                         (voidedCOGSImpact === 0) && 
+                         (voidedStockOutQty === 0) && 
+                         voidedSales.every(v => !completedSales.some(c => c.id === v.id));
 
       // CHECK 4: Customer Return Integrity
       const returnsValid = returnsInMonth.every(r => {
@@ -230,8 +260,13 @@
       const refundPass = Math.abs(rawRefundSum - totalRefunds) < 0.01;
 
       // CHECK 6: Restock Reconciliation
-      const rawRestockSum = restocksInMonth.reduce((acc, r) => acc + (r.qty || 0), 0);
-      const restockPass = (rawRestockSum === totalRestockQty);
+      const rawRestockSum = (restocks || []).filter(r => {
+        if (!r.date) return false;
+        const d = new Date(r.date);
+        return (d.getMonth() + 1) === month && d.getFullYear() === year;
+      }).reduce((acc, r) => acc + (r.qty || 0), 0);
+
+      const restockPass = (rawRestockSum === totalRestockQty) && (restocksInMonth.reduce((acc, r) => acc + (r.qty || 0), 0) === totalRestockQty);
 
       // CHECK 7: Inventory Reconciliation
       const inventoryReconPass = productPerformance.every(p => p.status === 'MATCH');
@@ -388,6 +423,7 @@
                     <th class="p-2 text-right">Gross Sold</th>
                     <th class="p-2 text-right font-bold">Expected Closing</th>
                     <th class="p-2 text-right font-bold">Actual Closing</th>
+                    <th class="p-2 text-center">Basis</th>
                     <th class="p-2 text-right font-bold">Variance</th>
                     <th class="p-2 text-center">Status</th>
                   </tr>
@@ -403,6 +439,7 @@
                       <td class="p-2 text-right font-mono">${p.grossSoldQty}</td>
                       <td class="p-2 text-right font-mono font-bold text-slate-900">${p.expectedClosing}</td>
                       <td class="p-2 text-right font-mono font-bold text-slate-900">${p.actualClosing}</td>
+                      <td class="p-2 text-center text-[10px] font-semibold text-slate-500">${p.actualClosingBasis}</td>
                       <td class="p-2 text-right font-mono font-bold ${p.variance === 0 ? 'text-emerald-700' : 'text-red-700'}">${p.variance}</td>
                       <td class="p-2 text-center font-bold">
                         <span class="px-2 py-0.5 rounded text-[10px] ${p.status === 'MATCH' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}">${p.status}</span>
@@ -714,16 +751,17 @@
           <table class="pdf-table">
             <thead>
               <tr>
-                <th style="width: 75px;">SKU</th>
-                <th style="width: 170px;">Nama Produk</th>
-                <th style="width: 45px;" class="text-right">Stok Awal</th>
-                <th style="width: 45px;" class="text-right">Restock</th>
-                <th style="width: 50px;" class="text-right">Resalable Return</th>
-                <th style="width: 50px;" class="text-right">Gross Sold</th>
-                <th style="width: 55px;" class="text-right">Expected Closing</th>
-                <th style="width: 55px;" class="text-right">Actual Closing</th>
+                <th style="width: 70px;">SKU</th>
+                <th style="width: 150px;">Nama Produk</th>
+                <th style="width: 40px;" class="text-right">Stok Awal</th>
+                <th style="width: 40px;" class="text-right">Restock</th>
+                <th style="width: 45px;" class="text-right">Resalable Return</th>
+                <th style="width: 45px;" class="text-right">Gross Sold</th>
+                <th style="width: 50px;" class="text-right">Expected Closing</th>
+                <th style="width: 50px;" class="text-right">Actual Closing</th>
+                <th style="width: 60px;" class="text-center">Basis</th>
                 <th style="width: 45px;" class="text-right">Variance</th>
-                <th style="width: 60px;" class="text-center">Status</th>
+                <th style="width: 50px;" class="text-center">Status</th>
               </tr>
             </thead>
             <tbody>
@@ -735,9 +773,10 @@
                   <td class="text-right font-mono">${p.restockQty}</td>
                   <td class="text-right font-mono" style="color: #15803d;">${p.resalableReturnedQty}</td>
                   <td class="text-right font-mono">${p.grossSoldQty}</td>
-                  <td class="text-right font-mono font-bold text-slate-900">${p.expectedClosing}</td>
-                  <td class="text-right font-mono font-bold text-slate-900">${p.actualClosing}</td>
-                  <td class="text-right font-mono font-bold ${p.variance === 0 ? '#15803d' : '#b91c1c'};">${p.variance}</td>
+                  <td class="text-right font-mono font-bold">${p.expectedClosing}</td>
+                  <td class="text-right font-mono font-bold">${p.actualClosing}</td>
+                  <td class="text-center text-[8px] font-semibold text-slate-500">${p.actualClosingBasis}</td>
+                  <td class="text-right font-mono font-bold" style="color: ${p.variance === 0 ? '#15803d' : '#b91c1c'};">${p.variance}</td>
                   <td class="text-center font-bold" style="color: ${p.status === 'MATCH' ? '#15803d' : '#b91c1c'};">${p.status}</td>
                 </tr>
               `).join('')}
@@ -747,7 +786,7 @@
           <div style="font-size: 9px; color: #64748b; line-height: 1.5; margin-top: 12px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 4px;">
             <strong>Catatan Formula Independen Inventaris:</strong> Opening Stock ditentukan dari baseline (Sept 2026: 12/5/5/6) dan akumulasi expected closing periode sebelumnya.
             Expected Closing Stock = Opening Stock + Restock + Resalable Customer Return - Completed Sale. 
-            Historical Actual Closing Stock = Baseline + Accumulation Up To End of Selected Month. Variance = Actual Closing Stock - Expected Closing Stock.
+            Actual Closing Stock = Historical Ledger Closing (Basis: LEDGER CLOSING), atau Physical Audit Record eksplisit (Basis: PHYSICAL STOCK COUNT). Live current inventory tidak pernah dibaca sebagai historical physical count!
           </div>
 
           ${footerHTML(3, 5)}
