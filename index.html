@@ -4478,6 +4478,49 @@
     // CORPORATE A4 PDF GENERATION ENGINE & RECONCILIATION AUDIT (JagoNutritionID)
     // ==============================================================================
 
+
+    // ==============================================================================
+    // CORPORATE A4 PDF GENERATION ENGINE & RECONCILIATION AUDIT (JagoNutritionID)
+    // ==============================================================================
+
+    const BASELINE_STOCKS = {
+      "WHEY-ISO-DC": 12,
+      "WHEY-ISO-CC": 5,
+      "WHEY-ISO-ML": 5,
+      "CREA-MP-300": 6
+    };
+
+    function getProductOpeningStock(productId, sku, targetMonth, targetYear, allSales, allReturns, allRestocks) {
+      const baseStock = BASELINE_STOCKS[sku] || BASELINE_STOCKS[productId] || 0;
+
+      // Clean-start baseline is September 2026 (Month 9, Year 2026)
+      if (targetYear < 2026 || (targetYear === 2026 && targetMonth <= 9)) {
+        return baseStock;
+      }
+
+      const isPriorTransaction = (dateStr) => {
+        if (!dateStr) return false;
+        const d = new Date(dateStr);
+        const y = d.getFullYear();
+        const m = d.getMonth() + 1;
+        if (y < 2026) return false;
+        if (y === 2026 && m < 9) return false;
+        if (y < targetYear) return true;
+        if (y === targetYear && m < targetMonth) return true;
+        return false;
+      };
+
+      const priorSales = (allSales || []).filter(s => s.status !== 'VOIDED' && (s.productId === productId || s.sku === sku) && isPriorTransaction(s.date));
+      const priorReturns = (allReturns || []).filter(r => r.disposition === 'RESTOCKABLE' && (r.productId === productId || r.sku === sku) && isPriorTransaction(r.returnDate));
+      const priorRestocks = (allRestocks || []).filter(r => (r.productId === productId || r.sku === sku) && isPriorTransaction(r.date));
+
+      const priorSoldQty = priorSales.reduce((acc, s) => acc + (s.qty || 0), 0);
+      const priorReturnedQty = priorReturns.reduce((acc, r) => acc + (r.stockReturnedQty || 0), 0);
+      const priorRestockQty = priorRestocks.reduce((acc, r) => acc + (r.qty || 0), 0);
+
+      return baseStock + priorRestockQty + priorReturnedQty - priorSoldQty;
+    }
+
     function calculateMonthlyMetrics(month, year) {
       const sales = Array.isArray(appState.sales) ? appState.sales : [];
       const returns = Array.isArray(appState.returns) ? appState.returns : [];
@@ -4529,13 +4572,14 @@
       const totalNetSoldQty = totalGrossSoldQty - totalResalableReturnedQty;
       const totalRestockQty = restocksInMonth.reduce((acc, r) => acc + (r.qty || 0), 0);
 
-      // 5. Product Breakdown & Inventory Movement
+      // 5. Product Breakdown & Independent Inventory Movement
       const productPerformance = products.map(p => {
         const prodSales = completedSales.filter(s => s.productId === p.id || s.sku === p.sku);
         const prodReturns = returnsInMonth.filter(r => r.productId === p.id || r.sku === p.sku);
         const prodRestocks = restocksInMonth.filter(r => r.productId === p.id || r.sku === p.sku);
 
-        const openingStock = p.stokAwal !== undefined ? p.stokAwal : (p.initial_stock || 0);
+        // INDEPENDENT OPENING STOCK (Does NOT derive backwards from current stock!)
+        const openingStock = getProductOpeningStock(p.id, p.sku, month, year, sales, returns, restocks);
         const restockQty = prodRestocks.reduce((acc, r) => acc + (r.qty || 0), 0);
         const grossSoldQty = prodSales.reduce((acc, s) => acc + (s.qty || 0), 0);
         
@@ -4545,7 +4589,7 @@
 
         const netSoldQty = grossSoldQty - resalableReturnedQty;
 
-        // Inventory Formula: Expected = Opening + Restock + Resalable Customer Return - Completed Sale
+        // Inventory Formula: Expected Closing Stock = Opening Stock + Restock + Resalable Customer Return - Completed Sale
         const expectedClosing = openingStock + restockQty + resalableReturnedQty - grossSoldQty;
         const actualClosing = p.current_stock !== undefined ? p.current_stock : (p.stok !== undefined ? p.stok : expectedClosing);
         const variance = actualClosing - expectedClosing;
@@ -4593,7 +4637,7 @@
         { id: 4, check: "Customer Return Ledger Integrity", pass: true, detail: returnsInMonth.length + " return events linked to original sales." },
         { id: 5, check: "Stock Disposition Control", pass: true, detail: totalResalableReturnedQty + " resalable returned, " + totalDamagedReturnedQty + " damaged isolated." },
         { id: 6, check: "Restock Ledger Separation", pass: true, detail: totalRestockQty + " units restocked from supplier separated from customer returns." },
-        { id: 7, check: "Inventory Movement Formula Audit", pass: productPerformance.every(p => p.status === 'MATCH'), detail: "Expected Closing = Opening + Restock + Resalable Return - Gross Sold." },
+        { id: 7, check: "Inventory Movement Formula Audit", pass: productPerformance.every(p => p.status === 'MATCH'), detail: productPerformance.every(p => p.status === 'MATCH') ? "All SKUs MATCH (Expected == Actual Closing Stock)." : "DISCREPANCY DETECTED: Actual closing stock differs from expected closing formula." },
         { id: 8, check: "Historical HPP & Price Snapshot Audit", pass: true, detail: "Historical HPP & Prices preserved from sale records." },
         { id: 9, check: "Negative Stock Guard", pass: products.every(p => (p.current_stock || 0) >= 0), detail: "No negative stock instances detected." },
         { id: 10, check: "Duplicate Transaction Protection", pass: new Set(salesInMonth.map(s => s.id)).size === salesInMonth.length, detail: "All transaction IDs are strictly unique." }
@@ -4656,7 +4700,7 @@
               <p class="text-xs text-slate-500 mt-0.5">Periode: <strong class="text-slate-800">${monthLabel}</strong> | Generated: ${new Date().toLocaleDateString('id-ID')}</p>
             </div>
             <div class="flex items-center gap-3">
-              <span class="px-3.5 py-1.5 rounded-full text-xs font-bold ${metrics.overallReconciled ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-amber-100 text-amber-800 border border-amber-300'}">
+              <span class="px-3.5 py-1.5 rounded-full text-xs font-bold ${metrics.overallReconciled ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-red-100 text-red-800 border border-red-300'}">
                 STATUS: ${metrics.overallReconciled ? 'RECONCILED' : 'DISCREPANCY DETECTED'}
               </span>
               <button onclick="exportMonthlyReportPDF()" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold shadow-md transition-all flex items-center gap-2">
@@ -4699,6 +4743,47 @@
               `).join('')}
             </div>
           </div>
+
+          <!-- INVENTORY RECONCILIATION TABLE IN UI -->
+          <div class="mb-8 bg-white p-4 rounded-xl border border-slate-200">
+            <h3 class="text-sm font-extrabold text-slate-900 uppercase tracking-wider mb-3">REKONSILIASI STOK FISIK PER SKU</h3>
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs text-left border-collapse">
+                <thead>
+                  <tr class="bg-slate-100 text-slate-700 font-bold border-b border-slate-300">
+                    <th class="p-2">SKU</th>
+                    <th class="p-2">Nama Produk</th>
+                    <th class="p-2 text-right">Opening</th>
+                    <th class="p-2 text-right">Restock</th>
+                    <th class="p-2 text-right">Resalable Retur</th>
+                    <th class="p-2 text-right">Gross Sold</th>
+                    <th class="p-2 text-right font-bold">Expected Closing</th>
+                    <th class="p-2 text-right font-bold">Actual Closing</th>
+                    <th class="p-2 text-right font-bold">Variance</th>
+                    <th class="p-2 text-center">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${metrics.productPerformance.map(p => `
+                    <tr class="border-b border-slate-200 hover:bg-slate-50">
+                      <td class="p-2 font-mono font-bold">${p.sku}</td>
+                      <td class="p-2">${p.name}</td>
+                      <td class="p-2 text-right font-mono">${p.openingStock}</td>
+                      <td class="p-2 text-right font-mono">${p.restockQty}</td>
+                      <td class="p-2 text-right font-mono text-emerald-700">${p.resalableReturnedQty}</td>
+                      <td class="p-2 text-right font-mono">${p.grossSoldQty}</td>
+                      <td class="p-2 text-right font-mono font-bold text-slate-900">${p.expectedClosing}</td>
+                      <td class="p-2 text-right font-mono font-bold text-slate-900">${p.actualClosing}</td>
+                      <td class="p-2 text-right font-mono font-bold ${p.variance === 0 ? 'text-emerald-700' : 'text-red-700'}">${p.variance}</td>
+                      <td class="p-2 text-center font-bold">
+                        <span class="px-2 py-0.5 rounded text-[10px] ${p.status === 'MATCH' ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}">${p.status}</span>
+                      </td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       `;
 
@@ -4720,7 +4805,7 @@
       // Create pristine off-screen printable container
       const printRoot = document.createElement('div');
       printRoot.id = 'corporate-pdf-render-root';
-      printRoot.style.width = '794px'; // Exactly A4 width at 96 DPI
+      printRoot.style.width = '794px';
       printRoot.style.backgroundColor = '#ffffff';
       printRoot.style.color = '#0f172a';
       printRoot.style.fontFamily = 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif';
@@ -4939,12 +5024,12 @@
             </tbody>
           </table>
 
-          <div style="margin-top: 20px; padding: 12px; border: 1px solid ${metrics.overallReconciled ? '#bbf7d0' : '#fef08a'}; background-color: ${metrics.overallReconciled ? '#f0fdf4' : '#fefce8'}; border-radius: 4px;">
-            <div style="font-size: 11px; font-weight: 800; color: ${metrics.overallReconciled ? '#166534' : '#854d0e'};">
-              OVERALL STATUS: ${metrics.overallReconciled ? 'RECONCILED (SISTEM KONSISTEN & AMPUH)' : 'DISCREPANCY DETECTED'}
+          <div style="margin-top: 20px; padding: 12px; border: 1px solid ${metrics.overallReconciled ? '#bbf7d0' : '#fecaca'}; background-color: ${metrics.overallReconciled ? '#f0fdf4' : '#fef2f2'}; border-radius: 4px;">
+            <div style="font-size: 11px; font-weight: 800; color: ${metrics.overallReconciled ? '#166534' : '#991b1b'};">
+              OVERALL STATUS: ${metrics.overallReconciled ? 'RECONCILED (SISTEM KONSISTEN & AMPUH)' : 'DISCREPANCY DETECTED (KETIDAKCOCOKAN STOK DETEKSI)'}
             </div>
             <div style="font-size: 9.5px; color: #334155; margin-top: 4px;">
-              ${metrics.overallReconciled ? 'Seluruh transaksi penjualan, retur, refund, restock, dan stok fisik konsisten 100% dengan ledger historis.' : 'Terdapat ketidakcocokan antara transaksi tercatat dan stok fisik. Periksa ledger detail.'}
+              ${metrics.overallReconciled ? 'Seluruh transaksi penjualan, retur, refund, restock, dan stok fisik konsisten 100% dengan ledger historis.' : 'Terdapat ketidakcocokan antara hasil perhitungan formula expected stock dan stok fisik gudang. Periksa rincian selisih (variance) per SKU.'}
             </div>
           </div>
 
@@ -5031,8 +5116,9 @@
           </table>
 
           <div style="font-size: 9px; color: #64748b; line-height: 1.5; margin-top: 12px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 4px;">
-            <strong>Catatan Formula Inventaris:</strong> Expected Closing Stock = Opening Stock + Restock + Resalable Customer Return - Completed Sale. 
-            Retur berkondisi Rusak / Quarantine (Non-Restockable) tidak dimasukkan ke dalam stok yang dapat dijual kembali (Available Stock).
+            <strong>Catatan Formula Independen Inventaris:</strong> Opening Stock ditentukan dari baseline (Sept 2026: 12/5/5/6) dan akumulasi expected closing periode sebelumnya.
+            Expected Closing Stock = Opening Stock + Restock + Resalable Customer Return - Completed Sale. 
+            Variance = Actual Closing Stock - Expected Closing Stock. Retur berkondisi Rusak / Quarantine (Non-Restockable) tidak dimasukkan ke dalam stok yang dapat dijual kembali.
           </div>
 
           ${footerHTML(3, 5)}
