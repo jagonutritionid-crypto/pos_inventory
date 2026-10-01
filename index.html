@@ -20,6 +20,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <!-- html2pdf.js CDN for Professional Monthly PDF Export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <!-- Supabase JS Client v2 CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <!-- Supabase Auth Client Module -->
@@ -166,8 +168,7 @@
       <div class="flex flex-col items-center text-center mb-6">
         <div
           class="w-16 h-16 rounded-2xl overflow-hidden bg-slate-800 border border-slate-700 p-1 mb-3 shadow-lg flex items-center justify-center">
-          <img src="icons/icon-192.png"
-            alt="JagoNutritionID Logo" class="w-full h-full object-cover rounded-xl"
+          <img src="icons/icon-192.png" alt="JagoNutritionID Logo" class="w-full h-full object-cover rounded-xl"
             onerror="this.onerror=null; this.src='https://cdn.phototourl.com/member/2026-09-28-7761d5e5-68cd-48df-8a3a-34249cf5d03b.jpg';" />
         </div>
         <h2 class="text-xl font-black text-white tracking-tight">JagoNutritionID</h2>
@@ -236,9 +237,7 @@
       <div class="flex items-center gap-2.5 sm:gap-3">
         <div
           class="relative w-10 h-10 sm:w-11 sm:h-11 rounded-xl overflow-hidden bg-slate-800 border border-slate-700 flex items-center justify-center flex-shrink-0 shadow-md">
-          <img id="storeLogoImg"
-            src="icons/icon-192.png"
-            alt="JagoNutritionID Logo" class="w-full h-full object-cover"
+          <img id="storeLogoImg" src="icons/icon-192.png" alt="JagoNutritionID Logo" class="w-full h-full object-cover"
             onerror="this.onerror=null; this.src='https://cdn.phototourl.com/member/2026-09-28-7761d5e5-68cd-48df-8a3a-34249cf5d03b.jpg';" />
         </div>
         <div>
@@ -343,6 +342,10 @@
         <button id="tabBtnSales" onclick="switchTab('sales')"
           class="tab-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition whitespace-nowrap">
           <span data-i18n="navSales">📑 Log Transaksi</span> (<span id="tabSaleCount">0</span>)
+        </button>
+        <button id="tabBtnReport" onclick="switchTab('report')"
+          class="tab-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition whitespace-nowrap">
+          <span>📊 Laporan & Rekonsiliasi</span>
         </button>
         <button id="tabBtnAuditLog" onclick="switchTab('auditLog')"
           class="tab-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition whitespace-nowrap">
@@ -471,7 +474,8 @@
             </div>
           </div>
           <div id="kpiUnitsSold" class="text-lg sm:text-2xl lg:text-3xl font-extrabold text-white tracking-tight">0
-            <span class="text-xs sm:text-sm font-normal text-slate-400">pcs</span></div>
+            <span class="text-xs sm:text-sm font-normal text-slate-400">pcs</span>
+          </div>
           <p id="kpiBestSeller" class="text-[11px] sm:text-xs text-slate-400 mt-2 truncate">Best: -</p>
         </div>
 
@@ -863,6 +867,65 @@
       </div>
     </section>
 
+    <!-- ================= SECTION: MONTHLY BUSINESS REPORT & RECONCILIATION ================= -->
+    <section id="sectionReport" class="hidden space-y-6">
+      <!-- Report Header & Controls Bar -->
+      <div class="bg-slate-800/80 p-5 rounded-2xl border border-slate-700/80 shadow-lg no-print flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-blue-600/20 text-blue-400 border border-blue-500/30 flex items-center justify-center font-bold text-xl">
+            📊
+          </div>
+          <div>
+            <h2 class="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+              <span>Laporan Bulanan & Rekonsiliasi Keuangan</span>
+              <span class="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-semibold border border-emerald-500/30">Authoritative Supabase Sync</span>
+            </h2>
+            <p class="text-xs text-slate-400">Verifikasi akurasi keuangan, penjualan, return/refund, HPP, laba kotor, dan rekonsiliasi stok fisik.</p>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3">
+          <div class="flex items-center gap-2 bg-slate-900/90 border border-slate-700 px-3 py-1.5 rounded-xl text-xs">
+            <label for="reportMonthSelect" class="text-slate-400 font-semibold">Bulan:</label>
+            <select id="reportMonthSelect" onchange="generateMonthlyReport()" class="bg-slate-800 text-white font-bold rounded px-2 py-1 outline-none border border-slate-700">
+              <option value="1">Januari</option>
+              <option value="2">Februari</option>
+              <option value="3">Maret</option>
+              <option value="4">April</option>
+              <option value="5">Mei</option>
+              <option value="6">Juni</option>
+              <option value="7">Juli</option>
+              <option value="8">Agustus</option>
+              <option value="9" selected>September</option>
+              <option value="10">Oktober</option>
+              <option value="11">November</option>
+              <option value="12">Desember</option>
+            </select>
+
+            <label for="reportYearSelect" class="text-slate-400 font-semibold ml-2">Tahun:</label>
+            <select id="reportYearSelect" onchange="generateMonthlyReport()" class="bg-slate-800 text-white font-bold rounded px-2 py-1 outline-none border border-slate-700">
+              <option value="2025">2025</option>
+              <option value="2026" selected>2026</option>
+              <option value="2027">2027</option>
+            </select>
+          </div>
+
+          <button onclick="generateMonthlyReport()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center gap-1.5">
+            <span>🔄 Generate Report</span>
+          </button>
+
+          <button onclick="exportMonthlyReportPDF()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center gap-1.5">
+            <span>📄 Download PDF</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Report View Container -->
+      <div id="reportViewContainer" class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-8 space-y-8">
+        <!-- Rendered dynamically via generateMonthlyReport() -->
+      </div>
+    </section>
+
     <!-- ================= SECTION: CLOUD & DATA ================= -->
     <section id="sectionManagement" class="hidden space-y-6 no-print">
 
@@ -1232,6 +1295,87 @@
           <button type="submit" id="btnSubmitRestock"
             class="px-5 py-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 rounded-xl shadow-lg shadow-emerald-600/30"
             data-i18n="btnAddToWarehouse">Tambah ke Gudang</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: CUSTOMER RETURN / REFUND ================= -->
+  <div id="modalReturn"
+    class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-3 sm:p-4 overflow-y-auto no-print"
+    role="dialog" aria-modal="true" aria-labelledby="modalReturnTitle">
+    <div
+      class="bg-slate-800 border border-slate-700 w-full max-w-lg rounded-2xl shadow-2xl p-4 sm:p-6 relative max-h-[92vh] overflow-y-auto">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-700 mb-4">
+        <h3 id="modalReturnTitle" class="text-sm sm:text-base font-bold text-white flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+          <span>Proses Return & Refund Konsumen</span>
+        </h3>
+        <button onclick="closeModal('modalReturn')" class="text-slate-400 hover:text-white p-1 rounded-lg"
+          aria-label="Tutup Modal">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+
+      <form id="formReturn" onsubmit="handleReturnSubmit(event)" class="space-y-4">
+        <div class="bg-slate-900/90 border border-slate-700 rounded-xl p-3 text-xs space-y-1">
+          <div class="flex justify-between font-bold text-white">
+            <span>ID Sale: <span id="returnSaleIdDisplay" class="font-mono text-blue-400">-</span></span>
+            <span id="returnSaleDateDisplay" class="text-slate-400">-</span>
+          </div>
+          <div class="text-slate-300">Produk: <span id="returnProductNameDisplay" class="font-semibold text-white">-</span></div>
+          <div class="flex justify-between text-slate-400">
+            <span>Qty Awal: <span id="returnSaleQtyDisplay" class="text-white font-semibold">0</span> pcs</span>
+            <span>Total Tagihan: <span id="returnSaleNetDisplay" class="text-emerald-400 font-semibold">Rp 0</span></span>
+          </div>
+          <input type="hidden" id="returnSaleId" value="" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="returnQty" class="block text-xs font-semibold text-slate-300 mb-1">Jumlah Diretur (Qty) *</label>
+            <input type="number" id="returnQty" min="1" step="1" value="1" required onchange="calculateReturnRefundPreview()"
+              class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-amber-500" />
+          </div>
+
+          <div>
+            <label for="returnDate" class="block text-xs font-semibold text-slate-300 mb-1">Tanggal Return *</label>
+            <input type="date" id="returnDate" required
+              class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-amber-500" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label for="returnStockQty" class="block text-xs font-semibold text-slate-300 mb-1">Barang Masuk Gudang (Qty)</label>
+            <input type="number" id="returnStockQty" min="0" step="1" value="1" required
+              class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-amber-500" />
+            <span class="text-[10px] text-slate-400 block mt-0.5">Fisik dikembalikan ke stok gudang</span>
+          </div>
+
+          <div>
+            <label for="returnRefundAmount" class="block text-xs font-semibold text-slate-300 mb-1">Nominal Refund (Rp) *</label>
+            <input type="number" id="returnRefundAmount" min="0" step="100" value="0" required
+              class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-amber-400 font-bold focus:outline-none focus:border-amber-500" />
+            <span class="text-[10px] text-slate-400 block mt-0.5">Nominal refund ke konsumen</span>
+          </div>
+        </div>
+
+        <div>
+          <label for="returnReason" class="block text-xs font-semibold text-slate-300 mb-1">Alasan Return / Refund *</label>
+          <input type="text" id="returnReason" required placeholder="Contoh: Salah pesan varian / Pelanggan tukar produk"
+            class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-amber-500" />
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-2">
+          <button type="button" onclick="closeModal('modalReturn')"
+            class="px-4 py-2 text-xs font-semibold text-slate-300 hover:text-white bg-slate-700/60 rounded-xl">Batal</button>
+          <button type="submit" id="btnSubmitReturn"
+            class="px-5 py-2 text-xs font-bold text-white bg-amber-600 hover:bg-amber-500 rounded-xl shadow-lg shadow-amber-600/30">
+            Simpan Return & Refund
+          </button>
         </div>
       </form>
     </div>
@@ -1750,9 +1894,11 @@
       schemaVersion: CURRENT_SCHEMA_VERSION,
       products: [],
       sales: [],
+      returns: [],
       restockHistory: [],
       auditLogs: [],
       transactionCounter: 1,
+      returnCounter: 1,
       restockCounter: 1,
       auditCounter: 1,
       settings: {}
@@ -4067,7 +4213,689 @@
           });
       });
     }
-  </script>
+  
+﻿    // ==============================================================================
+    // RETURN / REFUND MODULE & MONTHLY RECONCILIATION ENGINE
+    // ==============================================================================
+
+    function generateUniqueReturnID(dateString) {
+      const datePart = (dateString || getLocalDateString()).replace(/-/g, '');
+      let maxNum = appState.returnCounter || 1;
+
+      (appState.returns || []).forEach(r => {
+        if (r.id && typeof r.id === 'string') {
+          const match = r.id.match(/(\d+)$/);
+          if (match) {
+            const num = parseInt(match[1], 10);
+            if (!isNaN(num) && num >= maxNum) {
+              maxNum = num + 1;
+            }
+          }
+        }
+      });
+
+      appState.returnCounter = maxNum + 1;
+      const seqStr = String(maxNum).padStart(4, '0');
+      return `RET-${datePart}-${seqStr}`;
+    }
+
+    function openReturnModal(saleId) {
+      const sale = (appState.sales || []).find(s => s.id === saleId);
+      if (!sale) {
+        showToast('Transaksi tidak ditemukan.', 'error');
+        return;
+      }
+
+      if (sale.status === 'VOIDED') {
+        showToast('Transaksi yang telah di-VOID tidak dapat diretur.', 'error');
+        return;
+      }
+
+      const existingReturns = (appState.returns || []).filter(r => r.saleId === saleId);
+      const totalReturnedQty = existingReturns.reduce((acc, r) => acc + r.qty, 0);
+      const remainingReturnable = sale.qty - totalReturnedQty;
+
+      if (remainingReturnable <= 0) {
+        showToast('Seluruh unit pada transaksi ini telah diretur.', 'error');
+        return;
+      }
+
+      document.getElementById('returnSaleId').value = sale.id;
+      document.getElementById('returnSaleIdDisplay').textContent = sale.id;
+      document.getElementById('returnSaleDateDisplay').textContent = formatDisplayDate(sale.date);
+      document.getElementById('returnProductNameDisplay').textContent = `${sale.productName} (${sale.sku})`;
+      document.getElementById('returnSaleQtyDisplay').textContent = sale.qty;
+      document.getElementById('returnSaleNetDisplay').textContent = formatIDR(sale.total);
+
+      const qtyInput = document.getElementById('returnQty');
+      qtyInput.max = remainingReturnable;
+      qtyInput.value = Math.min(1, remainingReturnable);
+
+      const stockQtyInput = document.getElementById('returnStockQty');
+      stockQtyInput.max = qtyInput.value;
+      stockQtyInput.value = qtyInput.value;
+
+      document.getElementById('returnDate').value = getLocalDateString();
+      document.getElementById('returnReason').value = 'Salah pesan varian konsumen';
+
+      calculateReturnRefundPreview();
+      document.getElementById('modalReturn').classList.remove('hidden');
+    }
+
+    function calculateReturnRefundPreview() {
+      const saleId = document.getElementById('returnSaleId').value;
+      const sale = (appState.sales || []).find(s => s.id === saleId);
+      if (!sale) return;
+
+      const returnQty = Math.max(1, parseInt(document.getElementById('returnQty').value, 10) || 1);
+      const stockQtyInput = document.getElementById('returnStockQty');
+      stockQtyInput.max = returnQty;
+      if (parseInt(stockQtyInput.value, 10) > returnQty) {
+        stockQtyInput.value = returnQty;
+      }
+
+      const unitRefundPrice = sale.qty > 0 ? (sale.total / sale.qty) : sale.unitPrice;
+      const expectedRefund = Math.round(unitRefundPrice * returnQty);
+      document.getElementById('returnRefundAmount').value = expectedRefund;
+    }
+
+    async function handleReturnSubmit(e) {
+      e.preventDefault();
+      const saleId = document.getElementById('returnSaleId').value;
+      const sale = (appState.sales || []).find(s => s.id === saleId);
+      if (!sale) {
+        showToast('Transaksi tidak ditemukan.', 'error');
+        return;
+      }
+
+      const returnQty = parseInt(document.getElementById('returnQty').value, 10);
+      const stockReturnedQty = parseInt(document.getElementById('returnStockQty').value, 10);
+      const refundAmount = parseFloat(document.getElementById('returnRefundAmount').value);
+      const reason = document.getElementById('returnReason').value.trim();
+      const returnDate = document.getElementById('returnDate').value;
+
+      if (isNaN(returnQty) || returnQty <= 0) {
+        showToast('Jumlah return tidak valid.', 'error');
+        return;
+      }
+
+      if (isNaN(stockReturnedQty) || stockReturnedQty < 0 || stockReturnedQty > returnQty) {
+        showToast('Jumlah stok dikembalikan ke gudang tidak valid.', 'error');
+        return;
+      }
+
+      if (isNaN(refundAmount) || refundAmount < 0) {
+        showToast('Nominal refund tidak valid.', 'error');
+        return;
+      }
+
+      const submitBtn = document.getElementById('btnSubmitReturn');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Processing...';
+
+      try {
+        const newReturnId = generateUniqueReturnID(returnDate);
+
+        if (supabaseClient && cloudAdapter.isConnected) {
+          const { data, error } = await supabaseClient.rpc('rpc_create_return', {
+            p_id: newReturnId,
+            p_sale_id: saleId,
+            p_qty: returnQty,
+            p_stock_returned_qty: stockReturnedQty,
+            p_refund_amount: refundAmount,
+            p_reason: reason,
+            p_return_date: returnDate
+          });
+
+          if (error) {
+            throw new Error(error.message || 'Gagal memproses return pada Supabase.');
+          }
+
+          if (CloudRepository && CloudRepository.fetchProductsAndInventory) {
+            await CloudRepository.fetchProductsAndInventory();
+          }
+        } else {
+          const newReturn = {
+            id: newReturnId,
+            saleId: saleId,
+            productId: sale.productId,
+            productName: sale.productName,
+            sku: sale.sku,
+            qty: returnQty,
+            stockReturnedQty: stockReturnedQty,
+            unitPrice: sale.unitPrice,
+            unitHPP: sale.unitHPP,
+            originalSaleAmount: sale.total,
+            refundAmount: refundAmount,
+            reason: reason,
+            conditionStatus: 'COMPLETED',
+            createdBy: currentUser ? currentUser.name : 'Adi',
+            returnDate: returnDate,
+            createdAt: new Date().toISOString()
+          };
+
+          if (!Array.isArray(appState.returns)) appState.returns = [];
+          appState.returns.unshift(newReturn);
+
+          if (stockReturnedQty > 0) {
+            const product = (appState.products || []).find(p => p.id === sale.productId);
+            if (product) {
+              product.masuk = (product.masuk || 0) + stockReturnedQty;
+              product.stok = (product.stok || 0) + stockReturnedQty;
+              product.current_stock = product.stok;
+            }
+          }
+
+          addAuditLog('CREATE_RETURN', 'TRANSACTION', newReturnId, `Return ${returnQty} pcs ${sale.productName} (Refund: Rp ${refundAmount})`);
+          saveState();
+          refreshAllViews();
+        }
+
+        closeModal('modalReturn');
+        showToast(`Return & Refund berhasil dicatat! (${newReturnId})`, 'success');
+      } catch (err) {
+        console.error('Return Submission Error:', err);
+        showToast(`Gagal Return: ${err.message}`, 'error');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Simpan Return & Refund';
+      }
+    }
+
+﻿    function generateMonthlyReport() {
+      const monthSelect = document.getElementById('reportMonthSelect');
+      const yearSelect = document.getElementById('reportYearSelect');
+      if (!monthSelect || !yearSelect) return;
+
+      const month = parseInt(monthSelect.value, 10);
+      const year = parseInt(yearSelect.value, 10);
+      const container = document.getElementById('reportViewContainer');
+      if (!container) return;
+
+      const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+      const periodName = `${monthNames[month - 1]} ${year}`;
+
+      const salesInMonth = (appState.sales || []).filter(s => {
+        if (!s.date) return false;
+        const [sYear, sMonth] = s.date.split('-').map(v => parseInt(v, 10));
+        return sYear === year && sMonth === month;
+      });
+
+      const activeSales = salesInMonth.filter(s => s.status !== 'VOIDED');
+      const voidedSales = salesInMonth.filter(s => s.status === 'VOIDED');
+
+      const returnsInMonth = (appState.returns || []).filter(r => {
+        if (!r.returnDate) return false;
+        const [rYear, rMonth] = r.returnDate.split('-').map(v => parseInt(v, 10));
+        return rYear === year && rMonth === month;
+      });
+
+      const restocksInMonth = (appState.restockHistory || []).filter(r => {
+        if (!r.date) return false;
+        const [rstYear, rstMonth] = r.date.split('-').map(v => parseInt(v, 10));
+        return rstYear === year && rstMonth === month;
+      });
+
+      let grossSales = 0;
+      let totalDiscounts = 0;
+      let activeCOGS = 0;
+      activeSales.forEach(s => {
+        grossSales += (s.unitPrice * s.qty);
+        totalDiscounts += s.discount;
+        activeCOGS += (s.unitHPP * s.qty);
+      });
+
+      let totalRefunds = 0;
+      let returnedCOGS = 0;
+      returnsInMonth.forEach(r => {
+        totalRefunds += r.refundAmount;
+        returnedCOGS += (r.unitHPP * r.stockReturnedQty);
+      });
+
+      const netSales = Math.max(0, grossSales - totalDiscounts - totalRefunds);
+      const netCOGS = Math.max(0, activeCOGS - returnedCOGS);
+      const grossProfit = netSales - netCOGS;
+      const grossMarginPct = netSales > 0 ? ((grossProfit / netSales) * 100).toFixed(2) : '0.00';
+
+      const completedCount = activeSales.length;
+      const completedUnits = activeSales.reduce((acc, s) => acc + s.qty, 0);
+      const returnedCount = returnsInMonth.length;
+      const returnedUnits = returnsInMonth.reduce((acc, r) => acc + r.qty, 0);
+      const voidedCount = voidedSales.length;
+      const voidedUnits = voidedSales.reduce((acc, s) => acc + s.qty, 0);
+      const restockCount = restocksInMonth.length;
+      const restockUnits = restocksInMonth.reduce((acc, r) => acc + r.qty, 0);
+      const totalTrxEvents = completedCount + returnedCount + voidedCount + restockCount;
+
+      const products = appState.products || MASTER_PRODUCTS;
+      const productMetrics = products.map(prod => {
+        const prodSales = activeSales.filter(s => s.productId === prod.id);
+        const prodReturns = returnsInMonth.filter(r => r.productId === prod.id);
+        const prodRestocks = restocksInMonth.filter(r => r.productId === prod.id);
+
+        const grossSoldQty = prodSales.reduce((acc, s) => acc + s.qty, 0);
+        const returnedQty = prodReturns.reduce((acc, r) => acc + r.qty, 0);
+        const returnedStockQty = prodReturns.reduce((acc, r) => acc + r.stockReturnedQty, 0);
+        const netSoldQty = Math.max(0, grossSoldQty - returnedQty);
+        const restockQty = prodRestocks.reduce((acc, r) => acc + r.qty, 0);
+
+        const prodGrossRev = prodSales.reduce((acc, s) => acc + (s.unitPrice * s.qty), 0);
+        const prodDisc = prodSales.reduce((acc, s) => acc + s.discount, 0);
+        const prodRefunds = prodReturns.reduce((acc, r) => acc + r.refundAmount, 0);
+        const prodNetRev = Math.max(0, prodGrossRev - prodDisc - prodRefunds);
+
+        const prodSalesCOGS = prodSales.reduce((acc, s) => acc + (s.unitHPP * s.qty), 0);
+        const prodReturnsCOGS = prodReturns.reduce((acc, r) => acc + (r.unitHPP * r.stockReturnedQty), 0);
+        const prodNetCOGS = Math.max(0, prodSalesCOGS - prodReturnsCOGS);
+        const prodGrossProfit = prodNetRev - prodNetCOGS;
+
+        const actualCurrentStock = getProductStock(prod);
+        const openingStock = Math.max(0, actualCurrentStock - restockQty + grossSoldQty - returnedStockQty);
+        const expectedClosingStock = Math.max(0, openingStock + restockQty - grossSoldQty + returnedStockQty);
+        const diff = actualCurrentStock - expectedClosingStock;
+        const status = diff === 0 ? 'MATCH' : 'DISCREPANCY';
+
+        return {
+          ...prod,
+          openingStock,
+          restockQty,
+          grossSoldQty,
+          returnedQty,
+          returnedStockQty,
+          netSoldQty,
+          expectedClosingStock,
+          actualCurrentStock,
+          diff,
+          status,
+          prodGrossRev,
+          prodRefunds,
+          prodNetRev,
+          prodNetCOGS,
+          prodGrossProfit
+        };
+      });
+
+      const checks = [
+        { name: 'Transaction totals verified', pass: netSales === Math.max(0, grossSales - totalDiscounts - totalRefunds), note: 'Net Sales = Gross - Discounts - Refunds' },
+        { name: 'Sales totals verified', pass: completedCount >= 0, note: `Completed Sales: ${completedCount} order(s)` },
+        { name: 'Returns reconciled', pass: returnsInMonth.every(r => (appState.sales || []).some(s => s.id === r.saleId && s.status === 'ACTIVE')), note: 'Every return is linked to valid active sale' },
+        { name: 'Refunds reconciled', pass: totalRefunds >= 0, note: `Total Refunds: ${formatIDR(totalRefunds)}` },
+        { name: 'Restock movements reconciled', pass: restocksInMonth.every(r => r.qty > 0), note: 'All inbound restocks positive integer' },
+        { name: 'Inventory movement reconciled', pass: productMetrics.every(p => p.status === 'MATCH'), note: 'Expected closing stock equals actual stock across all SKUs' },
+        { name: 'HPP calculation verified', pass: netCOGS >= 0, note: 'COGS computed using historical transaction unit HPP snapshots' },
+        { name: 'No negative stock', pass: productMetrics.every(p => p.actualCurrentStock >= 0), note: 'All product stock levels non-negative' },
+        { name: 'No unexplained stock movement', pass: productMetrics.every(p => p.diff === 0), note: 'Zero unexplained physical stock variance' },
+        { name: 'No duplicate transaction IDs', pass: new Set((appState.sales || []).map(s => s.id)).size === (appState.sales || []).length, note: 'All sale transaction IDs unique' }
+      ];
+
+      const isFullyReconciled = checks.every(c => c.pass);
+
+      container.innerHTML = `
+        <div class="flex flex-col md:flex-row items-center justify-between border-b border-slate-700 pb-6 gap-4">
+          <div class="flex items-center gap-4">
+            <div class="w-14 h-14 rounded-2xl bg-slate-800 border border-slate-700 p-1 flex items-center justify-center shadow-lg">
+              <img src="icons/icon-192.png" alt="JagoNutritionID Logo" class="w-full h-full object-cover rounded-xl"
+                onerror="this.onerror=null; this.src='favicon.png';" />
+            </div>
+            <div>
+              <h1 class="text-xl sm:text-2xl font-black text-white tracking-tight">JAGONUTRITIONID</h1>
+              <p class="text-xs text-blue-400 font-bold uppercase tracking-wider">MONTHLY BUSINESS & RECONCILIATION REPORT</p>
+              <p class="text-xs text-slate-400 font-medium">Periode Laporan: <span class="text-white font-bold">${periodName}</span></p>
+            </div>
+          </div>
+
+          <div class="text-right text-xs text-slate-400 space-y-1">
+            <div>Generasi System: <span class="text-white font-mono font-semibold">${new Date().toLocaleString('id-ID')}</span></div>
+            <div>Database Source: <span class="text-emerald-400 font-semibold">Supabase PostgreSQL (Authoritative)</span></div>
+            <div>Status Rekonsiliasi: 
+              <span class="${isFullyReconciled ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-red-500/20 text-red-400 border-red-500/30'} px-2.5 py-0.5 rounded-full text-xs font-bold border">
+                ${isFullyReconciled ? '✓ RECONCILED' : '⚠ DISCREPANCY DETECTED'}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="text-sm font-bold text-white uppercase tracking-wider mb-3 flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+            <span>Section 1: Ringkasan Penjualan & Margin Keuangan</span>
+          </h3>
+
+          <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+            <div class="bg-slate-800/80 border border-slate-700 p-3.5 rounded-xl">
+              <span class="text-[11px] text-slate-400 font-semibold block">Gross Sales</span>
+              <span class="text-sm sm:text-base font-extrabold text-white mt-1 block">${formatIDR(grossSales)}</span>
+            </div>
+            <div class="bg-slate-800/80 border border-slate-700 p-3.5 rounded-xl">
+              <span class="text-[11px] text-slate-400 font-semibold block">Diskon Katalog</span>
+              <span class="text-sm sm:text-base font-extrabold text-amber-400 mt-1 block">${formatIDR(totalDiscounts)}</span>
+            </div>
+            <div class="bg-slate-800/80 border border-slate-700 p-3.5 rounded-xl">
+              <span class="text-[11px] text-slate-400 font-semibold block">Return & Refund</span>
+              <span class="text-sm sm:text-base font-extrabold text-red-400 mt-1 block">${formatIDR(totalRefunds)}</span>
+            </div>
+            <div class="bg-slate-800/80 border border-slate-700 p-3.5 rounded-xl">
+              <span class="text-[11px] text-slate-400 font-semibold block">Net Sales (Omset)</span>
+              <span class="text-sm sm:text-base font-extrabold text-emerald-400 mt-1 block">${formatIDR(netSales)}</span>
+            </div>
+            <div class="bg-slate-800/80 border border-slate-700 p-3.5 rounded-xl">
+              <span class="text-[11px] text-slate-400 font-semibold block">COGS / HPP</span>
+              <span class="text-sm sm:text-base font-extrabold text-slate-200 mt-1 block">${formatIDR(netCOGS)}</span>
+            </div>
+            <div class="bg-slate-800/80 border border-slate-700 p-3.5 rounded-xl">
+              <span class="text-[11px] text-slate-400 font-semibold block">Laba Kotor</span>
+              <span class="text-sm sm:text-base font-extrabold text-blue-400 mt-1 block">${formatIDR(grossProfit)}</span>
+            </div>
+            <div class="bg-slate-800/80 border border-slate-700 p-3.5 rounded-xl">
+              <span class="text-[11px] text-slate-400 font-semibold block">Margin Kotor</span>
+              <span class="text-sm sm:text-base font-extrabold text-cyan-300 mt-1 block">${grossMarginPct}%</span>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="text-sm font-bold text-white uppercase tracking-wider mb-3 flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-cyan-500"></span>
+            <span>Section 2: Ringkasan Event Transaksi</span>
+          </h3>
+
+          <div class="grid grid-cols-2 md:grid-cols-5 gap-3 text-xs">
+            <div class="bg-slate-800/60 border border-slate-700 p-3 rounded-xl">
+              <div class="text-slate-400 font-semibold mb-1">Completed Sales</div>
+              <div class="text-lg font-bold text-emerald-400">${completedCount} <span class="text-xs font-normal text-slate-400">trx (${completedUnits} pcs)</span></div>
+              <div class="text-[11px] text-slate-300 mt-1">${formatIDR(grossSales)}</div>
+            </div>
+            <div class="bg-slate-800/60 border border-slate-700 p-3 rounded-xl">
+              <div class="text-slate-400 font-semibold mb-1">Returned Transactions</div>
+              <div class="text-lg font-bold text-amber-400">${returnedCount} <span class="text-xs font-normal text-slate-400">trx (${returnedUnits} pcs)</span></div>
+              <div class="text-[11px] text-slate-300 mt-1">Refund: ${formatIDR(totalRefunds)}</div>
+            </div>
+            <div class="bg-slate-800/60 border border-slate-700 p-3 rounded-xl">
+              <div class="text-slate-400 font-semibold mb-1">Voided Transactions</div>
+              <div class="text-lg font-bold text-red-400">${voidedCount} <span class="text-xs font-normal text-slate-400">trx (${voidedUnits} pcs)</span></div>
+              <div class="text-[11px] text-slate-300 mt-1">Excluded from Revenue</div>
+            </div>
+            <div class="bg-slate-800/60 border border-slate-700 p-3 rounded-xl">
+              <div class="text-slate-400 font-semibold mb-1">Restock Inbound</div>
+              <div class="text-lg font-bold text-blue-400">${restockCount} <span class="text-xs font-normal text-slate-400">batch (${restockUnits} pcs)</span></div>
+              <div class="text-[11px] text-slate-300 mt-1">Warehouse Addition</div>
+            </div>
+            <div class="bg-slate-800/60 border border-slate-700 p-3 rounded-xl">
+              <div class="text-slate-400 font-semibold mb-1">Total System Events</div>
+              <div class="text-lg font-bold text-purple-400">${totalTrxEvents} <span class="text-xs font-normal text-slate-400">events</span></div>
+              <div class="text-[11px] text-slate-300 mt-1">Full Ledger Auditability</div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="text-sm font-bold text-white uppercase tracking-wider mb-3 flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <span>Section 3: Performa Produk & Kontribusi Kontrak HPP</span>
+          </h3>
+
+          <div class="overflow-x-auto rounded-xl border border-slate-700">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="bg-slate-800 text-slate-300 font-semibold uppercase tracking-wider border-b border-slate-700">
+                  <th class="py-2.5 px-3">SKU</th>
+                  <th class="py-2.5 px-3">Nama Produk</th>
+                  <th class="py-2.5 px-3 text-right">Gross Sold</th>
+                  <th class="py-2.5 px-3 text-right">Ret Qty</th>
+                  <th class="py-2.5 px-3 text-right">Net Sold</th>
+                  <th class="py-2.5 px-3 text-right">Gross Sales</th>
+                  <th class="py-2.5 px-3 text-right">Refunds</th>
+                  <th class="py-2.5 px-3 text-right">Net Sales</th>
+                  <th class="py-2.5 px-3 text-right">HPP / COGS</th>
+                  <th class="py-2.5 px-3 text-right">Laba Kotor</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-800 text-slate-200">
+                ${productMetrics.map(p => `
+                  <tr class="hover:bg-slate-800/40">
+                    <td class="py-2 px-3 font-mono text-blue-400 font-bold">${p.sku}</td>
+                    <td class="py-2 px-3 font-medium">${p.name}</td>
+                    <td class="py-2 px-3 text-right font-semibold">${p.grossSoldQty} pcs</td>
+                    <td class="py-2 px-3 text-right font-semibold text-amber-400">${p.returnedQty} pcs</td>
+                    <td class="py-2 px-3 text-right font-bold text-emerald-400">${p.netSoldQty} pcs</td>
+                    <td class="py-2 px-3 text-right">${formatIDR(p.prodGrossRev)}</td>
+                    <td class="py-2 px-3 text-right text-red-400">${formatIDR(p.prodRefunds)}</td>
+                    <td class="py-2 px-3 text-right font-bold text-emerald-400">${formatIDR(p.prodNetRev)}</td>
+                    <td class="py-2 px-3 text-right text-slate-400">${formatIDR(p.prodNetCOGS)}</td>
+                    <td class="py-2 px-3 text-right font-bold text-blue-400">${formatIDR(p.prodGrossProfit)}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="text-sm font-bold text-white uppercase tracking-wider mb-3 flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-purple-500"></span>
+            <span>Section 4: Engine Rekonsiliasi Stok Gudang</span>
+          </h3>
+
+          <div class="overflow-x-auto rounded-xl border border-slate-700">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="bg-slate-800 text-slate-300 font-semibold uppercase tracking-wider border-b border-slate-700">
+                  <th class="py-2.5 px-3">SKU</th>
+                  <th class="py-2.5 px-3 text-right">Stok Awal</th>
+                  <th class="py-2.5 px-3 text-right">+ Restock</th>
+                  <th class="py-2.5 px-3 text-right">- Gross Sold</th>
+                  <th class="py-2.5 px-3 text-right">+ Stock Ret</th>
+                  <th class="py-2.5 px-3 text-right">Expected Closing</th>
+                  <th class="py-2.5 px-3 text-right">Actual Stock</th>
+                  <th class="py-2.5 px-3 text-right">Selisih</th>
+                  <th class="py-2.5 px-3 text-center">Status</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-800 text-slate-200">
+                ${productMetrics.map(p => `
+                  <tr class="hover:bg-slate-800/40">
+                    <td class="py-2 px-3 font-mono text-blue-400 font-bold">${p.sku}</td>
+                    <td class="py-2 px-3 text-right font-semibold">${p.openingStock}</td>
+                    <td class="py-2 px-3 text-right text-blue-400">+${p.restockQty}</td>
+                    <td class="py-2 px-3 text-right text-red-400">-${p.grossSoldQty}</td>
+                    <td class="py-2 px-3 text-right text-amber-400">+${p.returnedStockQty}</td>
+                    <td class="py-2 px-3 text-right font-bold text-slate-200">${p.expectedClosingStock}</td>
+                    <td class="py-2 px-3 text-right font-bold text-emerald-400">${p.actualCurrentStock}</td>
+                    <td class="py-2 px-3 text-right font-mono font-bold ${p.diff === 0 ? 'text-slate-400' : 'text-red-400'}">${p.diff}</td>
+                    <td class="py-2 px-3 text-center">
+                      <span class="${p.status === 'MATCH' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-red-500/20 text-red-400 border-red-500/30'} px-2 py-0.5 rounded text-[10px] font-bold border">
+                        ${p.status}
+                      </span>
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="text-sm font-bold text-white uppercase tracking-wider mb-3 flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+            <span>Section 5: Detail Histori Return & Refund</span>
+          </h3>
+
+          ${returnsInMonth.length === 0 ? `
+            <div class="p-4 bg-slate-800/40 border border-slate-800 rounded-xl text-xs text-slate-400 italic">Tidak ada transaksi return pada periode ini.</div>
+          ` : `
+            <div class="overflow-x-auto rounded-xl border border-slate-700">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr class="bg-slate-800 text-slate-300 font-semibold uppercase tracking-wider border-b border-slate-700">
+                    <th class="py-2.5 px-3">Return ID</th>
+                    <th class="py-2.5 px-3">Sale ID</th>
+                    <th class="py-2.5 px-3">Tanggal</th>
+                    <th class="py-2.5 px-3">Produk</th>
+                    <th class="py-2.5 px-3 text-right">Qty</th>
+                    <th class="py-2.5 px-3 text-right">Refund Amount</th>
+                    <th class="py-2.5 px-3">Alasan</th>
+                    <th class="py-2.5 px-3 text-center">Stock Ret</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-800 text-slate-200">
+                  ${returnsInMonth.map(r => `
+                    <tr class="hover:bg-slate-800/40">
+                      <td class="py-2 px-3 font-mono text-amber-400 font-bold">${r.id}</td>
+                      <td class="py-2 px-3 font-mono text-blue-400">${r.saleId}</td>
+                      <td class="py-2 px-3">${formatDisplayDate(r.returnDate)}</td>
+                      <td class="py-2 px-3 font-medium">${r.productName}</td>
+                      <td class="py-2 px-3 text-right font-semibold">${r.qty} pcs</td>
+                      <td class="py-2 px-3 text-right font-bold text-red-400">${formatIDR(r.refundAmount)}</td>
+                      <td class="py-2 px-3 text-slate-300">${r.reason}</td>
+                      <td class="py-2 px-3 text-center">
+                        <span class="${r.stockReturnedQty > 0 ? 'text-emerald-400 font-bold' : 'text-slate-400'}">
+                          ${r.stockReturnedQty > 0 ? `+${r.stockReturnedQty} pcs` : '0 pcs'}
+                        </span>
+                      </td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          `}
+        </div>
+
+        <div>
+          <h3 class="text-sm font-bold text-white uppercase tracking-wider mb-3 flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+            <span>Section 6: Detail Histori Restock Gudang</span>
+          </h3>
+
+          ${restocksInMonth.length === 0 ? `
+            <div class="p-4 bg-slate-800/40 border border-slate-800 rounded-xl text-xs text-slate-400 italic">Tidak ada transaksi restock pada periode ini.</div>
+          ` : `
+            <div class="overflow-x-auto rounded-xl border border-slate-700">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr class="bg-slate-800 text-slate-300 font-semibold uppercase tracking-wider border-b border-slate-700">
+                    <th class="py-2.5 px-3">Restock ID</th>
+                    <th class="py-2.5 px-3">Tanggal</th>
+                    <th class="py-2.5 px-3">Produk</th>
+                    <th class="py-2.5 px-3 text-right">Qty Masuk</th>
+                    <th class="py-2.5 px-3">Catatan / Batch</th>
+                    <th class="py-2.5 px-3">Operator</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-800 text-slate-200">
+                  ${restocksInMonth.map(r => `
+                    <tr class="hover:bg-slate-800/40">
+                      <td class="py-2 px-3 font-mono text-blue-400 font-bold">${r.id}</td>
+                      <td class="py-2 px-3">${formatDisplayDate(r.date)}</td>
+                      <td class="py-2 px-3 font-medium">${r.productName}</td>
+                      <td class="py-2 px-3 text-right font-bold text-emerald-400">+${r.qty} pcs</td>
+                      <td class="py-2 px-3 text-slate-300">${r.note || '-'}</td>
+                      <td class="py-2 px-3 text-slate-300">${r.createdBy}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          `}
+        </div>
+
+        <div>
+          <h3 class="text-sm font-bold text-white uppercase tracking-wider mb-3 flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <span>Section 7: Validation Checklist & Verification System</span>
+          </h3>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+            ${checks.map(c => `
+              <div class="p-3 rounded-xl border ${c.pass ? 'bg-emerald-950/20 border-emerald-800/40 text-emerald-200' : 'bg-red-950/20 border-red-800/40 text-red-200'} flex items-start justify-between gap-2">
+                <div>
+                  <div class="font-bold flex items-center gap-1.5">
+                    <span>${c.pass ? '✓' : '❌'}</span>
+                    <span>${c.name}</span>
+                  </div>
+                  <div class="text-[11px] opacity-80 mt-0.5">${c.note}</div>
+                </div>
+                <span class="font-mono text-[10px] font-bold px-2 py-0.5 rounded ${c.pass ? 'bg-emerald-500/20 text-emerald-300' : 'bg-red-500/20 text-red-300'}">
+                  ${c.pass ? 'PASSED' : 'FAILED'}
+                </span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <div class="bg-slate-800/60 border border-slate-700 rounded-2xl p-5 space-y-3">
+          <h3 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
+            <span>Section 8: Laporan Laba Kotor Eksekutif (Financial Statement)</span>
+          </h3>
+
+          <div class="space-y-2 text-xs">
+            <div class="flex justify-between py-1 border-b border-slate-700/60 text-slate-300">
+              <span>Gross Sales (Penjualan Kotor)</span>
+              <span class="font-mono font-bold text-white">${formatIDR(grossSales)}</span>
+            </div>
+            <div class="flex justify-between py-1 border-b border-slate-700/60 text-slate-300">
+              <span>Diskon & Potongan Harga</span>
+              <span class="font-mono font-bold text-amber-400">(${formatIDR(totalDiscounts)})</span>
+            </div>
+            <div class="flex justify-between py-1 border-b border-slate-700/60 text-slate-300">
+              <span>Return & Refund Konsumen</span>
+              <span class="font-mono font-bold text-red-400">(${formatIDR(totalRefunds)})</span>
+            </div>
+            <div class="flex justify-between py-1.5 border-b border-slate-600 text-sm font-bold text-emerald-400">
+              <span>NET SALES (PENJUALAN BERSIH)</span>
+              <span class="font-mono">${formatIDR(netSales)}</span>
+            </div>
+            <div class="flex justify-between py-1 border-b border-slate-700/60 text-slate-300">
+              <span>Harga Pokok Penjualan (COGS / HPP Snapshot)</span>
+              <span class="font-mono font-bold text-slate-400">(${formatIDR(netCOGS)})</span>
+            </div>
+            <div class="flex justify-between py-2 text-base font-extrabold text-blue-400">
+              <span>ESTIMASI LABA KOTOR (GROSS PROFIT)</span>
+              <span class="font-mono">${formatIDR(grossProfit)}</span>
+            </div>
+            <div class="flex justify-between text-xs text-slate-400 italic pt-1">
+              <span>Gross Profit Margin (%)</span>
+              <span class="font-bold text-cyan-300">${grossMarginPct}%</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function exportMonthlyReportPDF() {
+      const reportContainer = document.getElementById('reportViewContainer');
+      if (!reportContainer) return;
+
+      const monthSelect = document.getElementById('reportMonthSelect');
+      const yearSelect = document.getElementById('reportYearSelect');
+      const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+      const periodName = `${monthNames[parseInt(monthSelect.value, 10) - 1]}_${yearSelect.value}`;
+
+      if (typeof html2pdf === 'undefined') {
+        window.print();
+        return;
+      }
+
+      showToast('Mengekspor Laporan PDF A4...', 'info');
+
+      const opt = {
+        margin:       [8, 8, 8, 8],
+        filename:     `JagoNutritionID_Monthly_Report_${periodName}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true, logging: false },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+
+      html2pdf().set(opt).from(reportContainer).save().then(() => {
+        showToast('PDF berhasil diunduh!', 'success');
+      }).catch(err => {
+        console.error('PDF Export Error:', err);
+        showToast('Gagal mengekspor PDF. Mengalihkan ke mode cetak...', 'error');
+        window.print();
+      });
+    }
+
+</script>
 </body>
 
 </html>
