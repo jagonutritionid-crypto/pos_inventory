@@ -69,17 +69,7 @@
         throw new Error(message);
       }
 
-      // 2. Bind Native Supabase Session to Client
-      const { error: sessionError } = await this.supabaseClient.auth.setSession({
-        access_token: data.session.access_token,
-        refresh_token: data.session.refresh_token
-      });
-
-      if (sessionError) {
-        throw new Error(`Gagal menyimpan sesi Supabase: ${sessionError.message}`);
-      }
-
-      // 3. Cache User Profile (Contains NO passwords, plain hashes, or service keys)
+      // 2. Cache & Set User Profile BEFORE setSession to prevent race condition with auth state listeners
       this.currentUserProfile = {
         id: data.user.id,
         username: data.user.username,
@@ -94,6 +84,20 @@
         localStorage.setItem(AUTH_SESSION_STORAGE_KEY, JSON.stringify(this.currentUserProfile));
       } catch (e) {
         console.warn('Unable to write user profile to localStorage:', e);
+      }
+
+      // 3. Bind Native Supabase Session to Client
+      try {
+        const { error: sessionError } = await this.supabaseClient.auth.setSession({
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token
+        });
+
+        if (sessionError) {
+          console.warn('Supabase setSession notice:', sessionError.message);
+        }
+      } catch (sErr) {
+        console.warn('Supabase setSession exception handled:', sErr);
       }
 
       this.notifyListeners('login', this.currentUserProfile);
