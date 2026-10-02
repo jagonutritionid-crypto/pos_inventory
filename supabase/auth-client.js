@@ -53,20 +53,59 @@
       }
 
       if (!this.supabaseClient) {
-        throw new Error('Koneksi Supabase belum diinisialisasi.');
+        const url = window.SUPABASE_PROJECT_URL || "https://ambtsbakxcktbnuxjpfj.supabase.co";
+        const key = window.SUPABASE_PUBLISHABLE_KEY || "sb_publishable_N0ZJ3fozzwg4T9sgb5kRNA_RaOB0i0u";
+        if (window.supabase && window.supabase.createClient) {
+          this.supabaseClient = window.supabase.createClient(url, key, { auth: { persistSession: true } });
+        } else {
+          throw new Error('Koneksi Supabase belum diinisialisasi.');
+        }
       }
 
-      // 1. Invoke Supabase Edge Function 'auth-login'
-      const { data, error } = await this.supabaseClient.functions.invoke('auth-login', {
-        body: {
-          username: username.trim().toLowerCase(),
-          password: password
-        }
-      });
+      // 1. Invoke Supabase Edge Function 'auth-login' with Direct Fetch Fallback
+      let data = null;
+      let error = null;
+
+      try {
+        const res = await this.supabaseClient.functions.invoke('auth-login', {
+          body: {
+            username: username.trim().toLowerCase(),
+            password: password
+          }
+        });
+        data = res.data;
+        error = res.error;
+      } catch (errInvoke) {
+        console.warn('SDK invoke notice, using fetch fallback:', errInvoke);
+      }
 
       if (error || !data || !data.session) {
-        const message = (data && data.error) ? data.error : (error ? error.message : 'Username atau password tidak sesuai.');
-        throw new Error(message);
+        try {
+          const fetchRes = await fetch("https://ambtsbakxcktbnuxjpfj.supabase.co/functions/v1/auth-login", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "apikey": "sb_publishable_N0ZJ3fozzwg4T9sgb5kRNA_RaOB0i0u"
+            },
+            body: JSON.stringify({
+              username: username.trim().toLowerCase(),
+              password: password
+            })
+          });
+          const parsed = await fetchRes.json();
+          if (fetchRes.ok && parsed && parsed.session) {
+            data = parsed;
+            error = null;
+          } else {
+            const msg = (parsed && parsed.error) ? parsed.error : (error ? error.message : 'Username atau password tidak sesuai.');
+            throw new Error(msg);
+          }
+        } catch (fetchErr) {
+          if (!data || !data.session) {
+            const message = (data && data.error) ? data.error : (error ? error.message : fetchErr.message);
+            throw new Error(message || 'Username atau password tidak sesuai.');
+          }
+        }
       }
 
       // 2. Cache & Set User Profile BEFORE setSession to prevent race condition with auth state listeners
