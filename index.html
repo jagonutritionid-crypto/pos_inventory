@@ -5372,14 +5372,25 @@
             margin: 0;
             padding: 0;
           }
+          @page {
+            size: A4 portrait;
+            margin: 0;
+          }
           .pdf-page {
             width: 595.28pt;
             height: 841.89pt; /* A4 Height */
+            max-height: 841.89pt;
             padding: 36pt 40pt;
             box-sizing: border-box;
             position: relative;
-            page-break-after: always;
+            overflow: hidden;
             background: #ffffff;
+            page-break-inside: avoid;
+            break-inside: avoid;
+          }
+          .pdf-page:not(:last-child) {
+            page-break-after: always;
+            break-after: page;
           }
           .pdf-header {
             display: flex;
@@ -5724,12 +5735,13 @@
               ${salesInMonth.length === 0 ? `
                 <tr><td colspan="7" class="text-center" style="padding: 12px; color: #94a3b8;">No sales transactions found in this reporting period.</td></tr>
               ` : salesInMonth.map(s => {
-                const item = (s.items && s.items[0]) ? s.items[0] : {};
-                const pName = item.name || item.product_id || 'Product';
-                const qty = item.qty || 1;
-                const unitPrice = item.shopeeCatalogPrice || item.catalog_price || 650000;
-                const totalCatalog = unitPrice * qty;
-                const discount = item.discount || (totalCatalog - s.total_amount);
+                const prod = (typeof appState !== 'undefined' && appState.products) ? appState.products.find(p => p.id === s.productId || p.sku === s.sku || p.id === s.product_id || p.sku === s.product_id) : null;
+                const pName = s.productName || s.product_name || (prod ? prod.name : (s.productId || s.product_id || s.sku || 'Product'));
+                const qty = toSafeNumber(s.qty, 1);
+                const unitPrice = toSafeNumber(s.shopeeCatalogPrice || s.shopee_catalog_price || s.unitPrice || s.unit_price, 650000);
+                const discount = toSafeNumber(s.discount || s.discountAmount || s.discount_amount, 0);
+                const gross = unitPrice * qty;
+                const netTotal = toSafeNumber(s.total || s.netTotal || s.net_total || s.total_amount, (gross - discount));
                 return `
                   <tr>
                     <td>${s.date ? s.date : '-'}</td>
@@ -5738,7 +5750,7 @@
                     <td class="text-right font-mono font-bold">${qty}</td>
                     <td class="text-right font-mono">${formatIDR(unitPrice)}</td>
                     <td class="text-right font-mono" style="color: #64748b;">${formatIDR(discount)}</td>
-                    <td class="text-right font-mono font-bold" style="color: #16a34a;">${formatIDR(s.total_amount)}</td>
+                    <td class="text-right font-mono font-bold" style="color: #16a34a;">${formatIDR(netTotal)}</td>
                   </tr>
                 `;
               }).join('')}
