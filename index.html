@@ -25,7 +25,7 @@
   <!-- Supabase JS Client v2 CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <!-- Supabase Auth Client Module -->
-  <script src="supabase/auth-client.js?v=2.9"></script>
+  <script src="supabase/auth-client.js?v=3.0"></script>
   <!-- Google Fonts: Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -2317,6 +2317,39 @@
             console.warn("Unable to fetch restock history from cloud:", e);
           }
 
+          // Fetch customer returns from public.returns
+          try {
+            const { data: returnsData } = await supabaseClient
+              .from('returns')
+              .select('*')
+              .order('created_at', { ascending: false });
+
+            if (returnsData) {
+              appState.returns = returnsData.map(r => {
+                const product = cloudProducts.find(p => p.id === r.product_id);
+                return {
+                  id: r.id,
+                  saleId: r.sale_id,
+                  productId: r.product_id,
+                  productName: product ? product.name : r.product_id,
+                  sku: r.product_id,
+                  qty: Number(r.qty),
+                  stockReturnedQty: Number(r.stock_returned_qty || r.stock_returned || (r.disposition === 'RESTOCKABLE' ? r.qty : 0)),
+                  refundAmount: Number(r.refund_amount || 0),
+                  returnFee: Number(r.return_fee || 0),
+                  reason: r.reason || "",
+                  disposition: r.disposition || "RESTOCKABLE",
+                  conditionStatus: r.condition_status || r.disposition || "RESTOCKABLE",
+                  createdBy: r.created_by || "Adi",
+                  returnDate: r.return_date || (r.created_at ? r.created_at.split('T')[0] : getLocalDateString()),
+                  createdAt: r.created_at
+                };
+              });
+            }
+          } catch (e) {
+            console.warn("Unable to fetch returns from cloud:", e);
+          }
+
           // Fetch audit logs from public.audit_logs
           try {
             const { data: auditData } = await supabaseClient
@@ -2451,6 +2484,7 @@
         return null;
       }
     };
+    window.CloudRepository = CloudRepository;
 
     function saveState() {
       const ok = DataRepository.save(appState);
@@ -3381,58 +3415,63 @@
         return;
       }
 
-      const ctx = canvas.getContext('2d');
-      salesChartInstance = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: labels,
-          datasets: [
-            {
-              label: currentLang === 'id' ? 'Unit Terjual (Periode)' : 'Units Sold (Period)',
-              data: dataTerjual,
-              backgroundColor: 'rgba(59, 130, 246, 0.85)',
-              borderRadius: 6,
-            },
-            {
-              label: currentLang === 'id' ? 'Stok Fisik Saat Ini' : 'Physical Stock',
-              data: dataSisaStok,
-              backgroundColor: 'rgba(16, 185, 129, 0.75)',
-              borderRadius: 6,
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              labels: {
-                color: '#cbd5e1',
-                font: { family: 'Plus Jakarta Sans', size: 10, weight: 'bold' }
+      try {
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+        salesChartInstance = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: currentLang === 'id' ? 'Unit Terjual (Periode)' : 'Units Sold (Period)',
+                data: dataTerjual,
+                backgroundColor: 'rgba(59, 130, 246, 0.85)',
+                borderRadius: 6,
+              },
+              {
+                label: currentLang === 'id' ? 'Stok Fisik Saat Ini' : 'Physical Stock',
+                data: dataSisaStok,
+                backgroundColor: 'rgba(16, 185, 129, 0.75)',
+                borderRadius: 6,
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                labels: {
+                  color: '#cbd5e1',
+                  font: { family: 'Plus Jakarta Sans', size: 10, weight: 'bold' }
+                }
+              },
+              tooltip: {
+                backgroundColor: '#0f172a',
+                titleColor: '#fff',
+                bodyColor: '#cbd5e1',
+                padding: 8,
+                borderColor: '#334155',
+                borderWidth: 1
               }
             },
-            tooltip: {
-              backgroundColor: '#0f172a',
-              titleColor: '#fff',
-              bodyColor: '#cbd5e1',
-              padding: 8,
-              borderColor: '#334155',
-              borderWidth: 1
-            }
-          },
-          scales: {
-            x: {
-              ticks: { color: '#94a3b8', font: { size: 9 } },
-              grid: { display: false }
-            },
-            y: {
-              ticks: { color: '#94a3b8', font: { size: 9 }, stepSize: 5 },
-              grid: { color: '#334155' },
-              beginAtZero: true
+            scales: {
+              x: {
+                ticks: { color: '#94a3b8', font: { size: 9 } },
+                grid: { display: false }
+              },
+              y: {
+                ticks: { color: '#94a3b8', font: { size: 9 }, stepSize: 5 },
+                grid: { color: '#334155' },
+                beginAtZero: true
+              }
             }
           }
-        }
-      });
+        });
+      } catch (err) {
+        console.warn("Chart rendering notice:", err);
+      }
     }
 
     function openSaleModal() {
@@ -4196,6 +4235,8 @@
     }
 
     function refreshAllViews() {
+      window.appState = appState;
+      window.currentUser = currentUser;
       calculateMetrics();
       renderInventory();
       renderRestockLogTable();
@@ -4505,36 +4546,6 @@
         submitBtn.textContent = 'Simpan Return & Refund';
       }
     }
-
-
-    // ==============================================================================
-    // CORPORATE A4 PDF GENERATION ENGINE & RECONCILIATION AUDIT (JagoNutritionID)
-    // ==============================================================================
-
-
-    // ==============================================================================
-    // CORPORATE A4 PDF GENERATION ENGINE & RECONCILIATION AUDIT (JagoNutritionID)
-    // ==============================================================================
-
-
-    // ==============================================================================
-    // CORPORATE A4 PDF GENERATION ENGINE & RECONCILIATION AUDIT (JagoNutritionID)
-    // ==============================================================================
-
-
-    // ==============================================================================
-    // CORPORATE A4 PDF GENERATION ENGINE & RECONCILIATION AUDIT (JagoNutritionID)
-    // ==============================================================================
-
-
-    // ==============================================================================
-    // CORPORATE A4 PDF GENERATION ENGINE & RECONCILIATION AUDIT (JagoNutritionID)
-    // ==============================================================================
-
-
-    // ==============================================================================
-    // CORPORATE A4 PDF GENERATION ENGINE & RECONCILIATION AUDIT (JagoNutritionID)
-    // ==============================================================================
 
 
     // ==============================================================================
