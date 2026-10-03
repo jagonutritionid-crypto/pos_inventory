@@ -1,9 +1,10 @@
-const CACHE_NAME = 'jagonutrition-v3.4';
+const CACHE_NAME = 'jagonutrition-v3.5';
 const STATIC_ASSETS = [
   './',
   './index.html',
   './manifest.json',
   './favicon.png',
+  './assets/jagonutritionid-logo.jpg',
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/icon-maskable-512.png',
