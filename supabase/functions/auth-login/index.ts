@@ -94,6 +94,55 @@ serve(async (req: Request) => {
       );
     }
 
+    if (body.action === "migrate_customer_return") {
+      const supabaseUrl = Deno.env.get("SUPABASE_URL");
+      const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || Deno.env.get("SUPABASE_ANON_KEY");
+      if (!supabaseUrl || !serviceRoleKey) {
+        return new Response(JSON.stringify({ error: "Missing admin key" }), { status: 500, headers: corsHeaders });
+      }
+
+      const adminClient = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false } });
+
+      // 1. Upsert RET-20261001-0001
+      const { error: errReturn } = await adminClient.from('returns').upsert({
+        id: "RET-20261001-0001",
+        sale_id: "TRX-20260930-0005",
+        product_id: "WHEY-ISO-CC",
+        product_name: "Whey Hydro Isolate - Cookies & Cream",
+        sku: "WHEY-ISO-CC",
+        qty: 1,
+        unit_price: 650000,
+        unit_hpp: 380000,
+        original_sale_amount: 549001,
+        stock_returned_qty: 1,
+        refund_amount: 549001,
+        return_fee: 8500,
+        reason: "PRODUK RETURE",
+        condition_status: "RESTOCKABLE",
+        return_date: "2026-10-01",
+        created_by: "Adi",
+        user_id: "1b42f1d5-e634-4468-9159-0b8df41d63f4",
+        created_at: "2026-10-01T06:20:10.735282+00:00"
+      });
+
+      // 2. Delete RST-20261001-0001
+      const { error: errDelete } = await adminClient.from('restock_history').delete().eq('id', 'RST-20261001-0001');
+
+      // 3. Update inventory for WHEY-ISO-CC
+      const { error: errInv } = await adminClient.from('inventory').update({
+        total_in: 0,
+        total_returned: 1,
+        current_stock: 2
+      }).eq('product_id', 'WHEY-ISO-CC');
+
+      return new Response(JSON.stringify({
+        success: !errReturn && !errDelete && !errInv,
+        errReturn: errReturn ? errReturn.message : null,
+        errDelete: errDelete ? errDelete.message : null,
+        errInv: errInv ? errInv.message : null
+      }), { status: 200, headers: corsHeaders });
+    }
+
     const { username, password } = body;
 
     // 5. Validate & Bound Input Parameters
