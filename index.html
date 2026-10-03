@@ -25,7 +25,7 @@
   <!-- Supabase JS Client v2 CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <!-- Supabase Auth Client Module -->
-  <script src="supabase/auth-client.js?v=2.7"></script>
+  <script src="supabase/auth-client.js?v=2.8"></script>
   <!-- Google Fonts: Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -220,6 +220,21 @@
 
       <!-- Cloud status warning if not connected -->
       <div id="loginCloudNotice" class="mt-4 pt-3 border-t border-slate-800 text-center">
+
+      <!-- Temporary Auth Debug Diagnostic Panel -->
+      <div id="authDebugPanel" class="mt-3 pt-3 border-t border-slate-800 text-left">
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-[11px] font-bold text-amber-400 flex items-center gap-1">
+            <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+            AUTH DEBUG DIAGNOSTIC LOG
+          </span>
+          <button type="button" onclick="copyAuthDebugReport()" id="btnCopyDebug"
+            class="px-2 py-0.5 text-[10px] font-bold bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 border border-amber-500/40 rounded-md transition flex items-center gap-1">
+            📋 COPY DEBUG REPORT
+          </button>
+        </div>
+        <pre id="authDebugLog" class="p-2.5 bg-slate-950 border border-slate-800 rounded-xl text-[10px] font-mono text-emerald-400 overflow-x-auto max-h-52 leading-relaxed select-all">System initializing diagnostic logging...</pre>
+      </div>
         <p class="text-[11px] text-slate-400 flex items-center justify-center gap-1.5">
           <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
           <span id="loginNoticeText">Cloud Engine: Siap Terhubung ke Supabase</span>
@@ -2633,10 +2648,62 @@
       appState.auditCounter = Math.max(1, toSafeNumber(appState.auditCounter, appState.auditLogs.length + 1));
     }
 
+    const authDebugLogs = [];
+    window.logAuthDebug = function(step, msg, detail) {
+      const ts = new Date().toISOString().substring(11, 19);
+      let entry = `[${ts}] ${step}: ${msg}`;
+      if (detail !== undefined && detail !== null) {
+        if (typeof detail === 'object') {
+          try {
+            entry += ` | ` + JSON.stringify(detail);
+          } catch (e) {
+            entry += ` | ` + String(detail);
+          }
+        } else {
+          entry += ` | ` + String(detail);
+        }
+      }
+      authDebugLogs.push(entry);
+      console.log(entry);
+      const logEl = document.getElementById("authDebugLog");
+      if (logEl) {
+        logEl.textContent = authDebugLogs.join('\n');
+        logEl.scrollTop = logEl.scrollHeight;
+      }
+    };
+
+    window.copyAuthDebugReport = function() {
+      const text = "=== JAGO NUTRITION POS AUTH DIAGNOSTIC REPORT ===\n" +
+        "URL: " + window.location.href + "\n" +
+        "Time: " + new Date().toISOString() + "\n" +
+        "UA: " + navigator.userAgent + "\n" +
+        "SW Controller: " + (navigator.serviceWorker && navigator.serviceWorker.controller ? navigator.serviceWorker.controller.scriptURL : "NONE") + "\n" +
+        "LocalStorage Profile: " + (localStorage.getItem("JN_AUTH_USER_PROFILE") ? "PRESENT" : "ABSENT") + "\n" +
+        "JNAuthClient Loaded: " + (typeof window.JNAuthClient !== "undefined" ? "YES" : "NO") + "\n" +
+        "=================================================\n\n" +
+        authDebugLogs.join('\n');
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+          const btn = document.getElementById("btnCopyDebug");
+          if (btn) btn.textContent = "✅ COPIED!";
+          setTimeout(() => { if (btn) btn.textContent = "📋 COPY DEBUG REPORT"; }, 2500);
+        }).catch(() => {
+          alert("Report selected! Copy text manually.");
+        });
+      } else {
+        alert("Copy report manually:\n\n" + text);
+      }
+    };
+
     async function handleUserLogin(e) {
       e.preventDefault();
       const usernameInput = document.getElementById("loginUsername").value.trim().toLowerCase();
       const passInput = document.getElementById("loginPassword").value;
+
+      if (window.logAuthDebug) {
+        window.logAuthDebug("[01]", "Login button clicked", { username: usernameInput });
+      }
 
       const submitBtn = document.getElementById("btnLoginSubmit");
       const btnText = document.getElementById("loginBtnText");
@@ -2673,7 +2740,11 @@
 
       } catch (err) {
         console.error("Login authentication error:", err);
-        showToast("Username atau password tidak sesuai.", "error");
+        const errorMsg = (err && err.message) ? err.message : "Username atau password tidak sesuai.";
+        if (window.logAuthDebug) {
+          window.logAuthDebug("[17]", "final state: FAILED", { name: err ? err.name : null, message: errorMsg, stack: err && err.stack ? err.stack.split("\n").slice(0, 3).join(" | ") : null });
+        }
+        showToast(errorMsg, "error");
       } finally {
         submitBtn.disabled = false;
         btnText.textContent = t("loginButton");
