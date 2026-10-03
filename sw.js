@@ -1,4 +1,4 @@
-const CACHE_NAME = 'jagonutrition-v2.8';
+const CACHE_NAME = 'jagonutrition-v2.9';
 const STATIC_ASSETS = [
   './',
   './index.html',
@@ -7,7 +7,7 @@ const STATIC_ASSETS = [
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/icon-maskable-512.png',
-  './supabase/auth-client.js?v=2.8'
+  './supabase/auth-client.js?v=2.9'
 ];
 
 // Install event - precache shell assets & skip waiting for instant activation
