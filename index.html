@@ -339,6 +339,10 @@
           class="tab-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition whitespace-nowrap">
           <span data-i18n="navRestock">📥 Histori Restock</span> (<span id="tabRestockCount">0</span>)
         </button>
+        <button id="tabBtnCustomerReturn" onclick="switchTab('customerReturn')"
+          class="tab-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition whitespace-nowrap">
+          <span>↩️ Retur Customer</span> (<span id="tabCustomerReturnCount">0</span>)
+        </button>
         <button id="tabBtnSales" onclick="switchTab('sales')"
           class="tab-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition whitespace-nowrap">
           <span data-i18n="navSales">📑 Log Transaksi</span> (<span id="tabSaleCount">0</span>)
@@ -508,6 +512,22 @@
             aman</p>
         </div>
 
+      </div>
+
+      <!-- Compact Customer Return Indicator Card -->
+      <div id="kpiReturnSummaryCard"
+        class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-3.5 sm:p-4 backdrop-blur-sm card-print">
+        <div class="flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div class="flex items-center gap-2">
+            <span class="p-1.5 rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/20 font-bold text-xs">↩️ Retur Customer</span>
+            <span class="text-slate-300 font-semibold">Total Retur: <strong id="dashReturnCount" class="text-white font-bold">0</strong></span>
+          </div>
+          <div class="flex flex-wrap items-center gap-4 text-slate-300 text-[11px] sm:text-xs">
+            <span>Customer Refund: <strong id="dashRefundSum" class="text-amber-400 font-bold">Rp 0</strong></span>
+            <span>Biaya Retur (Shopee Fee): <strong id="dashReturnFeeSum" class="text-rose-400 font-bold">Rp 0</strong></span>
+            <span>Stok Fisik Retur: <strong id="dashReturnedUnits" class="text-emerald-400 font-bold">0 pcs</strong></span>
+          </div>
+        </div>
       </div>
 
       <!-- Shopee Performance Tracker Card -->
@@ -771,6 +791,48 @@
             </tr>
           </thead>
           <tbody id="restockLogTableBody" class="divide-y divide-slate-800 text-slate-200">
+            <!-- Dynamically populated via JS -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ================= SECTION: CUSTOMER RETURN ================= -->
+    <section id="sectionCustomerReturn" class="hidden space-y-4">
+      <div
+        class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 bg-slate-800/40 p-3.5 sm:p-4 rounded-2xl border border-slate-800 no-print">
+        <div>
+          <h2 class="text-sm sm:text-lg font-bold text-white">Retur Customer & Pengembalian Produk</h2>
+          <p class="text-[11px] sm:text-xs text-slate-400">Pencatatan resmi pengembalian barang dari konsumen (Shopee / Tokopedia / Offline) secara terpisah dari restock supplier.</p>
+        </div>
+        <button onclick="openNewCustomerReturnModal()"
+          class="w-full sm:w-auto px-3.5 py-2 text-xs font-semibold bg-rose-600 hover:bg-rose-500 text-white rounded-xl shadow-lg shadow-rose-600/20 transition flex items-center justify-center gap-1.5">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+          </svg>
+          <span>+ Catat Retur Customer</span>
+        </button>
+      </div>
+
+      <div class="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-800/40 backdrop-blur-sm card-print">
+        <table class="w-full text-left border-collapse text-xs sm:text-sm">
+          <thead>
+            <tr
+              class="bg-slate-800/90 text-slate-400 text-xs font-semibold uppercase tracking-wider border-b border-slate-700">
+              <th class="py-3 px-4">RETURN ID</th>
+              <th class="py-3 px-3">TANGGAL</th>
+              <th class="py-3 px-3">ORIGINAL SALE</th>
+              <th class="py-3 px-4">PRODUK</th>
+              <th class="py-3 px-3 text-center">QTY</th>
+              <th class="py-3 px-3 text-right">REFUND</th>
+              <th class="py-3 px-3 text-right">RETURN FEE</th>
+              <th class="py-3 px-3 text-center">CONDITION</th>
+              <th class="py-3 px-4">ALASAN</th>
+              <th class="py-3 px-3 text-center">STOCK RETURNED</th>
+              <th class="py-3 px-3">OLEH</th>
+            </tr>
+          </thead>
+          <tbody id="customerReturnTableBody" class="divide-y divide-slate-800 text-slate-200">
             <!-- Dynamically populated via JS -->
           </tbody>
         </table>
@@ -1330,6 +1392,14 @@
       </div>
 
       <form id="formReturn" onsubmit="handleReturnSubmit(event)" class="space-y-4">
+        <div id="returnSaleSelectContainer" class="hidden mb-3">
+          <label for="returnSaleSelect" class="block text-xs font-semibold text-slate-300 mb-1">Pilih Transaksi Asli (Original Sale) *</label>
+          <select id="returnSaleSelect" onchange="onReturnSaleSelectChange()"
+            class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-amber-500">
+            <option value="">-- Pilih Transaksi yang Diretur --</option>
+          </select>
+        </div>
+
         <div class="bg-slate-900/90 border border-slate-700 rounded-xl p-3 text-xs space-y-1">
           <div class="flex justify-between font-bold text-white">
             <span>ID Sale: <span id="returnSaleIdDisplay" class="font-mono text-blue-400">-</span></span>
@@ -2876,8 +2946,7 @@
 
       let totalGrossSales = 0;
       let totalDiscount = 0;
-      let totalNetSales = 0;
-      let totalCOGS = 0;
+      let totalSalesCOGS = 0;
       let totalUnitsSold = 0;
 
       let shopeeDiscountSum = 0;
@@ -2886,21 +2955,19 @@
 
       const productQtyMap = {};
 
-      appState.sales.forEach(s => {
-        if (isDateInActivePeriod(s.date)) {
+      (appState.sales || []).forEach(s => {
+        if (s.status !== 'VOIDED' && isDateInActivePeriod(s.date)) {
           const qty = toSafeNumber(s.qty, 0);
-          const unitPrice = toSafeNumber(s.unitPrice, 0);
+          const unitPrice = toSafeNumber(s.unitPrice || s.unit_price, 0);
           const discount = toSafeNumber(s.discount, 0);
-          const unitHPP = toSafeNumber(s.unitHPP, 0);
+          const unitHPP = toSafeNumber(s.unitHPP || s.unit_hpp, 0);
 
           const gross = unitPrice * qty;
-          const net = Math.max(0, gross - discount);
           const cogs = unitHPP * qty;
 
           totalGrossSales += gross;
           totalDiscount += discount;
-          totalNetSales += net;
-          totalCOGS += cogs;
+          totalSalesCOGS += cogs;
           totalUnitsSold += qty;
 
           productQtyMap[s.productId] = (productQtyMap[s.productId] || 0) + qty;
@@ -2913,7 +2980,37 @@
         }
       });
 
-      const totalGrossProfit = totalNetSales - totalCOGS;
+      // Calculate Customer Returns for Active Period
+      let totalRefunds = 0;
+      let totalReturnFees = 0;
+      let totalReturnedCOGS = 0;
+      let totalReturnedQty = 0;
+      let returnCountInPeriod = 0;
+
+      (appState.returns || []).forEach(r => {
+        const rDate = r.returnDate || r.return_date || (r.createdAt ? r.createdAt.split('T')[0] : getLocalDateString());
+        if (isDateInActivePeriod(rDate)) {
+          returnCountInPeriod++;
+          const refund = toSafeNumber(r.refundAmount || r.refund_amount, 0);
+          const fee = toSafeNumber(r.returnFee || r.return_fee, 0);
+          const qty = toSafeNumber(r.qty, 0);
+          const stockReturnedQty = toSafeNumber(r.stockReturnedQty || r.stock_returned_qty, (r.disposition === 'RESTOCKABLE' ? qty : 0));
+          const unitHPP = toSafeNumber(r.unitHPP || r.unit_hpp, 380000);
+
+          totalRefunds += refund;
+          totalReturnFees += fee;
+          totalReturnedQty += qty;
+
+          if (r.disposition === 'RESTOCKABLE' || r.conditionStatus === 'RESTOCKABLE') {
+            totalReturnedCOGS += (unitHPP * stockReturnedQty);
+          }
+        }
+      });
+
+      const totalNetSales = Math.max(0, totalGrossSales - totalDiscount - totalRefunds);
+      const netCOGS = Math.max(0, totalSalesCOGS - totalReturnedCOGS);
+      const totalGrossProfit = totalNetSales - netCOGS;
+      const grossProfitAfterReturnFee = totalGrossProfit - totalReturnFees;
       const grossMarginPct = totalNetSales > 0 ? ((totalGrossProfit / totalNetSales) * 100).toFixed(1) : "0.0";
 
       let bestProductId = null;
@@ -2932,51 +3029,168 @@
         bestSellerText = `Best: ${cleanName} (${bestQty} pcs)`;
       }
 
-      document.getElementById('kpiOmset').textContent = formatIDR(totalNetSales);
-      document.getElementById('kpiGrossSales').textContent = formatIDR(totalGrossSales);
-      document.getElementById('kpiTotalDiscount').textContent = totalDiscount > 0 ? `-${formatIDR(totalDiscount)}` : `Rp 0`;
+      const kpiOmsetEl = document.getElementById('kpiOmset');
+      if (kpiOmsetEl) kpiOmsetEl.textContent = formatIDR(totalNetSales);
 
-      const profitEl = document.getElementById('kpiProfit');
-      profitEl.textContent = formatIDR(totalGrossProfit);
-      profitEl.className = totalGrossProfit < 0
-        ? "text-lg sm:text-2xl lg:text-3xl font-extrabold text-rose-400 tracking-tight"
-        : "text-lg sm:text-2xl lg:text-3xl font-extrabold text-emerald-400 tracking-tight";
+      const kpiGrossEl = document.getElementById('kpiGrossSales');
+      if (kpiGrossEl) kpiGrossEl.textContent = formatIDR(totalGrossSales);
 
-      document.getElementById('kpiGrossMargin').textContent = `${grossMarginPct}%`;
-      document.getElementById('kpiUnitsSold').innerHTML = `${totalUnitsSold.toLocaleString('id-ID')} <span class="text-xs sm:text-sm font-normal text-slate-400">pcs</span>`;
-      document.getElementById('kpiRemainingStock').innerHTML = `${totalRemainingStock.toLocaleString('id-ID')} <span class="text-xs sm:text-sm font-normal text-slate-400">pcs</span>`;
-      document.getElementById('kpiBestSeller').textContent = bestSellerText;
-
-      const alertEl = document.getElementById('kpiAlertCount');
-      if (lowStockAlertCount > 0) {
-        alertEl.textContent = `⚠️ ${lowStockAlertCount} SKU menipis/habis!`;
-        alertEl.className = "text-[11px] sm:text-xs text-rose-400 font-semibold mt-2 truncate";
-      } else {
-        alertEl.textContent = `✓ ${currentLang === 'id' ? 'Semua stok gudang aman' : 'All warehouse stock safe'}`;
-        alertEl.className = "text-[11px] sm:text-xs text-emerald-400 font-semibold mt-2 truncate";
+      const discountEl = document.getElementById('kpiTotalDiscount');
+      if (discountEl && discountEl.parentElement) {
+        discountEl.parentElement.innerHTML = `
+          <span>Gross: <span class="font-semibold text-slate-300">${formatIDR(totalGrossSales)}</span></span>
+          <span class="text-rose-400 font-semibold">Disc: -${formatIDR(totalDiscount)}</span>
+          ${totalRefunds > 0 ? `<span class="text-amber-400 font-semibold">Ret: -${formatIDR(totalRefunds)}</span>` : ''}
+        `;
       }
 
+      const profitEl = document.getElementById('kpiProfit');
+      if (profitEl) {
+        profitEl.textContent = formatIDR(totalGrossProfit);
+        profitEl.className = totalGrossProfit < 0
+          ? "text-lg sm:text-2xl lg:text-3xl font-extrabold text-rose-400 tracking-tight"
+          : "text-lg sm:text-2xl lg:text-3xl font-extrabold text-emerald-400 tracking-tight";
+      }
+
+      const marginEl = document.getElementById('kpiGrossMargin');
+      if (marginEl && marginEl.parentElement) {
+        marginEl.parentElement.innerHTML = `
+          <span>Margin: <strong class="text-emerald-400 font-bold">${grossMarginPct}%</strong></span>
+          ${totalReturnFees > 0 ? `<span class="text-slate-300 font-semibold text-[10px]" title="Gross Profit After Return Fee (Belum termasuk biaya operasional)">Stlh Fee: <strong class="text-amber-400 font-bold">${formatIDR(grossProfitAfterReturnFee)}</strong></span>` : ''}
+        `;
+      }
+
+      const unitsSoldEl = document.getElementById('kpiUnitsSold');
+      if (unitsSoldEl) unitsSoldEl.innerHTML = `${totalUnitsSold.toLocaleString('id-ID')} <span class="text-xs sm:text-sm font-normal text-slate-400">pcs</span>`;
+
+      const remStockEl = document.getElementById('kpiRemainingStock');
+      if (remStockEl) remStockEl.innerHTML = `${totalRemainingStock.toLocaleString('id-ID')} <span class="text-xs sm:text-sm font-normal text-slate-400">pcs</span>`;
+
+      const bestSellerEl = document.getElementById('kpiBestSeller');
+      if (bestSellerEl) bestSellerEl.textContent = bestSellerText;
+
+      const alertEl = document.getElementById('kpiAlertCount');
+      if (alertEl) {
+        if (lowStockAlertCount > 0) {
+          alertEl.textContent = `⚠️ ${lowStockAlertCount} SKU menipis/habis!`;
+          alertEl.className = "text-[11px] sm:text-xs text-rose-400 font-semibold mt-2 truncate";
+        } else {
+          alertEl.textContent = `✓ ${currentLang === 'id' ? 'Semua stok gudang aman' : 'All warehouse stock safe'}`;
+          alertEl.className = "text-[11px] sm:text-xs text-emerald-400 font-semibold mt-2 truncate";
+        }
+      }
+
+      const dashRetCount = document.getElementById('dashReturnCount');
+      if (dashRetCount) dashRetCount.textContent = returnCountInPeriod;
+      const dashRefSum = document.getElementById('dashRefundSum');
+      if (dashRefSum) dashRefSum.textContent = formatIDR(totalRefunds);
+      const dashFeeSum = document.getElementById('dashReturnFeeSum');
+      if (dashFeeSum) dashFeeSum.textContent = formatIDR(totalReturnFees);
+      const dashRetUnits = document.getElementById('dashReturnedUnits');
+      if (dashRetUnits) dashRetUnits.textContent = `${totalReturnedQty} pcs`;
+
       const shopeeAvgPct = (shopeeGrossSum > 0) ? ((shopeeDiscountSum / shopeeGrossSum) * 100).toFixed(2) : "0.00";
-      document.getElementById('shopeeKpiTotalDiscount').textContent = formatIDR(shopeeDiscountSum);
-      document.getElementById('shopeeKpiAvgDiscountPct').textContent = `${shopeeAvgPct}%`;
-      document.getElementById('shopeeKpiTrxCount').innerHTML = `${shopeeTrxCount} <span class="text-xs font-normal text-slate-400">trx</span>`;
+      const sDiscEl = document.getElementById('shopeeKpiTotalDiscount');
+      if (sDiscEl) sDiscEl.textContent = formatIDR(shopeeDiscountSum);
+      const sAvgEl = document.getElementById('shopeeKpiAvgDiscountPct');
+      if (sAvgEl) sAvgEl.textContent = `${shopeeAvgPct}%`;
+      const sTrxEl = document.getElementById('shopeeKpiTrxCount');
+      if (sTrxEl) sTrxEl.innerHTML = `${shopeeTrxCount} <span class="text-xs font-normal text-slate-400">trx</span>`;
 
       // Tab Badges
-      document.getElementById('tabStockCount').textContent = appState.products.length;
-      document.getElementById('tabSaleCount').textContent = appState.sales.length;
-      document.getElementById('tabRestockCount').textContent = appState.restockHistory.length;
-      document.getElementById('tabAuditCount').textContent = appState.auditLogs.length;
+      if (document.getElementById('tabStockCount')) document.getElementById('tabStockCount').textContent = (appState.products || []).length;
+      if (document.getElementById('tabSaleCount')) document.getElementById('tabSaleCount').textContent = (appState.sales || []).length;
+      if (document.getElementById('tabRestockCount')) document.getElementById('tabRestockCount').textContent = (appState.restockHistory || []).length;
+      if (document.getElementById('tabCustomerReturnCount')) document.getElementById('tabCustomerReturnCount').textContent = (appState.returns || []).length;
+      if (document.getElementById('tabAuditCount')) document.getElementById('tabAuditCount').textContent = (appState.auditLogs || []).length;
 
       document.getElementById('printCurrentTimestamp').textContent = new Date().toLocaleString('id-ID');
-      const periodLabelMap = {
-        ALL: t("periodAll"),
-        TODAY: `${t("periodToday")} (${getLocalDateString()})`,
-        LAST_7_DAYS: t("period7Days"),
-        THIS_MONTH: t("periodThisMonth"),
-        LAST_MONTH: t("periodLastMonth"),
-        CUSTOM: `${customPeriodStart || ''} - ${customPeriodEnd || ''}`
-      };
-      document.getElementById('printPeriodLabel').textContent = periodLabelMap[currentPeriodFilter] || currentPeriodFilter;
+    }
+
+    function renderCustomerReturnTable() {
+      const tbody = document.getElementById('customerReturnTableBody');
+      if (!tbody) return;
+
+      const returnsList = Array.isArray(appState.returns) ? appState.returns : [];
+
+      if (returnsList.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="11" class="py-8 text-center text-slate-400 text-xs">
+              Belum ada data retur customer.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = returnsList.map(r => {
+        const retDate = formatDisplayDate(r.returnDate || r.return_date || r.createdAt);
+        const condition = r.conditionStatus || r.disposition || 'RESTOCKABLE';
+        const isRestockable = condition === 'RESTOCKABLE';
+        const badgeClass = isRestockable 
+          ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
+          : 'bg-rose-500/10 text-rose-400 border border-rose-500/20';
+
+        return `
+          <tr class="hover:bg-slate-800/60 transition-colors border-b border-slate-800/60">
+            <td class="py-3 px-4 font-mono font-bold text-rose-400">${r.id}</td>
+            <td class="py-3 px-3 text-slate-300 text-xs">${retDate}</td>
+            <td class="py-3 px-3 font-mono text-blue-400 text-xs">${r.saleId || r.sale_id || '-'}</td>
+            <td class="py-3 px-4 font-semibold text-white">
+              <div>${r.productName || r.product_id}</div>
+              <div class="text-[10px] text-slate-400 font-mono">${r.sku || r.product_id}</div>
+            </td>
+            <td class="py-3 px-3 text-center font-bold text-white">${r.qty} pcs</td>
+            <td class="py-3 px-3 text-right font-mono font-bold text-amber-400">${formatIDR(r.refundAmount || 0)}</td>
+            <td class="py-3 px-3 text-right font-mono font-bold text-rose-400">${formatIDR(r.returnFee || 0)}</td>
+            <td class="py-3 px-3 text-center">
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${badgeClass}">
+                ${condition}
+              </span>
+            </td>
+            <td class="py-3 px-4 text-xs text-slate-300 max-w-[180px] truncate" title="${r.reason || '-'}">${r.reason || '-'}</td>
+            <td class="py-3 px-3 text-center font-bold ${isRestockable ? 'text-emerald-400' : 'text-slate-400'}">${r.stockReturnedQty || 0} pcs</td>
+            <td class="py-3 px-3 text-xs text-slate-300">${r.createdBy || 'Adi'}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function openNewCustomerReturnModal() {
+      const select = document.getElementById('returnSaleSelect');
+      const selectContainer = document.getElementById('returnSaleSelectContainer');
+      if (selectContainer) selectContainer.classList.remove('hidden');
+
+      if (select) {
+        select.innerHTML = '<option value="">-- Pilih Transaksi yang Diretur --</option>' +
+          (appState.sales || [])
+            .filter(s => s.status !== 'VOIDED')
+            .map(s => `<option value="${s.id}">${s.id} - ${s.date} - ${s.productName} (Qty: ${s.qty}, Net: ${formatIDR(s.total)})</option>`)
+            .join('');
+      }
+
+      document.getElementById('returnSaleId').value = '';
+      document.getElementById('returnSaleIdDisplay').textContent = '-';
+      document.getElementById('returnSaleDateDisplay').textContent = '-';
+      document.getElementById('returnProductNameDisplay').textContent = '-';
+      document.getElementById('returnSaleQtyDisplay').textContent = '0';
+      document.getElementById('returnSaleNetDisplay').textContent = 'Rp 0';
+      document.getElementById('returnQty').value = 1;
+      document.getElementById('returnStockQty').value = 1;
+      document.getElementById('returnRefundAmount').value = 0;
+      if (document.getElementById('returnFee')) document.getElementById('returnFee').value = 0;
+      document.getElementById('returnDate').value = getLocalDateString();
+      document.getElementById('returnReason').value = 'PRODUK RETURE';
+
+      document.getElementById('modalReturn').classList.remove('hidden');
+    }
+
+    function onReturnSaleSelectChange() {
+      const select = document.getElementById('returnSaleSelect');
+      if (!select || !select.value) return;
+      const saleId = select.value;
+      openReturnModal(saleId);
     }
 
     function renderProductSummary() {
@@ -4207,7 +4421,7 @@
     }
 
     function switchTab(tab) {
-      const tabs = ['Dashboard', 'Inventory', 'RestockLog', 'Sales', 'AuditLog', 'Management'];
+      const tabs = ['Dashboard', 'Inventory', 'RestockLog', 'CustomerReturn', 'Sales', 'Report', 'AuditLog', 'Management'];
 
       tabs.forEach(tKey => {
         const sec = document.getElementById(`section${tKey}`);
@@ -4229,6 +4443,8 @@
 
       if (tab.toLowerCase() === 'dashboard') {
         renderOrUpdateChart();
+      } else if (tab.toLowerCase() === 'customerreturn') {
+        renderCustomerReturnTable();
       } else if (tab.toLowerCase() === 'auditlog') {
         renderAuditTrailTable();
       }
@@ -4237,9 +4453,17 @@
     function refreshAllViews() {
       window.appState = appState;
       window.currentUser = currentUser;
+
+      if (document.getElementById('tabStockCount')) document.getElementById('tabStockCount').textContent = (appState.products || []).length;
+      if (document.getElementById('tabRestockCount')) document.getElementById('tabRestockCount').textContent = (appState.restockHistory || []).length;
+      if (document.getElementById('tabCustomerReturnCount')) document.getElementById('tabCustomerReturnCount').textContent = (appState.returns || []).length;
+      if (document.getElementById('tabSaleCount')) document.getElementById('tabSaleCount').textContent = (appState.sales || []).length;
+      if (document.getElementById('tabAuditCount')) document.getElementById('tabAuditCount').textContent = (appState.auditLogs || []).length;
+
       calculateMetrics();
       renderInventory();
       renderRestockLogTable();
+      renderCustomerReturnTable();
       renderProductSummary();
       renderChannelSummary();
       renderSalesTable();
