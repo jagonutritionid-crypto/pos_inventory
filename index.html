@@ -4821,18 +4821,23 @@
     }
 
     function getProductOpeningStock(productId, sku, targetMonth, targetYear, allSales, allReturns, allRestocks) {
-      const baseStock = BASELINE_STOCKS[sku] || BASELINE_STOCKS[productId] || 0;
+      const prod = (typeof appState !== 'undefined' && appState && Array.isArray(appState.products)) 
+        ? appState.products.find(p => p.id === productId || p.sku === sku) 
+        : null;
+      const baseStock = (prod && prod.stokAwal !== undefined) 
+        ? prod.stokAwal 
+        : ((prod && prod.initial_stock !== undefined) ? prod.initial_stock : (BASELINE_STOCKS[sku] || BASELINE_STOCKS[productId] || 0));
 
       if (targetYear < 2026 || (targetYear === 2026 && targetMonth <= 9)) {
         return baseStock;
       }
 
-      const priorSales = (allSales || []).filter(s => s.status !== 'VOIDED' && (s.productId === productId || s.sku === sku) && isPriorToMonth(s.date, targetMonth, targetYear));
-      const priorReturns = (allReturns || []).filter(r => r.disposition === 'RESTOCKABLE' && (r.productId === productId || r.sku === sku) && isPriorToMonth(r.returnDate, targetMonth, targetYear));
-      const priorRestocks = (allRestocks || []).filter(r => (r.productId === productId || r.sku === sku) && isPriorToMonth(r.date, targetMonth, targetYear));
+      const priorSales = (allSales || []).filter(s => s.status !== 'VOIDED' && (s.productId === productId || s.sku === sku || (s.items && s.items.some(i => i.product_id === productId || i.sku === sku))) && isPriorToMonth(s.date, targetMonth, targetYear));
+      const priorReturns = (allReturns || []).filter(r => (r.disposition || r.condition_status) === 'RESTOCKABLE' && (r.productId === productId || r.sku === sku || r.product_id === productId) && isPriorToMonth(r.returnDate || r.return_date, targetMonth, targetYear));
+      const priorRestocks = (allRestocks || []).filter(r => (r.productId === productId || r.sku === sku || r.product_id === productId) && isPriorToMonth(r.date, targetMonth, targetYear));
 
-      const priorSoldQty = priorSales.reduce((acc, s) => acc + (s.qty || 0), 0);
-      const priorReturnedQty = priorReturns.reduce((acc, r) => acc + (r.stockReturnedQty || 0), 0);
+      const priorSoldQty = priorSales.reduce((acc, s) => acc + getSaleQty(s), 0);
+      const priorReturnedQty = priorReturns.reduce((acc, r) => acc + getReturnStockQty(r), 0);
       const priorRestockQty = priorRestocks.reduce((acc, r) => acc + (r.qty || 0), 0);
 
       return baseStock + priorRestockQty + priorReturnedQty - priorSoldQty;
@@ -4857,14 +4862,19 @@
       }
 
       // 2. Calculate historical ledger closing stock at end of selected month
-      const baseStock = BASELINE_STOCKS[sku] || BASELINE_STOCKS[productId] || 0;
+      const prod = (typeof appState !== 'undefined' && appState && Array.isArray(appState.products)) 
+        ? appState.products.find(p => p.id === productId || p.sku === sku) 
+        : null;
+      const baseStock = (prod && prod.stokAwal !== undefined) 
+        ? prod.stokAwal 
+        : ((prod && prod.initial_stock !== undefined) ? prod.initial_stock : (BASELINE_STOCKS[sku] || BASELINE_STOCKS[productId] || 0));
 
-      const monthSales = (allSales || []).filter(s => s.status !== 'VOIDED' && (s.productId === productId || s.sku === sku) && isUpToEndOfMonth(s.date, targetMonth, targetYear));
-      const monthReturns = (allReturns || []).filter(r => r.disposition === 'RESTOCKABLE' && (r.productId === productId || r.sku === sku) && isUpToEndOfMonth(r.returnDate, targetMonth, targetYear));
-      const monthRestocks = (allRestocks || []).filter(r => (r.productId === productId || r.sku === sku) && isUpToEndOfMonth(r.date, targetMonth, targetYear));
+      const monthSales = (allSales || []).filter(s => s.status !== 'VOIDED' && (s.productId === productId || s.sku === sku || (s.items && s.items.some(i => i.product_id === productId || i.sku === sku))) && isUpToEndOfMonth(s.date, targetMonth, targetYear));
+      const monthReturns = (allReturns || []).filter(r => (r.disposition || r.condition_status) === 'RESTOCKABLE' && (r.productId === productId || r.sku === sku || r.product_id === productId) && isUpToEndOfMonth(r.returnDate || r.return_date, targetMonth, targetYear));
+      const monthRestocks = (allRestocks || []).filter(r => (r.productId === productId || r.sku === sku || r.product_id === productId) && isUpToEndOfMonth(r.date, targetMonth, targetYear));
 
-      const totalSold = monthSales.reduce((acc, s) => acc + (s.qty || 0), 0);
-      const totalReturned = monthReturns.reduce((acc, r) => acc + (r.stockReturnedQty || 0), 0);
+      const totalSold = monthSales.reduce((acc, s) => acc + getSaleQty(s), 0);
+      const totalReturned = monthReturns.reduce((acc, r) => acc + getReturnStockQty(r), 0);
       const totalRestocked = monthRestocks.reduce((acc, r) => acc + (r.qty || 0), 0);
 
       const ledgerClosing = baseStock + totalRestocked + totalReturned - totalSold;
