@@ -5082,7 +5082,7 @@
       const restockSourcePass = !restocksInMonth.some(r => r.saleId || r.sale_id);
       const noDoubleCountPass = !returnsInMonth.some(ret => restocksInMonth.some(rst => rst.id === ret.id));
       const inventoryReconPass = productPerformance.every(p => p.status === 'MATCH');
-      const cogsCheck = Math.abs(salesCogs - returnedResalableCogs - cogs) < 0.01;
+      const cogsCheck = Math.abs(cogs - Math.max(0, salesCogs - returnedResalableCogs)) < 0.01;
       const duplicatePass = new Set([...salesInMonth.map(s => s.id), ...returnsInMonth.map(r => r.id), ...restocksInMonth.map(r => r.id)]).size === (salesInMonth.length + returnsInMonth.length + restocksInMonth.length);
 
       const auditChecks = [
