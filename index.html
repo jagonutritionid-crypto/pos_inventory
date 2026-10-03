@@ -5352,9 +5352,9 @@
       const year = parseInt(yearSelect.value, 10);
       const metrics = calculateMonthlyMetrics(month, year);
 
-      const monthNames = ["Semua Periode (Lifetime)", "Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
-      const monthLabel = month === 0 ? "Semua Periode (Lifetime)" : (monthNames[month] + ' ' + year);
-      const genDateStr = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+      const monthNames = ["All Periods (Lifetime)", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+      const monthLabel = month === 0 ? "All Periods (Lifetime)" : (monthNames[month] + ' ' + year);
+      const genDateStr = new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 
       const logoBase64 = await getLogoBase64();
 
@@ -5511,7 +5511,6 @@
             background: #ffffff;
             box-sizing: border-box;
           }
-          }
           .kpi-card-title {
             font-size: 7.5px;
             font-weight: 700;
@@ -5523,29 +5522,29 @@
             font-size: 10.5px;
             font-weight: 800;
             color: #0f172a;
-            white-space: nowrap;
           }
           .summary-box {
-            border: 1px solid #cbd5e1;
-            background: #f8fafc;
-            padding: 10px 12px;
+            border: 1px solid #e2e8f0;
             border-radius: 6px;
+            padding: 10px 12px;
+            background: #f8fafc;
             margin-bottom: 14px;
           }
           .summary-box-title {
             font-size: 9px;
             font-weight: 800;
-            color: #0f172a;
             text-transform: uppercase;
-            margin-bottom: 6px;
-            border-bottom: 1px solid #e2e8f0;
+            color: #0f172a;
+            border-bottom: 1px solid #cbd5e1;
             padding-bottom: 4px;
+            margin-bottom: 8px;
+            letter-spacing: 0.2px;
           }
           .summary-row {
             display: flex;
             justify-content: space-between;
             font-size: 8.5px;
-            padding: 2.5px 0;
+            padding: 3.5px 0;
             color: #334155;
           }
           .stmt-box {
@@ -5604,15 +5603,15 @@
           </div>
           <div class="pdf-doc-title">
             <h1>${pageTitle}</h1>
-            <p>Periode: <strong>${monthLabel}</strong> | Dibuat: ${genDateStr}</p>
+            <p>Reporting Period: <strong>${monthLabel}</strong> | Generated At: ${genDateStr}</p>
           </div>
         </div>
       `;
 
       const footerHTML = (pageNum, totalPages) => `
         <div class="pdf-footer">
-          <span>JagoNutritionID — Laporan Resmi Kerahasiaan Bisnis</span>
-          <span>Halaman ${pageNum} dari ${totalPages}</span>
+          <span>JagoNutritionID — Official Confidential Business Report</span>
+          <span>Page ${pageNum} of ${totalPages}</span>
         </div>
       `;
 
@@ -5626,75 +5625,75 @@
       printRoot.innerHTML = styleHeader + `
         <!-- PAGE 1: EXECUTIVE SUMMARY -->
         <div class="pdf-page">
-          ${headerHTML("RINGKASAN EKSEKUTIF", 1, 5)}
+          ${headerHTML("EXECUTIVE SUMMARY", 1, 5)}
           
-          <div class="pdf-section-title">1. RINGKASAN FINANSIAL UTAMA</div>
+          <div class="pdf-section-title">1. KEY FINANCIAL SUMMARY</div>
           
           <div class="kpi-grid-5">
             <div class="kpi-card">
-              <div class="kpi-card-title">1. Penjualan Kotor</div>
+              <div class="kpi-card-title">1. Gross Sales</div>
               <div class="kpi-card-val font-mono">${formatIDR(metrics.grossSales)}</div>
             </div>
             <div class="kpi-card">
-              <div class="kpi-card-title">2. Diskon</div>
+              <div class="kpi-card-title">2. Discounts</div>
               <div class="kpi-card-val font-mono" style="color: #64748b;">${formatIDR(metrics.totalDiscounts)}</div>
             </div>
             <div class="kpi-card">
-              <div class="kpi-card-title">3. Penjualan Bersih</div>
+              <div class="kpi-card-title">3. Net Sales</div>
               <div class="kpi-card-val font-mono" style="color: #16a34a;">${formatIDR(metrics.netSales)}</div>
             </div>
             <div class="kpi-card">
-              <div class="kpi-card-title">4. HPP Bersih</div>
+              <div class="kpi-card-title">4. Net COGS</div>
               <div class="kpi-card-val font-mono" style="color: #475569;">${formatIDR(metrics.cogs)}</div>
             </div>
             <div class="kpi-card">
-              <div class="kpi-card-title">5. Laba Kotor</div>
+              <div class="kpi-card-title">5. Gross Profit</div>
               <div class="kpi-card-val font-mono" style="color: #2563eb;">${formatIDR(metrics.grossProfit)}</div>
             </div>
           </div>
 
-          <div class="pdf-section-title">2. RINGKASAN AKTIVITAS OPERASIONAL & INVENTARIS</div>
+          <div class="pdf-section-title">2. OPERATIONAL & INVENTORY SUMMARY</div>
           <div class="summary-box">
-            <div class="summary-box-title">Ringkasan Aktivitas Transaksi (${monthLabel})</div>
+            <div class="summary-box-title">Transaction Summary (${monthLabel})</div>
             <div class="summary-row">
-              <span>Total Transaksi Penjualan Selesai (Completed Sales):</span>
-              <span class="font-mono font-bold">${metrics.completedSalesCount} Transaksi (${metrics.totalGrossSoldQty} pcs)</span>
+              <span>Completed Sales Transactions:</span>
+              <span class="font-mono font-bold">${metrics.completedSalesCount} Transactions (${metrics.totalGrossSoldQty} pcs)</span>
             </div>
             <div class="summary-row">
-              <span>Total Retur Customer (Customer Returns):</span>
-              <span class="font-mono font-bold" style="color: #b91c1c;">${metrics.returnsCount} Transaksi (${metrics.totalReturnedQty} pcs)</span>
+              <span>Customer Returns:</span>
+              <span class="font-mono font-bold" style="color: #b91c1c;">${metrics.returnsCount} Transactions (${metrics.totalReturnedQty} pcs)</span>
             </div>
             <div class="summary-row">
-              <span>Total Restock Supplier (Supplier Restock):</span>
-              <span class="font-mono font-bold" style="color: #2563eb;">${metrics.restocksCount} Batch (${metrics.totalRestockQty} pcs)</span>
+              <span>Supplier Restock:</span>
+              <span class="font-mono font-bold" style="color: #2563eb;">${metrics.restocksCount} Batches (${metrics.totalRestockQty} pcs)</span>
             </div>
             <div class="summary-row" style="border-top: 1px solid #e2e8f0; margin-top: 4px; padding-top: 4px; font-weight: 700;">
-              <span>Total Stok Akhir Fisik Gudang Tersedia:</span>
+              <span>Total Available Physical Closing Stock:</span>
               <span class="font-mono font-bold text-emerald-700">${metrics.totalActualClosingQty} pcs</span>
             </div>
           </div>
 
-          <div class="pdf-section-title">3. DETIL AUDIT RETUR PELANGGAN & BIAYA PLATFORM</div>
+          <div class="pdf-section-title">3. CUSTOMER RETURN & PLATFORM FEE AUDIT</div>
           <div class="summary-box" style="border-color: #fde68a; background: #fffbeb;">
-            <div class="summary-box-title" style="color: #92400e; border-color: #fcd34d;">Status Barang Retur & Biaya Retur Shopee</div>
+            <div class="summary-box-title" style="color: #92400e; border-color: #fcd34d;">Customer Returned Items Status & Shopee Return Fee</div>
             <div class="summary-row">
-              <span>Total Refund Customer Ditransfer:</span>
+              <span>Total Customer Refunds Transferred:</span>
               <span class="font-mono font-bold">(${formatIDR(metrics.totalRefunds)})</span>
             </div>
             <div class="summary-row" style="color: #166534;">
-              <span>Kondisi RESTOCKABLE (Layak Jual - Masuk Stok):</span>
+              <span>RESTOCKABLE Condition (Resalable - Added to Stock):</span>
               <span class="font-mono font-bold">+${metrics.totalResalableReturnedQty} pcs</span>
             </div>
             <div class="summary-row" style="color: #991b1b;">
-              <span>Kondisi DAMAGED (Rusak / Tidak Masuk Stok):</span>
+              <span>DAMAGED Condition (Damaged - Excluded from Stock):</span>
               <span class="font-mono font-bold">${metrics.totalDamagedReturnedQty} pcs</span>
             </div>
             <div class="summary-row" style="color: #b45309;">
-              <span>Biaya Logistik Retur Shopee (Return Fee):</span>
+              <span>Shopee Logistics Return Fee:</span>
               <span class="font-mono font-bold">(${formatIDR(metrics.totalReturnFees)})</span>
             </div>
             <div class="summary-row" style="border-top: 1px solid #fcd34d; margin-top: 4px; padding-top: 5px; font-weight: 800; color: #1e3a8a;">
-              <span>Laba Kotor Setelah Biaya Retur:</span>
+              <span>Gross Profit After Return Fee:</span>
               <span class="font-mono font-bold">${formatIDR(metrics.grossProfitAfterReturnFee)}</span>
             </div>
           </div>
@@ -5702,38 +5701,38 @@
           ${footerHTML(1, 5)}
         </div>
 
-        <!-- PAGE 2: PENJUALAN -->
+        <!-- PAGE 2: SALES REPORT -->
         <div class="pdf-page">
-          ${headerHTML("RINCIAN PENJUALAN", 2, 5)}
+          ${headerHTML("SALES REPORT", 2, 5)}
 
-          <div class="pdf-section-title">DAFTAR TRANSAKSI PENJUALAN SELESAI (${monthLabel.toUpperCase()})</div>
-          <p style="font-size: 8px; color: #64748b; margin-bottom: 8px;">Daftar seluruh transaksi penjualan completed pada periode berjalan.</p>
+          <div class="pdf-section-title">COMPLETED SALES TRANSACTIONS (${monthLabel.toUpperCase()})</div>
+          <p style="font-size: 8px; color: #64748b; margin-bottom: 8px;">List of all completed sales transactions in the selected reporting period.</p>
           
           <table class="pdf-table">
             <thead>
               <tr>
-                <th style="width: 60px;">Tanggal</th>
-                <th style="width: 105px;">No. Transaksi</th>
-                <th style="width: 155px;">Nama Produk</th>
+                <th style="width: 60px;">Date</th>
+                <th style="width: 105px;">Transaction ID</th>
+                <th style="width: 155px;">Product Name</th>
                 <th style="width: 30px;" class="text-right">Qty</th>
-                <th style="width: 65px;" class="text-right">Harga</th>
-                <th style="width: 60px;" class="text-right">Diskon</th>
-                <th style="width: 75px;" class="text-right">Total Net</th>
+                <th style="width: 65px;" class="text-right">Price</th>
+                <th style="width: 60px;" class="text-right">Discounts</th>
+                <th style="width: 75px;" class="text-right">Net Total</th>
               </tr>
             </thead>
             <tbody>
               ${salesInMonth.length === 0 ? `
-                <tr><td colspan="7" class="text-center" style="padding: 12px; color: #94a3b8;">Tidak ada transaksi penjualan pada periode ini.</td></tr>
+                <tr><td colspan="7" class="text-center" style="padding: 12px; color: #94a3b8;">No sales transactions found in this reporting period.</td></tr>
               ` : salesInMonth.map(s => {
                 const item = (s.items && s.items[0]) ? s.items[0] : {};
-                const pName = item.name || item.product_id || 'Produk';
+                const pName = item.name || item.product_id || 'Product';
                 const qty = item.qty || 1;
                 const unitPrice = item.shopeeCatalogPrice || item.catalog_price || 650000;
                 const totalCatalog = unitPrice * qty;
                 const discount = item.discount || (totalCatalog - s.total_amount);
                 return `
                   <tr>
-                    <td>${s.date ? new Date(s.date).toLocaleDateString('id-ID') : '-'}</td>
+                    <td>${s.date ? s.date : '-'}</td>
                     <td class="font-mono font-bold">${s.id}</td>
                     <td>${pName}</td>
                     <td class="text-right font-mono font-bold">${qty}</td>
@@ -5744,7 +5743,7 @@
                 `;
               }).join('')}
               <tr class="total-row">
-                <td colspan="3">TOTAL PENJUALAN PERIODE INI</td>
+                <td colspan="3">TOTAL SALES FOR THIS PERIOD</td>
                 <td class="text-right font-mono">${metrics.totalGrossSoldQty}</td>
                 <td class="text-right font-mono">${formatIDR(metrics.grossSales)}</td>
                 <td class="text-right font-mono">${formatIDR(metrics.totalDiscounts)}</td>
@@ -5756,27 +5755,27 @@
           ${footerHTML(2, 5)}
         </div>
 
-        <!-- PAGE 3: RETUR CUSTOMER & RESTOCK SUPPLIER -->
+        <!-- PAGE 3: CUSTOMER RETURNS & SUPPLIER RESTOCK -->
         <div class="pdf-page">
-          ${headerHTML("RETUR & RESTOCK SUPPLIER", 3, 5)}
+          ${headerHTML("CUSTOMER RETURNS & SUPPLIER RESTOCK", 3, 5)}
 
-          <div class="pdf-section-title">A. DETIL TRANSAKSI RETUR CUSTOMER</div>
+          <div class="pdf-section-title">A. CUSTOMER RETURN TRANSACTIONS DETAILS</div>
           ${metrics.returnsInMonth.length === 0 ? `
             <div style="padding: 10px; border: 1px solid #e2e8f0; background: #f8fafc; border-radius: 5px; font-size: 8.5px; color: #64748b; margin-bottom: 16px;">
-              Tidak ada transaksi retur customer pada periode ini.
+              No customer return transactions in this reporting period.
             </div>
           ` : `
             <table class="pdf-table">
               <thead>
                 <tr>
-                  <th style="width: 55px;">Tanggal</th>
-                  <th style="width: 85px;">No. Retur</th>
-                  <th style="width: 85px;">Transaksi Asli</th>
-                  <th style="width: 110px;">Produk</th>
+                  <th style="width: 55px;">Date</th>
+                  <th style="width: 85px;">Return ID</th>
+                  <th style="width: 85px;">Original Transaction ID</th>
+                  <th style="width: 110px;">Product Name</th>
                   <th style="width: 30px;" class="text-right">Qty</th>
                   <th style="width: 65px;" class="text-right">Refund</th>
-                  <th style="width: 55px;" class="text-right">Biaya Shopee</th>
-                  <th style="width: 65px;" class="text-center">Kondisi</th>
+                  <th style="width: 55px;" class="text-right">Shopee Fee</th>
+                  <th style="width: 65px;" class="text-center">Item Condition</th>
                 </tr>
               </thead>
               <tbody>
@@ -5789,28 +5788,28 @@
                     <td class="text-right font-mono font-bold">${r.qty || 1}</td>
                     <td class="text-right font-mono font-bold" style="color: #b91c1c;">${formatIDR(r.refundAmount || r.refund_amount)}</td>
                     <td class="text-right font-mono font-bold" style="color: #b45309;">${formatIDR(r.returnFee || r.return_fee || 0)}</td>
-                    <td class="text-center font-bold" style="color: ${getReturnDisposition(r) === 'RESTOCKABLE' ? '#16a34a' : '#b45309'};">${getReturnDisposition(r)}</td>
+                    <td class="text-center font-bold" style="color: ${getReturnDisposition(r) === 'RESTOCKABLE' ? '#16a34a' : '#b45309'};游">${getReturnDisposition(r)}</td>
                   </tr>
                 `).join('')}
               </tbody>
             </table>
           `}
 
-          <div class="pdf-section-title" style="margin-top: 20px;">B. DETIL RESTOCK SUPPLIER (MURNI SUPPLIER)</div>
+          <div class="pdf-section-title" style="margin-top: 20px;">B. SUPPLIER RESTOCK DETAILS (PURE SUPPLIER RESTOCK)</div>
           ${metrics.restocksInMonth.length === 0 ? `
             <div style="padding: 12px; border: 1px solid #cbd5e1; background: #f8fafc; border-radius: 5px; font-size: 8.5px; color: #475569; font-weight: 500;">
-              Tidak ada restock supplier pada periode ini. (Restock Supplier murni dari supplier dan 100% terpisah dari retur customer).
+              No supplier restock during this period. (Supplier restock is 100% pure supplier inventory restock and separate from customer returns).
             </div>
           ` : `
             <table class="pdf-table">
               <thead>
                 <tr>
-                  <th style="width: 60px;">Tanggal</th>
-                  <th style="width: 90px;">No. Batch</th>
-                  <th style="width: 155px;">Nama Produk</th>
+                  <th style="width: 60px;">Date</th>
+                  <th style="width: 90px;">Batch ID</th>
+                  <th style="width: 155px;">Product Name</th>
                   <th style="width: 40px;" class="text-right">Qty</th>
-                  <th style="width: 75px;" class="text-right">Unit HPP</th>
-                  <th style="width: 80px;" class="text-right">Total HPP</th>
+                  <th style="width: 75px;" class="text-right">Unit COGS</th>
+                  <th style="width: 80px;" class="text-right">Total COGS</th>
                 </tr>
               </thead>
               <tbody>
@@ -5831,22 +5830,22 @@
           ${footerHTML(3, 5)}
         </div>
 
-        <!-- PAGE 4: STOK GUDANG -->
+        <!-- PAGE 4: INVENTORY REPORT -->
         <div class="pdf-page">
-          ${headerHTML("LAPORAN STOK GUDANG", 4, 5)}
+          ${headerHTML("INVENTORY REPORT", 4, 5)}
 
-          <div class="pdf-section-title">REKONSILIASI PERGERAKAN STOK GUDANG</div>
-          <p style="font-size: 8px; color: #64748b; margin-bottom: 8px;">Perhitungan pergerakan stok fisik berdasarkan Stok Awal, Restock Supplier, Terjual, dan Retur Layak Jual.</p>
+          <div class="pdf-section-title">WAREHOUSE INVENTORY MOVEMENT RECONCILIATION</div>
+          <p style="font-size: 8px; color: #64748b; margin-bottom: 8px;">Calculation of physical inventory movement based on Opening Stock, Supplier Restock, Gross Sold, and Resalable Returns.</p>
 
           <table class="pdf-table">
             <thead>
               <tr>
-                <th style="width: 180px;">Nama Produk & SKU</th>
-                <th style="width: 55px;" class="text-right">Stok Awal</th>
-                <th style="width: 65px;" class="text-right">Restock Supplier</th>
-                <th style="width: 50px;" class="text-right">Terjual</th>
-                <th style="width: 65px;" class="text-right">Retur Layak Jual</th>
-                <th style="width: 60px;" class="text-right">Stok Akhir</th>
+                <th style="width: 180px;">Product Name & SKU</th>
+                <th style="width: 55px;" class="text-right">Opening Stock</th>
+                <th style="width: 65px;" class="text-right">Supplier Restock</th>
+                <th style="width: 50px;" class="text-right">Gross Sold</th>
+                <th style="width: 65px;" class="text-right">Resalable Return</th>
+                <th style="width: 60px;" class="text-right">Closing Stock</th>
               </tr>
             </thead>
             <tbody>
@@ -5861,7 +5860,7 @@
                 </tr>
               `).join('')}
               <tr class="total-row">
-                <td>TOTAL INVENTARIS GUDANG</td>
+                <td>TOTAL WAREHOUSE INVENTORY</td>
                 <td class="text-right font-mono">${metrics.productPerformance.reduce((acc, p) => acc + p.openingStock, 0)}</td>
                 <td class="text-right font-mono">+${metrics.totalRestockQty}</td>
                 <td class="text-right font-mono">${metrics.totalGrossSoldQty}</td>
@@ -5872,86 +5871,86 @@
           </table>
 
           <div style="font-size: 8px; color: #64748b; background: #f8fafc; padding: 8px 10px; border-radius: 5px; border: 1px solid #e2e8f0; line-height: 1.4;">
-            <strong>Formula Stok Akhir:</strong> Stok Akhir = Stok Awal + Restock Supplier + Retur Layak Jual - Terjual<br />
-            *Barang retur rusak (Damaged) tidak dimasukkan ke dalam Stok Akhir Layak Jual.
+            <strong>Closing Stock Formula:</strong> Closing Stock = Opening Stock + Supplier Restock + Resalable Return - Gross Sold<br />
+            *Damaged returned items are excluded from Resalable Closing Stock.
           </div>
 
           ${footerHTML(4, 5)}
         </div>
 
-        <!-- PAGE 5: RINGKASAN KEUANGAN -->
+        <!-- PAGE 5: FINANCIAL SUMMARY -->
         <div class="pdf-page">
-          ${headerHTML("RINGKASAN KEUANGAN", 5, 5)}
+          ${headerHTML("FINANCIAL SUMMARY", 5, 5)}
 
-          <div class="pdf-section-title">LAPORAN LABA KOTOR & PERNYATAAN FINANSIAL</div>
+          <div class="pdf-section-title">GROSS PROFIT STATEMENT & FINANCIAL STATEMENT</div>
           
           <div class="stmt-box">
             <div class="stmt-header">JAGONUTRITIONID — FINANCIAL STATEMENT (${monthLabel.toUpperCase()})</div>
             
             <div class="stmt-line">
-              <span>Penjualan Kotor (Gross Sales)</span>
+              <span>Gross Sales</span>
               <span class="font-mono font-bold">${formatIDR(metrics.grossSales)}</span>
             </div>
             
             <div class="stmt-line" style="color: #64748b;">
-              <span>Diskon Konsumen (Discounts)</span>
+              <span>Discounts</span>
               <span class="font-mono">(${formatIDR(metrics.totalDiscounts)})</span>
             </div>
 
             <div class="stmt-line subtotal" style="color: #334155;">
-              <span>Penjualan Bersih sebelum Retur</span>
+              <span>Net Sales before Returns</span>
               <span class="font-mono">${formatIDR(metrics.grossSales - metrics.totalDiscounts)}</span>
             </div>
 
             <div class="stmt-line" style="color: #b91c1c;">
-              <span>Refund Retur Pelanggan (Customer Refunds)</span>
+              <span>Customer Refunds</span>
               <span class="font-mono">(${formatIDR(metrics.totalRefunds)})</span>
             </div>
 
             <div class="stmt-line subtotal" style="color: #16a34a; font-size: 10px;">
-              <span>PENJUALAN BERSIH (NET SALES)</span>
+              <span>NET SALES</span>
               <span class="font-mono">${formatIDR(metrics.netSales)}</span>
             </div>
 
             <div class="stmt-line" style="margin-top: 6px;">
-              <span>HPP Penjualan (Sales COGS)</span>
+              <span>Sales COGS</span>
               <span class="font-mono">(${formatIDR(metrics.salesCogs)})</span>
             </div>
 
             <div class="stmt-line" style="color: #16a34a;">
-              <span>HPP Barang Retur Layak Jual (COGS Reversal)</span>
+              <span>Resalable Returned Stock COGS Credit</span>
               <span class="font-mono">+${formatIDR(metrics.returnedResalableCogs)}</span>
             </div>
 
             <div class="stmt-line subtotal" style="color: #475569;">
-              <span>HPP BERSIH (NET COGS)</span>
+              <span>NET COGS</span>
               <span class="font-mono">${formatIDR(metrics.cogs)}</span>
             </div>
 
             <div class="stmt-line subtotal" style="color: #2563eb; font-size: 10px; margin-top: 4px;">
-              <span>LABA KOTOR (GROSS PROFIT)</span>
+              <span>GROSS PROFIT</span>
               <span class="font-mono">${formatIDR(metrics.grossProfit)}</span>
             </div>
 
             <div class="stmt-line" style="color: #b45309;">
-              <span>Biaya Retur Shopee (Return Fee Logistics)</span>
+              <span>Shopee Return Fee</span>
               <span class="font-mono">(${formatIDR(metrics.totalReturnFees)})</span>
             </div>
 
             <div class="stmt-line grand-total">
-              <span>LABA KOTOR SETELAH BIAYA RETUR</span>
+              <span>GROSS PROFIT AFTER RETURN FEE</span>
               <span class="font-mono">${formatIDR(metrics.grossProfitAfterReturnFee)}</span>
             </div>
           </div>
 
           <div style="margin-top: 36px; display: flex; justify-content: space-between; text-align: center; font-size: 9px; color: #475569;">
             <div style="width: 170px;">
-              <p style="margin-bottom: 40px;">Dibuat Oleh,</p>
+              <p style="margin-bottom: 40px;">Created By,</p>
               <div style="border-bottom: 1px solid #0f172a; font-weight: 700; padding-bottom: 2px;">Finance & Admin</div>
               <p style="font-size: 7.5px; color: #64748b; margin-top: 2px;">Adi (JagoNutritionID)</p>
             </div>
             <div style="width: 170px;">
-              <p style="margin-bottom: 40px;">Disetujui Oleh,</p>
+              <p style="margin-bottom: 40px;">Approved By,</p>
               <div style="border-bottom: 1px solid #0f172a; font-weight: 700; padding-bottom: 2px;">Business Owner</div>
               <p style="font-size: 7.5px; color: #64748b; margin-top: 2px;">Koko (JagoNutritionID Management)</p>
             </div>
