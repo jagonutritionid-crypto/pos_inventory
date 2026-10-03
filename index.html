@@ -5288,6 +5288,21 @@
       container.innerHTML = html;
     }
 
+    async function getLogoBase64() {
+      try {
+        const response = await fetch('icons/icon-192.png');
+        const blob = await response.blob();
+        return new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result || 'icons/icon-192.png');
+          reader.onerror = () => resolve('icons/icon-192.png');
+          reader.readAsDataURL(blob);
+        });
+      } catch (e) {
+        return 'icons/icon-192.png';
+      }
+    }
+
     async function exportMonthlyReportPDF() {
       const monthSelect = document.getElementById('reportMonthSelect');
       const yearSelect = document.getElementById('reportYearSelect');
@@ -5299,6 +5314,9 @@
 
       const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
       const monthLabel = monthNames[month - 1] + ' ' + year;
+      const genDateStr = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+      const logoBase64 = await getLogoBase64();
 
       const printRoot = document.createElement('div');
       printRoot.id = 'pdf-export-root';
@@ -5306,16 +5324,18 @@
       const styleHeader = `
         <style>
           #pdf-export-root {
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             color: #0f172a;
             background: #ffffff;
-            width: 595.28pt; /* A4 width */
+            width: 595.28pt; /* A4 Width */
             box-sizing: border-box;
+            margin: 0;
+            padding: 0;
           }
           .pdf-page {
             width: 595.28pt;
-            height: 841.89pt; /* A4 height */
-            padding: 36pt;
+            height: 841.89pt; /* A4 Height */
+            padding: 36pt 40pt;
             box-sizing: border-box;
             position: relative;
             page-break-after: always;
@@ -5325,17 +5345,34 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 2px solid #0f172a;
-            padding-bottom: 8px;
-            margin-bottom: 16px;
+            border-bottom: 2.5px solid #0f172a;
+            padding-bottom: 10px;
+            margin-bottom: 18px;
           }
-          .pdf-logo {
+          .pdf-header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+          }
+          .pdf-logo-img {
+            height: 38px;
+            width: auto;
+            object-fit: contain;
+          }
+          .pdf-brand-title {
             font-size: 16px;
-            font-weight: 900;
-            letter-spacing: -0.5px;
+            font-weight: 800;
+            letter-spacing: -0.3px;
             color: #0f172a;
+            line-height: 1.1;
           }
-          .pdf-logo span { color: #16a34a; }
+          .pdf-brand-subtitle {
+            font-size: 9px;
+            font-weight: 700;
+            color: #16a34a;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+          }
           .pdf-doc-title {
             text-align: right;
           }
@@ -5345,51 +5382,55 @@
             margin: 0;
             text-transform: uppercase;
             color: #0f172a;
+            letter-spacing: 0.2px;
           }
           .pdf-doc-title p {
             font-size: 8.5px;
             color: #64748b;
-            margin: 2px 0 0 0;
+            margin: 3px 0 0 0;
+            font-weight: 500;
           }
           .pdf-footer {
             position: absolute;
-            bottom: 30pt;
-            left: 36pt;
-            right: 36pt;
-            border-top: 1px solid #e2e8f0;
-            padding-top: 6px;
+            bottom: 28pt;
+            left: 40pt;
+            right: 40pt;
+            border-top: 1px solid #cbd5e1;
+            padding-top: 8px;
             display: flex;
             justify-content: space-between;
             font-size: 8px;
-            color: #94a3b8;
+            color: #64748b;
+            font-weight: 500;
           }
           .pdf-section-title {
-            font-size: 10.5px;
+            font-size: 11px;
             font-weight: 800;
             text-transform: uppercase;
             color: #0f172a;
-            border-left: 3.5px solid #16a34a;
-            padding-left: 6px;
-            margin-top: 14px;
-            margin-bottom: 8px;
+            border-left: 4px solid #16a34a;
+            padding-left: 8px;
+            margin-top: 16px;
+            margin-bottom: 12px;
+            letter-spacing: 0.3px;
           }
           table.pdf-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 9.5px;
-            margin-bottom: 16px;
+            font-size: 9px;
+            margin-bottom: 14px;
             table-layout: fixed;
           }
           table.pdf-table th {
-            background-color: #f8fafc;
-            color: #1e293b;
+            background-color: #0f172a;
+            color: #ffffff;
             font-weight: 700;
             text-transform: uppercase;
-            font-size: 8.5px;
-            padding: 6px 8px;
-            border: 1px solid #cbd5e1;
+            font-size: 8px;
+            padding: 7px 8px;
+            border: 1px solid #0f172a;
             text-align: left;
-            word-wrap: break-word;
+            letter-spacing: 0.3px;
           }
           table.pdf-table td {
             padding: 6px 8px;
@@ -5402,278 +5443,330 @@
           table.pdf-table tr:nth-child(even) td {
             background-color: #f8fafc;
           }
+          table.pdf-table tr.total-row td {
+            background-color: #f1f5f9;
+            font-weight: 800;
+            color: #0f172a;
+            border-top: 1.5px solid #0f172a;
+            border-bottom: 1.5px solid #0f172a;
+          }
           .text-right { text-align: right !important; }
           .text-center { text-align: center !important; }
-          .font-mono { font-family: "Courier New", Courier, monospace; }
+          .font-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
           .font-bold { font-weight: 700; }
-          .stat-grid {
+          
+          .kpi-grid-5 {
             display: grid;
-            grid-template-cols: repeat(4, 1fr);
-            gap: 12px;
-            margin-bottom: 20px;
+            grid-template-cols: repeat(5, 1fr);
+            gap: 8px;
+            margin-bottom: 16px;
           }
-          .stat-box {
+          .kpi-card {
             border: 1px solid #cbd5e1;
-            padding: 10px 12px;
-            border-radius: 4px;
+            padding: 10px 8px;
+            border-radius: 6px;
             background: #ffffff;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
           }
-          .stat-label {
-            font-size: 8.5px;
+          .kpi-card-title {
+            font-size: 8px;
             font-weight: 700;
             text-transform: uppercase;
             color: #64748b;
             margin-bottom: 4px;
+            letter-spacing: 0.2px;
           }
-          .stat-value {
+          .kpi-card-val {
+            font-size: 11px;
+            font-weight: 800;
+            color: #0f172a;
+            white-space: nowrap;
+          }
+          .summary-box {
+            border: 1px solid #cbd5e1;
+            background: #f8fafc;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+          }
+          .summary-box-title {
+            font-size: 9.5px;
+            font-weight: 800;
+            color: #0f172a;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 4px;
+          }
+          .summary-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 9px;
+            padding: 3px 0;
+            color: #334155;
+          }
+          .stmt-box {
+            border: 1.5px solid #0f172a;
+            border-radius: 8px;
+            padding: 18px 20px;
+            background: #ffffff;
+          }
+          .stmt-header {
             font-size: 13px;
             font-weight: 800;
             color: #0f172a;
+            text-transform: uppercase;
+            border-bottom: 2px solid #0f172a;
+            padding-bottom: 10px;
+            margin-bottom: 14px;
+            letter-spacing: 0.5px;
           }
-          .stmt-row {
+          .stmt-line {
             display: flex;
             justify-content: space-between;
-            padding: 6px 0;
             font-size: 10px;
-            border-bottom: 1px border-dash #e2e8f0;
+            padding: 6px 0;
+            color: #334155;
+            border-bottom: 1px dashed #e2e8f0;
           }
-          .stmt-row.total {
-            border-top: 1.5px solid #0f172a;
-            border-bottom: 2px double #0f172a;
+          .stmt-line.subtotal {
+            font-weight: 700;
+            color: #0f172a;
+            background: #f8fafc;
+            padding: 7px 10px;
+            border-radius: 4px;
+            border-bottom: none;
+            margin: 4px 0;
+          }
+          .stmt-line.grand-total {
+            font-size: 11.5px;
             font-weight: 800;
-            font-size: 11px;
-            margin-top: 4px;
-            padding: 8px 0;
+            color: #16a34a;
+            border-top: 2px solid #0f172a;
+            border-bottom: 2px double #0f172a;
+            padding: 10px 0;
+            margin-top: 8px;
           }
         </style>
       `;
 
       const headerHTML = (pageTitle, pageNum, totalPages) => `
         <div class="pdf-header">
-          <div class="pdf-logo">JAGO<span>NUTRITION</span></div>
+          <div class="pdf-header-left">
+            <img src="${logoBase64}" class="pdf-logo-img" alt="Logo" />
+            <div>
+              <div class="pdf-brand-title">JagoNutritionID</div>
+              <div class="pdf-brand-subtitle">Monthly Sales & Inventory Report</div>
+            </div>
+          </div>
           <div class="pdf-doc-title">
-            <h1>MONTHLY FINANCIAL & INVENTORY REPORT</h1>
-            <p>Periode: ${monthLabel} | Page ${pageNum} of ${totalPages}</p>
+            <h1>${pageTitle}</h1>
+            <p>Period: <strong>${monthLabel}</strong> | Generated: ${genDateStr}</p>
           </div>
         </div>
       `;
 
       const footerHTML = (pageNum, totalPages) => `
         <div class="pdf-footer">
-          <span>JagoNutritionID Official Business Report — Confidential & Proprietary</span>
+          <span>JagoNutritionID — Confidential Business Report</span>
           <span>Page ${pageNum} of ${totalPages}</span>
         </div>
       `;
 
-      printRoot.innerHTML = styleHeader + `
-        <!-- PAGE 1: Executive Summary & Financial Overview -->
-        <div class="pdf-page">
-          ${headerHTML("Executive Summary", 1, 5)}
-          
-          <div class="pdf-section-title">1. Ringkasan Eksekutif & Kinerja Penjualan (Executive Summary)</div>
-          <p style="font-size: 10px; line-height: 1.5; color: #334155; margin-bottom: 16px;">
-            Laporan resmi kinerja keuangan dan pergerakan stok barang untuk periode <strong>${monthLabel}</strong>. 
-            Seluruh transaksi penjualan completed, retur konsumen, dan riwayat restock supplier telah melalui verifikasi 10-Point System Reconciliation Engine.
-          </p>
+      // Sales transactions in the current period
+      const salesInMonth = appState.sales.filter(s => {
+        const d = new Date(s.date || s.created_at);
+        return d.getMonth() + 1 === month && d.getFullYear() === year;
+      });
 
-          <div class="stat-grid">
-            <div class="stat-box">
-              <div class="stat-label">Gross Sales</div>
-              <div class="stat-value font-mono">${formatIDR(metrics.grossSales)}</div>
+      printRoot.innerHTML = styleHeader + `
+        <!-- PAGE 1: EXECUTIVE SUMMARY -->
+        <div class="pdf-page">
+          ${headerHTML("EXECUTIVE SUMMARY", 1, 5)}
+          
+          <div class="pdf-section-title">1. RINGKASAN EKSEKUTIF KEUANGAN (EXECUTIVE FINANCIAL SUMMARY)</div>
+          
+          <div class="kpi-grid-5">
+            <div class="kpi-card">
+              <div class="kpi-card-title">1. Penjualan Kotor</div>
+              <div class="kpi-card-val font-mono">${formatIDR(metrics.grossSales)}</div>
             </div>
-            <div class="stat-box">
-              <div class="stat-label">Net Sales</div>
-              <div class="stat-value font-mono" style="color: #15803d;">${formatIDR(metrics.netSales)}</div>
+            <div class="kpi-card">
+              <div class="kpi-card-title">2. Diskon</div>
+              <div class="kpi-card-val font-mono" style="color: #64748b;">${formatIDR(metrics.totalDiscounts)}</div>
             </div>
-            <div class="stat-box">
-              <div class="stat-label">Cost of Goods Sold</div>
-              <div class="stat-value font-mono">${formatIDR(metrics.cogs)}</div>
+            <div class="kpi-card">
+              <div class="kpi-card-title">3. Penjualan Bersih</div>
+              <div class="kpi-card-val font-mono" style="color: #16a34a;">${formatIDR(metrics.netSales)}</div>
             </div>
-            <div class="stat-box">
-              <div class="stat-label">Gross Profit</div>
-              <div class="stat-value font-mono" style="color: #1d4ed8;">${formatIDR(metrics.grossProfit)}</div>
-              <div style="font-size: 8px; color: #64748b; margin-top:2px;">Margin: ${metrics.grossProfitMargin.toFixed(2)}%</div>
+            <div class="kpi-card">
+              <div class="kpi-card-title">4. HPP Bersih</div>
+              <div class="kpi-card-val font-mono" style="color: #475569;">${formatIDR(metrics.cogs)}</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-card-title">5. Laba Kotor</div>
+              <div class="kpi-card-val font-mono" style="color: #2563eb;">${formatIDR(metrics.grossProfit)}</div>
             </div>
           </div>
 
-          <div class="pdf-section-title">2. Matriks Verifikasi & Rekonsiliasi System (System Audit & Reconciliation Engine)</div>
-          <table class="pdf-table">
-            <thead>
-              <tr>
-                <th style="width: 35px;" class="text-center">No</th>
-                <th style="width: 250px;">Item Verifikasi Sistem</th>
-                <th style="width: 80px;" class="text-center">Hasil Audit</th>
-                <th>Keterangan / Rincian Verifikasi</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${metrics.auditChecks.map(c => `
-                <tr>
-                  <td class="text-center font-bold">${c.id}</td>
-                  <td class="font-bold">${c.check}</td>
-                  <td class="text-center font-bold" style="color:${c.pass ? '#15803d' : '#b91c1c'}; স্বপ্নের${c.pass ? 'PASSED' : 'FAILED'}</td>
-                  <td>${c.detail}</td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
-
-          <div style="margin-top: 20px; padding: 12px; border: 1px solid ${metrics.overallReconciled ? '#bbf7d0' : '#fecaca'}; background-color: ${metrics.overallReconciled ? '#f0fdf4' : '#fef2f2'}; border-radius: 4px;">
-            <div style="font-size: 11px; font-weight: 800; color: ${metrics.overallReconciled ? '#166534' : '#991b1b'};">
-              OVERALL STATUS: ${metrics.overallReconciled ? 'RECONCILED (SISTEM KONSISTEN & AMPUH)' : 'DISCREPANCY DETECTED (KETIDAKCOCOKAN STOK DETEKSI)'}
+          <div class="pdf-section-title">2. RINGKASAN OPERASIONAL & TRANSAKSI</div>
+          <div class="summary-box">
+            <div class="summary-box-title">Ringkasan Aktivitas Operasional (${monthLabel})</div>
+            <div class="summary-row">
+              <span>Total Transaksi Penjualan (Completed Sales):</span>
+              <span class="font-mono font-bold">${metrics.completedSalesCount} Transaksi (${metrics.totalGrossSoldQty} pcs)</span>
             </div>
-            <div style="font-size: 9.5px; color: #334155; margin-top: 4px;">
-              ${metrics.overallReconciled ? 'Seluruh transaksi penjualan, retur, refund, restock supplier, dan stok fisik konsisten 100% dengan ledger historis.' : 'Terdapat ketidakcocokan antara hasil perhitungan formula expected stock dan stok fisik gudang. Periksa rincian selisih (variance) per SKU.'}
+            <div class="summary-row">
+              <span>Total Customer Return (Retur Pelanggan):</span>
+              <span class="font-mono font-bold" style="color: #b91c1c;">${metrics.returnsCount} Transaksi (${metrics.totalReturnedQty} pcs)</span>
+            </div>
+            <div class="summary-row">
+              <span>Total Supplier Restock (Restock Supplier):</span>
+              <span class="font-mono font-bold" style="color: #2563eb;">${metrics.restocksCount} Batch (${metrics.totalRestockQty} pcs)</span>
+            </div>
+            <div class="summary-row" style="border-top: 1px solid #e2e8f0; margin-top: 4px; padding-top: 6px; font-weight: 700;">
+              <span>Total Available Stock Gudang Akhir Periode:</span>
+              <span class="font-mono font-bold text-emerald-700">${metrics.totalActualClosingQty} pcs</span>
+            </div>
+          </div>
+
+          <div class="pdf-section-title">3. RINGKASAN RETUR CUSTOMER</div>
+          <div class="summary-box" style="border-color: #fde68a; background: #fffbeb;">
+            <div class="summary-box-title" style="color: #92400e; border-color: #fcd34d;">Status Retur Pelanggan & Impact Platform Fee</div>
+            <div class="summary-row">
+              <span>Total Barang Diretur Pelanggan:</span>
+              <span class="font-mono font-bold">${metrics.totalReturnedQty} pcs (Refund: ${formatIDR(metrics.totalRefunds)})</span>
+            </div>
+            <div class="summary-row" style="color: #166534;">
+              <span>Condition RESTOCKABLE (Layak Jual - Kembali ke Stok):</span>
+              <span class="font-mono font-bold">+${metrics.totalResalableReturnedQty} pcs</span>
+            </div>
+            <div class="summary-row" style="color: #991b1b;">
+              <span>Condition DAMAGED / QUARANTINE (Tidaak Masuk Stok):</span>
+              <span class="font-mono font-bold">${metrics.totalDamagedReturnedQty} pcs</span>
+            </div>
+            <div class="summary-row" style="color: #b45309;">
+              <span>Biaya Retur Shopee (Shopee Return Logistics Fee):</span>
+              <span class="font-mono font-bold">(${formatIDR(metrics.totalReturnFees)})</span>
+            </div>
+            <div class="summary-row" style="border-top: 1px solid #fcd34d; margin-top: 4px; padding-top: 6px; font-weight: 800; color: #1e3a8a;">
+              <span>Laba Kotor Setelah Biaya Retur:</span>
+              <span class="font-mono font-bold">${formatIDR(metrics.grossProfitAfterReturnFee)}</span>
             </div>
           </div>
 
           ${footerHTML(1, 5)}
         </div>
 
-        <!-- PAGE 2: Product Performance -->
+        <!-- PAGE 2: PENJUALAN -->
         <div class="pdf-page">
-          ${headerHTML("Product Performance", 2, 5)}
+          ${headerHTML("PENJUALAN (SALES DETAILS)", 2, 5)}
 
-          <div class="pdf-section-title">3. Performa Produk Per SKU (Product Performance & Sales Analysis)</div>
+          <div class="pdf-section-title">RINCIAN TRANSAKSI PENJUALAN (${monthLabel})</div>
+          <p style="font-size: 8.5px; color: #64748b; margin-bottom: 10px;">Daftar seluruh transaksi penjualan completed pada periode berjalan.</p>
+          
           <table class="pdf-table">
             <thead>
               <tr>
-                <th style="width: 70px;">SKU</th>
-                <th style="width: 150px;">Nama Produk</th>
-                <th style="width: 45px;" class="text-right">Stok Awal</th>
-                <th style="width: 45px;" class="text-right">Restock</th>
-                <th style="width: 45px;" class="text-right">Sold Qty</th>
-                <th style="width: 45px;" class="text-right">Retur Qty</th>
-                <th style="width: 45px;" class="text-right">Net Sold</th>
-                <th style="width: 75px;" class="text-right">Gross Sales</th>
-                <th style="width: 70px;" class="text-right">Net Sales</th>
-                <th style="width: 70px;" class="text-right">Gross Profit</th>
+                <th style="width: 65px;">Tanggal</th>
+                <th style="width: 105px;">No. Transaksi</th>
+                <th style="width: 150px;">Produk</th>
+                <th style="width: 35px;" class="text-right">Qty</th>
+                <th style="width: 65px;" class="text-right">Harga</th>
+                <th style="width: 60px;" class="text-right">Diskon</th>
+                <th style="width: 75px;" class="text-right">Total Net</th>
               </tr>
             </thead>
             <tbody>
-              ${metrics.productPerformance.map(p => `
-                <tr>
-                  <td class="font-mono font-bold">${p.sku}</td>
-                  <td>${p.name}</td>
-                  <td class="text-right font-mono">${p.openingStock}</td>
-                  <td class="text-right font-mono">${p.restockQty}</td>
-                  <td class="text-right font-mono font-bold">${p.grossSoldQty}</td>
-                  <td class="text-right font-mono" style="color: #b91c1c;">${p.totalReturnQty}</td>
-                  <td class="text-right font-mono font-bold" style="color: #15803d;">${p.netSoldQty}</td>
-                  <td class="text-right font-mono">${formatIDR(p.grossSales)}</td>
-                  <td class="text-right font-mono font-bold">${formatIDR(p.netSales)}</td>
-                  <td class="text-right font-mono font-bold" style="color: #1d4ed8;">${formatIDR(p.grossProfit)}</td>
-                </tr>
-              `).join('')}
+              ${salesInMonth.length === 0 ? `
+                <tr><td colspan="7" class="text-center" style="padding: 12px; color: #94a3b8;">Tidak ada transaksi penjualan pada periode ini.</td></tr>
+              ` : salesInMonth.map(s => {
+                const item = (s.items && s.items[0]) ? s.items[0] : {};
+                const pName = item.name || item.product_id || 'Produk';
+                const qty = item.qty || 1;
+                const unitPrice = item.shopeeCatalogPrice || item.catalog_price || 650000;
+                const totalCatalog = unitPrice * qty;
+                const discount = item.discount || (totalCatalog - s.total_amount);
+                return `
+                  <tr>
+                    <td>${s.date ? new Date(s.date).toLocaleDateString('id-ID') : '-'}</td>
+                    <td class="font-mono font-bold">${s.id}</td>
+                    <td>${pName}</td>
+                    <td class="text-right font-mono font-bold">${qty}</td>
+                    <td class="text-right font-mono">${formatIDR(unitPrice)}</td>
+                    <td class="text-right font-mono" style="color: #64748b;">${formatIDR(discount)}</td>
+                    <td class="text-right font-mono font-bold" style="color: #16a34a;">${formatIDR(s.total_amount)}</td>
+                  </tr>
+                `;
+              }).join('')}
+              <tr class="total-row">
+                <td colspan="3">TOTAL PENJUALAN PERIODE INI</td>
+                <td class="text-right font-mono">${metrics.totalGrossSoldQty}</td>
+                <td class="text-right font-mono">${formatIDR(metrics.grossSales)}</td>
+                <td class="text-right font-mono">${formatIDR(metrics.totalDiscounts)}</td>
+                <td class="text-right font-mono">${formatIDR(metrics.grossSales - metrics.totalDiscounts)}</td>
+              </tr>
             </tbody>
           </table>
 
           ${footerHTML(2, 5)}
         </div>
 
-        <!-- PAGE 3: Inventory Movement & Reconciliation -->
+        <!-- PAGE 3: RETUR CUSTOMER & RESTOCK SUPPLIER -->
         <div class="pdf-page">
-          ${headerHTML("Inventory Reconciliation", 3, 5)}
+          ${headerHTML("RETUR CUSTOMER & RESTOCK SUPPLIER", 3, 5)}
 
-          <div class="pdf-section-title">4. Ledger Pergerakan Stok & Rekonsiliasi Fisik (Inventory Movement & Reconciliation)</div>
-          <table class="pdf-table">
-            <thead>
-              <tr>
-                <th style="width: 70px;">SKU</th>
-                <th style="width: 150px;">Nama Produk</th>
-                <th style="width: 40px;" class="text-right">Stok Awal</th>
-                <th style="width: 40px;" class="text-right">Restock</th>
-                <th style="width: 45px;" class="text-right">Resalable Return</th>
-                <th style="width: 45px;" class="text-right">Gross Sold</th>
-                <th style="width: 50px;" class="text-right">Expected Closing</th>
-                <th style="width: 50px;" class="text-right">Actual Closing</th>
-                <th style="width: 60px;" class="text-center">Basis</th>
-                <th style="width: 45px;" class="text-right">Variance</th>
-                <th style="width: 50px;" class="text-center">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${metrics.productPerformance.map(p => `
-                <tr>
-                  <td class="font-mono font-bold">${p.sku}</td>
-                  <td>${p.name}</td>
-                  <td class="text-right font-mono">${p.openingStock}</td>
-                  <td class="text-right font-mono">${p.restockQty}</td>
-                  <td class="text-right font-mono" style="color: #15803d;">${p.resalableReturnedQty}</td>
-                  <td class="text-right font-mono">${p.grossSoldQty}</td>
-                  <td class="text-right font-mono font-bold">${p.expectedClosing}</td>
-                  <td class="text-right font-mono font-bold">${p.actualClosing}</td>
-                  <td class="text-center text-[8px] font-semibold text-slate-500">${p.actualClosingBasis}</td>
-                  <td class="text-right font-mono font-bold" style="color: ${p.variance === 0 ? '#15803d' : '#b91c1c'}; স্বপ্নের${p.variance}</td>
-                  <td class="text-center font-bold" style="color: ${p.status === 'MATCH' ? '#15803d' : '#b91c1c'}; স্বপ্নের${p.status}</td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
-
-          <div style="font-size: 9px; color: #64748b; line-height: 1.5; margin-top: 12px; padding: 10px; border: 1px solid #e2e8f0; border-radius: 4px;">
-            <strong>Catatan Formula Independen Inventaris:</strong> Opening Stock ditentukan dari baseline (Sept 2026: 12/5/5/6) dan akumulasi expected closing periode sebelumnya.
-            Expected Closing Stock = Opening Stock + Supplier Restock + Resalable Customer Return - Completed Sale. 
-            Actual Closing Stock = Historical Ledger Closing (Basis: LEDGER CLOSING), atau Physical Audit Record eksplisit (Basis: PHYSICAL STOCK COUNT). Live current inventory tidak pernah dibaca sebagai historical physical count!
-          </div>
-
-          ${footerHTML(3, 5)}
-        </div>
-
-        <!-- PAGE 4: Customer Return Detail & Restock History -->
-        <div class="pdf-page">
-          ${headerHTML("Returns & Restocks", 4, 5)}
-
-          <div class="pdf-section-title">5. Rincian Customer Return & Return Platform Fees</div>
+          <div class="pdf-section-title">SECTION A: RETUR CUSTOMER (CUSTOMER RETURNS)</div>
           ${metrics.returnsInMonth.length === 0 ? `
-            <p style="font-size: 9.5px; color: #64748b; font-style: italic; margin-bottom: 20px;">Tidak ada transaksi customer return / refund pada periode ini.</p>
+            <div style="padding: 12px; border: 1px solid #e2e8f0; background: #f8fafc; border-radius: 6px; font-size: 9px; color: #64748b; margin-bottom: 20px;">
+              Tidak ada transaksi customer return pada periode ini.
+            </div>
           ` : `
             <table class="pdf-table">
               <thead>
                 <tr>
-                  <th style="width: 55px;">Tgl Retur</th>
-                  <th style="width: 65px;">Sale ID</th>
-                  <th style="width: 65px;">Return ID</th>
-                  <th style="width: 120px;">Produk</th>
-                  <th style="width: 25px;" class="text-right">Qty</th>
-                  <th style="width: 55px;" class="text-right">Refund</th>
-                  <th style="width: 55px;" class="text-right">Return Fee</th>
-                  <th style="width: 60px;">Disposition</th>
-                  <th>Alasan Retur</th>
+                  <th style="width: 60px;">Tanggal</th>
+                  <th style="width: 85px;">No. Retur</th>
+                  <th style="width: 85px;">Transaksi Asli</th>
+                  <th style="width: 110px;">Produk</th>
+                  <th style="width: 30px;" class="text-right">Qty</th>
+                  <th style="width: 65px;" class="text-right">Refund</th>
+                  <th style="width: 55px;" class="text-right">Biaya Shopee</th>
+                  <th style="width: 70px;" class="text-center">Kondisi</th>
                 </tr>
               </thead>
               <tbody>
                 ${metrics.returnsInMonth.map(r => `
                   <tr>
                     <td>${r.returnDate}</td>
-                    <td class="font-mono">${r.saleId}</td>
                     <td class="font-mono font-bold">${r.id}</td>
+                    <td class="font-mono">${r.saleId}</td>
                     <td>${r.productName}</td>
                     <td class="text-right font-mono font-bold">${r.qty}</td>
                     <td class="text-right font-mono font-bold" style="color: #b91c1c;">${formatIDR(r.refundAmount)}</td>
                     <td class="text-right font-mono font-bold" style="color: #b45309;">${formatIDR(r.returnFee || r.return_fee || 0)}</td>
-                    <td><span class="font-bold" style="color:${r.disposition === 'RESTOCKABLE' ? '#15803d' : '#b45309'}; স্বপ্নের${r.disposition}</span></td>
-                    <td>${r.reason}</td>
+                    <td class="text-center font-bold" style="color: ${r.disposition === 'RESTOCKABLE' ? '#16a34a' : '#b45309'};">${r.disposition}</td>
                   </tr>
                 `).join('')}
               </tbody>
             </table>
           `}
 
-          <div class="pdf-section-title" style="margin-top:24px;">6. Riwayat Restock Supplier (Restock History: Supplier -> Warehouse)</div>
+          <div class="pdf-section-title" style="margin-top: 24px;">SECTION B: RESTOCK SUPPLIER (SUPPLIER ONLY)</div>
           ${metrics.restocksInMonth.length === 0 ? `
-            <p style="font-size: 9.5px; color: #64748b; font-style: italic;">Tidak ada riwayat restock dari supplier pada periode ini.</p>
+            <div style="padding: 16px; border: 1px solid #cbd5e1; background: #f8fafc; border-radius: 6px; font-size: 9.5px; color: #475569; font-weight: 500;">
+              Tidak ada restock supplier pada periode ini.
+            </div>
           ` : `
             <table class="pdf-table">
               <thead>
                 <tr>
-                  <th style="width: 70px;">Tanggal</th>
-                  <th style="width: 80px;">Restock ID</th>
-                  <th style="width: 160px;">Produk</th>
+                  <th style="width: 65px;">Tanggal</th>
+                  <th style="width: 90px;">No. Batch</th>
+                  <th style="width: 150px;">Produk</th>
                   <th style="width: 40px;" class="text-right">Qty</th>
                   <th style="width: 75px;" class="text-right">Unit HPP</th>
-                  <th style="width: 80px;" class="text-right">Total HPP</th>
-                  <th>Petugas</th>
+                  <th style="width: 85px;" class="text-right">Total HPP</th>
                 </tr>
               </thead>
               <tbody>
@@ -5685,73 +5778,139 @@
                     <td class="text-right font-mono font-bold">${r.qty}</td>
                     <td class="text-right font-mono">${formatIDR(r.unitHPP)}</td>
                     <td class="text-right font-mono font-bold">${formatIDR((r.unitHPP || 0) * (r.qty || 0))}</td>
-                    <td>${r.recordedBy || r.createdBy || 'Admin'}</td>
                   </tr>
                 `).join('')}
               </tbody>
             </table>
           `}
 
+          ${footerHTML(3, 5)}
+        </div>
+
+        <!-- PAGE 4: STOK GUDANG -->
+        <div class="pdf-page">
+          ${headerHTML("LAPORAN STOK GUDANG", 4, 5)}
+
+          <div class="pdf-section-title">REKONSILIASI STOK GUDANG PER PRODUK</div>
+          <p style="font-size: 8.5px; color: #64748b; margin-bottom: 10px;">Perhitungan pergerakan stok fisik berdasarkan Stok Awal, Restock Supplier, Penjualan, dan Retur Layak Jual.</p>
+
+          <table class="pdf-table">
+            <thead>
+              <tr>
+                <th style="width: 170px;">Produk</th>
+                <th style="width: 55px;" class="text-right">Stok Awal</th>
+                <th style="width: 55px;" class="text-right">Restock</th>
+                <th style="width: 55px;" class="text-right">Terjual</th>
+                <th style="width: 55px;" class="text-right">Retur</th>
+                <th style="width: 65px;" class="text-right">Stok Akhir</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${metrics.productPerformance.map(p => `
+                <tr>
+                  <td class="font-bold">${p.name} <span style="font-size: 8px; font-weight: normal; color: #64748b;">(${p.sku})</span></td>
+                  <td class="text-right font-mono">${p.openingStock}</td>
+                  <td class="text-right font-mono" style="color: #2563eb;">${p.restockQty}</td>
+                  <td class="text-right font-mono">${p.grossSoldQty}</td>
+                  <td class="text-right font-mono" style="color: #16a34a;">${p.resalableReturnedQty}</td>
+                  <td class="text-right font-mono font-bold" style="color: #0f172a;">${p.actualClosing}</td>
+                </tr>
+              `).join('')}
+              <tr class="total-row">
+                <td>TOTAL INVENTARIS GUDANG</td>
+                <td class="text-right font-mono">${metrics.productPerformance.reduce((acc, p) => acc + p.openingStock, 0)}</td>
+                <td class="text-right font-mono">${metrics.totalRestockQty}</td>
+                <td class="text-right font-mono">${metrics.totalGrossSoldQty}</td>
+                <td class="text-right font-mono">${metrics.totalResalableReturnedQty}</td>
+                <td class="text-right font-mono">${metrics.totalActualClosingQty}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div style="font-size: 8.5px; color: #64748b; background: #f8fafc; padding: 10px 12px; border-radius: 6px; border: 1px solid #e2e8f0; line-height: 1.5;">
+            <strong>Formula Perhitungan Stok Akhir:</strong><br />
+            Stok Akhir = Stok Awal + Restock Supplier - Terjual + Retur Layak Jual<br />
+            *Barang retur dengan kondisi DAMAGED / QUARANTINE tidak ditambahkan ke Stok Akhir.
+          </div>
+
           ${footerHTML(4, 5)}
         </div>
 
-        <!-- PAGE 5: Gross Profit Statement -->
+        <!-- PAGE 5: RINGKASAN KEUANGAN -->
         <div class="pdf-page">
-          ${headerHTML("Financial Statement", 5, 5)}
+          ${headerHTML("RINGKASAN KEUANGAN", 5, 5)}
 
-          <div class="pdf-section-title">7. Laporan Laba Kotor & Finansial Retur (Gross Profit Statement)</div>
+          <div class="pdf-section-title">LAPORAN LABA KOTOR & HASIL FINANSIAL PERIODE INI</div>
           
-          <div style="margin-top: 16px; margin-bottom: 24px; padding: 20px; border: 1px solid #0f172a; border-radius: 6px; background-color: #ffffff;">
-            <div style="font-size: 13px; font-weight: 800; text-transform: uppercase; border-bottom: 1.5px solid #0f172a; padding-bottom: 8px; margin-bottom: 16px;">
-              JAGONUTRITIONID — GROSS PROFIT STATEMENT (${monthLabel.toUpperCase()})
-            </div>
-
-            <div class="stmt-row">
-              <span>Gross Sales (Penjualan Kotor)</span>
+          <div class="stmt-box">
+            <div class="stmt-header">JAGONUTRITIONID — FINANCIAL STATEMENT (${monthLabel.toUpperCase()})</div>
+            
+            <div class="stmt-line">
+              <span>Penjualan Kotor (Gross Sales)</span>
               <span class="font-mono font-bold">${formatIDR(metrics.grossSales)}</span>
             </div>
-            <div class="stmt-row" style="color: #64748b;">
-              <span>Less: Customer Discounts (Potongan Harga)</span>
+            
+            <div class="stmt-line" style="color: #64748b;">
+              <span>Diskon (Customer Discounts)</span>
               <span class="font-mono">(${formatIDR(metrics.totalDiscounts)})</span>
             </div>
-            <div class="stmt-row" style="color: #64748b;">
-              <span>Less: Customer Returns & Refunds (Retur/Refund Konsumen)</span>
+
+            <div class="stmt-line subtotal" style="color: #334155;">
+              <span>Penjualan Bersih sebelum Retur</span>
+              <span class="font-mono">${formatIDR(metrics.grossSales - metrics.totalDiscounts)}</span>
+            </div>
+
+            <div class="stmt-line" style="color: #b91c1c;">
+              <span>Refund Retur (Customer Refunds)</span>
               <span class="font-mono">(${formatIDR(metrics.totalRefunds)})</span>
             </div>
-            <div class="stmt-row total" style="color: #16a34a;">
-              <span>NET SALES (PENJUALAN BERSIH)</span>
+
+            <div class="stmt-line subtotal" style="color: #16a34a; font-size: 10.5px;">
+              <span>PENJUALAN BERSIH (NET SALES)</span>
               <span class="font-mono">${formatIDR(metrics.netSales)}</span>
             </div>
 
-            <div class="stmt-row" style="margin-top: 12px; color: #475569;">
-              <span>Cost of Goods Sold (Harga Pokok Penjualan - COGS/HPP)</span>
-              <span class="font-mono">(${formatIDR(metrics.cogs)})</span>
+            <div class="stmt-line" style="margin-top: 8px;">
+              <span>HPP Penjualan (Sales COGS)</span>
+              <span class="font-mono">(${formatIDR(metrics.salesCogs)})</span>
             </div>
-            <div class="stmt-row" style="color: #b45309;">
-              <span>Less: Return Platform / Logistics Fees (Biaya Retur Platform/Shopee)</span>
-              <span class="font-mono">(${formatIDR(metrics.totalReturnFees)})</span>
+
+            <div class="stmt-line" style="color: #16a34a;">
+              <span>HPP Barang Retur yang Kembali ke Stok (COGS Reversal)</span>
+              <span class="font-mono">+${formatIDR(metrics.returnedResalableCogs)}</span>
             </div>
-            <div class="stmt-row total" style="color: #1d4ed8; font-size: 13px;">
-              <span>GROSS PROFIT (LABA KOTOR)</span>
+
+            <div class="stmt-line subtotal" style="color: #475569;">
+              <span>HPP BERSIH (NET COGS)</span>
+              <span class="font-mono">${formatIDR(metrics.cogs)}</span>
+            </div>
+
+            <div class="stmt-line subtotal" style="color: #2563eb; font-size: 10.5px; margin-top: 6px;">
+              <span>LABA KOTOR (GROSS PROFIT)</span>
               <span class="font-mono">${formatIDR(metrics.grossProfit)}</span>
             </div>
 
-            <div class="stmt-row" style="margin-top: 16px; background: #f8fafc; padding: 8px 10px; border-radius: 4px; font-weight: 700;">
-              <span>Gross Profit Margin</span>
-              <span class="font-mono" style="color: #1d4ed8;">${metrics.grossProfitMargin.toFixed(2)}%</span>
+            <div class="stmt-line" style="color: #b45309;">
+              <span>Biaya Retur Shopee (Return Logistics Fee)</span>
+              <span class="font-mono">(${formatIDR(metrics.totalReturnFees)})</span>
+            </div>
+
+            <div class="stmt-line grand-total">
+              <span>LABA KOTOR SETELAH BIAYA RETUR</span>
+              <span class="font-mono">${formatIDR(metrics.grossProfitAfterReturnFee)}</span>
             </div>
           </div>
 
-          <div style="margin-top: 40px; display: flex; justify-content: space-between; text-align: center; font-size: 10px; color: #475569;">
-            <div style="width: 200px;">
-              <p style="margin-bottom: 50px;">Dibuat Oleh,</p>
-              <div style="border-bottom: 1px solid #0f172a; font-weight: 700;">Finance & Admin</div>
-              <p style="font-size: 8.5px; color: #94a3b8; margin-top: 2px;">JagoNutritionID</p>
+          <div style="margin-top: 40px; display: flex; justify-content: space-between; text-align: center; font-size: 9.5px; color: #475569;">
+            <div style="width: 180px;">
+              <p style="margin-bottom: 45px;">Dibuat Oleh,</p>
+              <div style="border-bottom: 1px solid #0f172a; font-weight: 700; padding-bottom: 2px;">Finance & Admin</div>
+              <p style="font-size: 8px; color: #64748b; margin-top: 3px;">Adi (JagoNutritionID)</p>
             </div>
-            <div style="width: 200px;">
-              <p style="margin-bottom: 50px;">Disetujui Oleh,</p>
-              <div style="border-bottom: 1px solid #0f172a; font-weight: 700;">Business Owner</div>
-              <p style="font-size: 8.5px; color: #94a3b8; margin-top: 2px;">JagoNutritionID Management</p>
+            <div style="width: 180px;">
+              <p style="margin-bottom: 45px;">Disetujui Oleh,</p>
+              <div style="border-bottom: 1px solid #0f172a; font-weight: 700; padding-bottom: 2px;">Business Owner</div>
+              <p style="font-size: 8px; color: #64748b; margin-top: 3px;">Koko (JagoNutritionID Management)</p>
             </div>
           </div>
 
